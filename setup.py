@@ -24,7 +24,7 @@ News
 """ % read('README', 'CHANGES')
 
 setup(name='python-textops',
-      version='0.0.1',
+      version='0.0.2',
       description='Python text operations module',
       long_description=long_description,
       classifiers=[
