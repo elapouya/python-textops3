@@ -10,11 +10,12 @@ __version__ = '0.0.2'
 import os
 import sys
 import re
+from inspect import isclass
 
 class TextOp(object):
     
     def __init__(self,*args,**kwargs):
-        self.ops = [(self.__class__.__name__, args, kwargs)]
+        self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
         self.text = args and args[0] or ''
         print self.ops[0]
@@ -34,18 +35,19 @@ class TextOp(object):
     def __call__(self,*args,**kwargs):
         if self.op:
             print 'op param =',args,kwargs
-            self.ops.append((self.op, args, kwargs))
+            self.ops.append([self.op, args, kwargs])
             self.op = None
             return self
         else:
+            print 
             if args or kwargs:
                 self.ops[0][1] = args
                 self.ops[0][2] = kwargs
             self._process()
             return self.text
         
-    @staticmethod    
-    def op(text,*args,**kwargs):
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
         return text
         
     def _process(self):
@@ -54,7 +56,7 @@ class TextOp(object):
             print '%%%',op,args,kwargs
             opcls = globals().get(op)
             print '°°°',opcls
-            if issubclass(opcls, TextOp):
+            if isclass(opcls) and issubclass(opcls, TextOp):
                 self.text = opcls.op(self.text, *args, **kwargs)
             else:
                 self.text = getattr(self.text, op)(*args,**kwargs)
@@ -79,8 +81,12 @@ class TextOp(object):
         return int(self.text)
 
     def __repr__(self):
-        print '__repr__'
-        return '__repr__'    
+        rops = []
+        for op,args,kwargs in self.ops:
+            opargs = map(repr,args)
+            opargs += [ '%s=%r' % (k,v) for k,v in kwargs.items() ]
+            rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
+        return '.'.join(rops)
         
     def __add__(self,obj):
         print '__add__'
