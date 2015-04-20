@@ -59,6 +59,8 @@ class TextOp(object):
             else:
                 text = getattr(text, op)(*args,**kwargs)
         return text
+    
+    
 
     def __repr__(self):
         rops = []
@@ -73,14 +75,14 @@ class TextOp(object):
         return text * 2
         
     @classmethod    
-    def tolist(cls,text):
+    def _tolist(cls,text):
         print 'tolist text :',type(text)
         if not isinstance(text, basestring):
             return text
-        return cls.splitlines(text)
+        return cls._splitlines(text)
     
     @classmethod    
-    def splitlines(cls,text):
+    def _splitlines(cls,text):
         prevnl = -1
         while True:
             nextnl = text.find('\n', prevnl + 1)
@@ -95,12 +97,15 @@ def add_specials(cls):
         def method(self, *args, **kw):
             print '__%s__' % name,args,kw
             text = self._process()
+            if name not in ['__iter__'] and not isinstance(text, (basestring,list)):
+                print 'generator -> list'
+                text = list(text)
             return getattr(text, name)(*args, **kw)
         return method
     _special_names = [
-        '__abs__', '__add__', '__and__', '__cmp__', '__coerce__', 
+        '__abs__', '__add__', '__and__', '__cmp__', '__coerce__', '__str__', 
         '__contains__', '__delitem__', '__delslice__', '__div__', '__divmod__', 
-        '__eq__', '__float__', '__floordiv__', '__ge__', '__getitem__', 
+        '__eq__', '__float__', '__floordiv__', '__ge__','__iter__','__getitem__', 
         '__getslice__', '__gt__', '__hash__', '__hex__', '__le__', '__len__', 
         '__long__', '__lshift__', '__lt__', '__mod__', '__mul__', '__ne__', 
         '__neg__', '__oct__', '__or__', '__pos__', '__pow__', '__radd__', 
@@ -127,7 +132,7 @@ class grep(TextOp):
     def op(cls,text,pattern,*args,**kwargs):
         print '*** grep', args,kwargs
         regex = re.compile(pattern,cls.flags)
-        for line in cls.tolist(text):
+        for line in cls._tolist(text):
             if regex.search(line):
                 if not cls.reverse:
                     yield line
@@ -146,7 +151,7 @@ class first(TextOp):
     @classmethod    
     def op(cls,text,*args,**kwargs):
         print '*** first', args,kwargs
-        for line in cls.tolist(text):
+        for line in cls._tolist(text):
             return line
         return ''
 
@@ -155,6 +160,19 @@ class last(TextOp):
     def op(cls,text,*args,**kwargs):
         print '*** last', args,kwargs
         last = ''
-        for line in cls.tolist(text):
+        for line in cls._tolist(text):
             last = line
         return last
+    
+class gcat(TextOp):                
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        print '*** gcat', args,kwargs
+        with open(text) as fh:
+            for line in fh:
+                yield line
+                
+class cat(TextOp):                
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        return open(text).read()
