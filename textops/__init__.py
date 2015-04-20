@@ -11,13 +11,12 @@ import os
 import sys
 import re
 from inspect import isclass
+from _multiprocessing import flags
 
-class TextOp(object):
-    
+class TextOp(object):    
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
-        self.text = args and args[0] or ''
         print self.ops[0]
     
     def __getattr__(self,attr):
@@ -29,8 +28,7 @@ class TextOp(object):
         return self
     
     def __ror__(self,text):
-        self.text = text
-        return self._process()
+        return self._process(text)
     
     def __call__(self,*args,**kwargs):
         if self.op:
@@ -39,46 +37,28 @@ class TextOp(object):
             self.op = None
             return self
         else:
-            print 
-            if args or kwargs:
-                self.ops[0][1] = args
-                self.ops[0][2] = kwargs
-            self._process()
-            return self.text
+            return self._process(args and args[0] or '')
         
-    @classmethod    
-    def op(cls,text,*args,**kwargs):
-        return text
-        
-    def _process(self):
+    def _process(self,text=None):
         print 'processing...'
+        if text is None:
+            args = self.ops[0][1]
+            if args:
+                text = args[0]
         for op,args,kwargs in self.ops:
             print '%%%',op,args,kwargs
             opcls = globals().get(op)
-            print '°°°',opcls
+            print '°°°',opcls,type(opcls)
             if isclass(opcls) and issubclass(opcls, TextOp):
-                self.text = opcls.op(self.text, *args, **kwargs)
+                try:
+                    text = opcls.op(text, *args, **kwargs)
+                except TypeError:
+                    print '*** you did not give the right number of parameters for %s()' % opcls.__name__
+                    raise
+                    
             else:
-                self.text = getattr(self.text, op)(*args,**kwargs)
-
-    def __iter__(self):
-        print '__iter__'
-        self._process()
-        return iter(self.text)
-    
-    def __unicode__(self):
-        print '__unicode__'
-        return 'unicode'    
-        
-    def __str__(self):
-        print '__str__'
-        self._process()
-        return self.text    
-        
-    def __int__(self):
-        print '__int__'
-        self._process()
-        return int(self.text)
+                text = getattr(text, op)(*args,**kwargs)
+        return text
 
     def __repr__(self):
         rops = []
@@ -87,39 +67,94 @@ class TextOp(object):
             opargs += [ '%s=%r' % (k,v) for k,v in kwargs.items() ]
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)
+    
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        return text * 2
         
-    def __add__(self,obj):
-        print '__add__'
-        return '__add__'    
+    @classmethod    
+    def tolist(cls,text):
+        print 'tolist text :',type(text)
+        if not isinstance(text, basestring):
+            return text
+        return cls.splitlines(text)
+    
+    @classmethod    
+    def splitlines(cls,text):
+        prevnl = -1
+        while True:
+            nextnl = text.find('\n', prevnl + 1)
+            if nextnl < 0: break
+            yield text[prevnl + 1:nextnl]
+            prevnl = nextnl
+        yield text[prevnl + 1:]
+      
+    
+def add_specials(cls):
+    def make_method(name):
+        def method(self, *args, **kw):
+            print '__%s__' % name,args,kw
+            text = self._process()
+            return getattr(text, name)(*args, **kw)
+        return method
+    _special_names = [
+        '__abs__', '__add__', '__and__', '__cmp__', '__coerce__', 
+        '__contains__', '__delitem__', '__delslice__', '__div__', '__divmod__', 
+        '__eq__', '__float__', '__floordiv__', '__ge__', '__getitem__', 
+        '__getslice__', '__gt__', '__hash__', '__hex__', '__le__', '__len__', 
+        '__long__', '__lshift__', '__lt__', '__mod__', '__mul__', '__ne__', 
+        '__neg__', '__oct__', '__or__', '__pos__', '__pow__', '__radd__', 
+        '__rand__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', 
+        '__reversed__', '__rfloorfiv__', '__rlshift__', '__rmod__', 
+        '__rmul__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', 
+        '__rtruediv__', '__rxor__', '__setitem__', '__setslice__', '__sub__', 
+        '__truediv__', '__xor__',
+    ]
+    for n in _special_names:
+        setattr(cls,n,make_method(n))
+add_specials(TextOp)
         
-    def __radd__(self,o):
-        print '__radd__'
-        return '__radd__'    
-        
-    def __iadd__(self,o):
-        print '__iadd__'
-        return '__iadd__'    
-        
-    def __mul__(self,o):
-        print '__mul__'
-        return '__mul__'    
-        
-    def __rmul__(self,o):
-        print '__rmul__'
-        return '__rmul__'    
-        
-    def __imul__(self,o):
-        print '__imul__'
-        return '__imul__'    
-        
-    def __len__(self):
-        print '__len__'
-        self._process()
-        return len(self.text)    
-
 class length(TextOp):    
-    @staticmethod    
-    def op(text,*args,**kwargs):
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
         print '*** length'
         return len(text)
-    
+
+class grep(TextOp):
+    flags = 0
+    reverse = False
+    @classmethod    
+    def op(cls,text,pattern,*args,**kwargs):
+        print '*** grep', args,kwargs
+        regex = re.compile(pattern,cls.flags)
+        for line in cls.tolist(text):
+            if regex.search(line):
+                if not cls.reverse:
+                    yield line
+            else:
+                if cls.reverse:
+                    yield line
+
+class grepi(grep):
+    flags = re.IGNORECASE
+class grepv(grep):
+    reverse = True
+class grepvi(grepv):    
+    flags = re.IGNORECASE
+                
+class first(TextOp):                
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        print '*** first', args,kwargs
+        for line in cls.tolist(text):
+            return line
+        return ''
+
+class last(TextOp):                
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        print '*** last', args,kwargs
+        last = ''
+        for line in cls.tolist(text):
+            last = line
+        return last
