@@ -5,15 +5,14 @@ Created : 2015-04-03
 @author: Eric Lapouyade
 '''
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import os
 import sys
 import re
 from inspect import isclass
-from _multiprocessing import flags
 
-class TextOp(object):    
+class TextOp(object):
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
@@ -21,6 +20,7 @@ class TextOp(object):
     
     def __getattr__(self,attr):
         if not attr.startswith('_'):
+            self.ops.append([attr, (), {}])
             print 'op =',attr
             self.op = attr
         else:
@@ -30,14 +30,18 @@ class TextOp(object):
     def __ror__(self,text):
         return self._process(text)
     
+    def __iter__(self):
+        return iter(self.g)
+    
     def __call__(self,*args,**kwargs):
         if self.op:
             print 'op param =',args,kwargs
-            self.ops.append([self.op, args, kwargs])
+            self.ops[-1][1] = args
+            self.ops[-1][2] = kwargs
             self.op = None
             return self
         else:
-            return self._process(args and args[0] or '')
+            return self._process(args and args[0] or None)
         
     def _process(self,text=None):
         print 'processing...'
@@ -57,10 +61,8 @@ class TextOp(object):
                     raise
                     
             else:
-                text = getattr(text, op)(*args,**kwargs)
+                print '*** TextOp "%s" does not exist.' % op
         return text
-    
-    
 
     def __repr__(self):
         rops = []
@@ -69,6 +71,28 @@ class TextOp(object):
             opargs += [ '%s=%r' % (k,v) for k,v in kwargs.items() ]
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)
+    
+    @property
+    def g(self):
+        return self._tolist(self._process())
+    
+    @property
+    def l(self):
+        text = self._process()
+        if isinstance(text, basestring):
+            return text.splitlines()
+        elif not isinstance(text, list):
+            return list(text)
+        return text
+    
+    @property
+    def s(self):
+        text = self._process()
+        if isinstance(text, basestring):
+            return text
+        elif not isinstance(text, list):
+            return '\n'.join(list(text))
+        return '\n'.join(text)
     
     @classmethod    
     def op(cls,text,*args,**kwargs):
@@ -92,33 +116,6 @@ class TextOp(object):
         yield text[prevnl + 1:]
       
     
-def add_specials(cls):
-    def make_method(name):
-        def method(self, *args, **kw):
-            print '__%s__' % name,args,kw
-            text = self._process()
-            if name not in ['__iter__'] and not isinstance(text, (basestring,list)):
-                print 'generator -> list'
-                text = list(text)
-            return getattr(text, name)(*args, **kw)
-        return method
-    _special_names = [
-        '__abs__', '__add__', '__and__', '__cmp__', '__coerce__', '__str__', 
-        '__contains__', '__delitem__', '__delslice__', '__div__', '__divmod__', 
-        '__eq__', '__float__', '__floordiv__', '__ge__','__iter__','__getitem__', 
-        '__getslice__', '__gt__', '__hash__', '__hex__', '__le__', '__len__', 
-        '__long__', '__lshift__', '__lt__', '__mod__', '__mul__', '__ne__', 
-        '__neg__', '__oct__', '__or__', '__pos__', '__pow__', '__radd__', 
-        '__rand__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', 
-        '__reversed__', '__rfloorfiv__', '__rlshift__', '__rmod__', 
-        '__rmul__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', 
-        '__rtruediv__', '__rxor__', '__setitem__', '__setslice__', '__sub__', 
-        '__truediv__', '__xor__',
-    ]
-    for n in _special_names:
-        setattr(cls,n,make_method(n))
-add_specials(TextOp)
-        
 class length(TextOp):    
     @classmethod    
     def op(cls,text,*args,**kwargs):
@@ -140,12 +137,9 @@ class grep(TextOp):
                 if cls.reverse:
                     yield line
 
-class grepi(grep):
-    flags = re.IGNORECASE
-class grepv(grep):
-    reverse = True
-class grepvi(grepv):    
-    flags = re.IGNORECASE
+class grepi(grep): flags = re.IGNORECASE
+class grepv(grep): reverse = True
+class grepvi(grepv): flags = re.IGNORECASE
                 
 class first(TextOp):                
     @classmethod    
@@ -176,3 +170,27 @@ class cat(TextOp):
     @classmethod    
     def op(cls,text,*args,**kwargs):
         return open(text).read()
+    
+class StrOp(TextOp):
+    @classmethod    
+    def op(cls,text,*args,**kwargs):
+        if isinstance(text, basestring):
+            return cls.fn(text,*args,**kwargs)
+        elif isinstance(text, list):
+            return [ cls.fn(line,*args,**kwargs) for line in text ]
+        return cls.gop(text)
+    def gop(cls,text):
+        for line in text:
+            yield cls.fn(line,*args,**kwargs)
+            
+class upper(StrOp): fn = str.upper
+class lower(StrOp): fn = str.lower
+class capitalize(StrOp): fn = str.capitalize
+class replace(StrOp): fn = str.replace
+class expandtabs(StrOp): fn = str.expandtabs
+class split(StrOp): fn = str.split
+class strip(StrOp): fn = str.strip
+
+
+
+
