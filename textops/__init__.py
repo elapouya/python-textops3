@@ -148,12 +148,8 @@ class grep(TextOp):
         print '*** grep', args,kwargs
         regex = re.compile(pattern,cls.flags)
         for line in cls._tolist(text):
-            if regex.search(line):
-                if not cls.reverse:
-                    yield line
-            else:
-                if cls.reverse:
-                    yield line
+            if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                yield line
 
 class grepi(grep): flags = re.IGNORECASE
 class grepv(grep): reverse = True
@@ -164,16 +160,17 @@ class grepc(TextOp):
     reverse = False
     @classmethod
     def op(cls,text,pattern,*args,**kwargs):
-        print '*** grep', args,kwargs
+        print '*** grepc', args,kwargs
         regex = re.compile(pattern,cls.flags)
+        count = 0
         for line in cls._tolist(text):
-            if regex.search(line):
-                if not cls.reverse:
-                    yield line
-            else:
-                if cls.reverse:
-                    yield line
+            if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                count += 1
+        return count
 
+class grepci(grepc): flags = re.IGNORECASE
+class grepcv(grepc): reverse = True
+class grepcvi(grepcv): flags = re.IGNORECASE
 
 
 class first(TextOp):
