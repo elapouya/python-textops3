@@ -153,24 +153,14 @@ class TextOp(object):
         print 'tolist text :',type(text)
         if not isinstance(text, basestring):
             return text
-        return cls._splitlines(text)
-
-    @classmethod
-    def _splitlines(cls,text):
-        prevnl = -1
-        while True:
-            nextnl = text.find('\n', prevnl + 1)
-            if nextnl < 0: break
-            yield text[prevnl + 1:nextnl]
-            prevnl = nextnl
-        yield text[prevnl + 1:]
+        return text.splitlines()
 
 class cat(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
         with open(text) as fh:
             for line in fh:
-                yield line
+                yield line.rstrip('\r\n')
 
 class catq(TextOp):
     @classmethod
@@ -178,7 +168,7 @@ class catq(TextOp):
         try:
             with open(text) as fh:
                 for line in fh:
-                    yield line
+                    yield line.rstrip('\r\n')
         except (IOError,TypeError):
             pass
 
@@ -199,7 +189,6 @@ class catsq(TextOp):
 class length(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        print '*** length'
         return len(text)
 
 class grep(TextOp):
@@ -207,7 +196,6 @@ class grep(TextOp):
     reverse = False
     @classmethod
     def op(cls,text,pattern,*args,**kwargs):
-        print '*** grep', args,kwargs
         regex = re.compile(pattern,cls.flags)
         for line in cls._tolist(text):
             if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
@@ -222,7 +210,6 @@ class grepc(TextOp):
     reverse = False
     @classmethod
     def op(cls,text,pattern,*args,**kwargs):
-        print '*** grepc', args,kwargs
         if text is None:
             return 0
         regex = re.compile(pattern,cls.flags)
@@ -240,7 +227,6 @@ class grepcvi(grepcv): flags = re.IGNORECASE
 class first(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        print '*** first', args,kwargs
         for line in cls._tolist(text):
             return line
         return ''
@@ -248,19 +234,83 @@ class first(TextOp):
 class last(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if text is None:
-            return None
-        print '*** last', args,kwargs
         last = ''
         for line in cls._tolist(text):
             last = line
         return last
 
+class head(TextOp):
+    @classmethod
+    def op(cls,text,lines,*args,**kwargs):
+        for i,line in enumerate(cls._tolist(text)):
+            if i >= lines:
+                break
+            yield line
+
+class tail(TextOp):
+    @classmethod
+    def op(cls,text,lines,*args,**kwargs):
+        buffer = []
+        for line in cls._tolist(text):
+            buffer.append(line)
+            if len(buffer) > lines:
+                buffer.pop(0)
+        for line in buffer:
+            yield line
+
+class sed(TextOp):
+    flags = 0
+    @classmethod
+    def op(cls,text,pat,repl,*args,**kwargs):
+        if isinstance(pat, basestring):
+            pat = re.compile(pat,cls.flags)
+        for line in cls._tolist(text):
+            yield pat.sub(repl,line)
+
+class sedi(sed): flags = re.IGNORECASE
+
+class between(TextOp):
+    flags = 0
+    @classmethod
+    def _build_regex_list(cls,string_or_list):
+        if string_or_list is None:
+            return []
+        elif isinstance(string_or_list, basestring):
+            lst = [string_or_list]
+        else:
+            lst = list(string_or_list)
+        return [ re.compile(pat,cls.flags) if isinstance(pat, basestring) else pat for pat in lst ]
+
+    @classmethod
+    def op(cls, text, begin, end, get_begin=False, get_end=False,*args,**kwargs):
+        begin = cls._build_regex_list(begin)
+        end = cls._build_regex_list(end)
+
+        state = 0 if begin else 1
+
+        for line in cls._tolist(text):
+            if state == 0:
+                if begin[0].search(line):
+                    begin.pop(0)
+                if not begin:
+                    if get_begin:
+                        yield line
+                    state = 1
+            elif state == 1:
+                if end[0].search(line):
+                    end.pop(0)
+                if not end:
+                    if get_end:
+                        yield line
+                    break
+                else:
+                    yield line
+
+class betweeni(between): flags = re.IGNORECASE
+
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if text is None:
-            return None
         if isinstance(text, basestring):
             return cls.fn(text,*args,**kwargs)
         elif isinstance(text, list):
