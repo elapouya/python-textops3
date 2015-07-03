@@ -19,7 +19,7 @@ class TextOp(object):
         print self.ops[0]
 
     def __getattr__(self,attr):
-        if not attr.startswith('_'):
+        if not attr.startswith('_') and attr in globals():
             self.ops.append([attr, (), {}])
             print 'op =',attr
             self.op = attr
@@ -28,7 +28,11 @@ class TextOp(object):
         return self
 
     def __ror__(self,text):
+        print '*** ROR ***'
         return self._process(text)
+
+    def __str__(self):
+        return self.se
 
     def __iter__(self):
         return iter(self.g)
@@ -74,27 +78,55 @@ class TextOp(object):
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)
 
-    @property
-    def gen(self):
-        return self._tolist(self._process())
+    def make_gen(self, return_if_none=None):
+        text = self._process()
+        if text is None:
+            return return_if_none
+        return self._tolist(text)
 
     @property
-    def list(self):
+    def g(self):
+        return self.make_gen()
+
+    @property
+    def ge(self):
+        return self.make_gen([])
+
+    def make_list(self, return_if_none=None):
         text = self._process()
-        if isinstance(text, basestring):
+        if text is None:
+            return return_if_none
+        elif isinstance(text, basestring):
             return text.splitlines()
         elif not isinstance(text, list):
             return list(text)
         return text
 
     @property
-    def str(self):
+    def l(self):
+        return self.make_list()
+
+    @property
+    def le(self):
+        return self.make_list([])
+
+    def make_string(self, return_if_none=None):
         text = self._process()
-        if isinstance(text, basestring):
+        if text is None:
+            return return_if_none
+        elif isinstance(text, basestring):
             return text
         elif not isinstance(text, list):
             return '\n'.join(list(text))
         return '\n'.join(text)
+
+    @property
+    def s(self):
+        return self.make_string()
+
+    @property
+    def se(self):
+        return self.make_string('')
 
     @property
     def int(self):
@@ -133,6 +165,36 @@ class TextOp(object):
             prevnl = nextnl
         yield text[prevnl + 1:]
 
+class cat(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        with open(text) as fh:
+            for line in fh:
+                yield line
+
+class catq(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        try:
+            with open(text) as fh:
+                for line in fh:
+                    yield line
+        except (IOError,TypeError):
+            pass
+
+class cats(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        return open(text).read()
+
+class catsq(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        try:
+            return open(text).read()
+        except (IOError,TypeError):
+            return None
+
 
 class length(TextOp):
     @classmethod
@@ -161,6 +223,8 @@ class grepc(TextOp):
     @classmethod
     def op(cls,text,pattern,*args,**kwargs):
         print '*** grepc', args,kwargs
+        if text is None:
+            return 0
         regex = re.compile(pattern,cls.flags)
         count = 0
         for line in cls._tolist(text):
@@ -184,34 +248,26 @@ class first(TextOp):
 class last(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
+        if text is None:
+            return None
         print '*** last', args,kwargs
         last = ''
         for line in cls._tolist(text):
             last = line
         return last
 
-class gcat(TextOp):
-    @classmethod
-    def op(cls,text,*args,**kwargs):
-        print '*** gcat', args,kwargs
-        with open(text) as fh:
-            for line in fh:
-                yield line
-
-class cat(TextOp):
-    @classmethod
-    def op(cls,text,*args,**kwargs):
-        return open(text).read()
-
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
+        if text is None:
+            return None
         if isinstance(text, basestring):
             return cls.fn(text,*args,**kwargs)
         elif isinstance(text, list):
             return [ cls.fn(line,*args,**kwargs) for line in text ]
-        return cls.gop(text)
-    def gop(cls,text):
+        return cls.gop(text,*args,**kwargs)
+    @classmethod
+    def gop(cls,text,*args,**kwargs):
         for line in text:
             yield cls.fn(line,*args,**kwargs)
 
@@ -222,7 +278,6 @@ class replace(StrOp): fn = str.replace
 class expandtabs(StrOp): fn = str.expandtabs
 class split(StrOp): fn = str.split
 class strip(StrOp): fn = str.strip
-
 
 
 
