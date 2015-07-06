@@ -5,14 +5,14 @@ Created : 2015-04-03
 @author: Eric Lapouyade
 '''
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import os
 import sys
 import re
 from inspect import isclass
 
-class TextOp(object):
+class TextOp(object):    
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
@@ -37,6 +37,12 @@ class TextOp(object):
     def __iter__(self):
         return iter(self.g)
 
+    def __int__(self):
+        return iter(self.i)
+
+    def __float__(self):
+        return iter(self.f)
+
     def __call__(self,*args,**kwargs):
         if self.op:
             print 'op param =',args,kwargs
@@ -53,6 +59,8 @@ class TextOp(object):
             args = self.ops[0][1]
             if args:
                 text = args[0]
+                self.ops[0][1] = []
+                self.ops[0][2] = {}
         for op,args,kwargs in self.ops:
             print '%%%',op,args,kwargs
             opcls = globals().get(op)
@@ -78,22 +86,24 @@ class TextOp(object):
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)
 
-    def make_gen(self, return_if_none=None):
-        text = self._process()
+    @classmethod
+    def make_gen(cls, text, return_if_none=None):
         if text is None:
             return return_if_none
-        return self._tolist(text)
+        return cls._tolist(text)
 
     @property
     def g(self):
-        return self.make_gen()
+        text = self._process()
+        return self.make_gen(text)
 
     @property
     def ge(self):
-        return self.make_gen([])
-
-    def make_list(self, return_if_none=None):
         text = self._process()
+        return self.make_gen(text,[])
+
+    @classmethod
+    def make_list(cls, text, return_if_none=None):
         if text is None:
             return return_if_none
         elif isinstance(text, basestring):
@@ -104,14 +114,16 @@ class TextOp(object):
 
     @property
     def l(self):
-        return self.make_list()
+        text = self._process()
+        return self.make_list(text)
 
     @property
     def le(self):
-        return self.make_list([])
-
-    def make_string(self, return_if_none=None):
         text = self._process()
+        return self.make_list(text,[])
+
+    @classmethod
+    def make_string(cls, text, return_if_none=None):
         if text is None:
             return return_if_none
         elif isinstance(text, basestring):
@@ -122,31 +134,41 @@ class TextOp(object):
 
     @property
     def s(self):
-        return self.make_string()
+        text = self._process()
+        return self.make_string(text)
 
     @property
     def se(self):
-        return self.make_string('')
-
-    @property
-    def int(self):
         text = self._process()
+        return self.make_string(text,'')
+
+    @classmethod
+    def make_int(cls, text):
         try:
-            return int(text)
-        except ValueError:
+            return int(float(text))
+        except (ValueError, TypeError):
             return 0
 
     @property
-    def float(self):
+    def i(self):
         text = self._process()
+        return self.make_int(text)
+    
+    @classmethod
+    def make_float(cls, text):
         try:
             return float(text)
-        except ValueError:
+        except (ValueError, TypeError):
             return 0.0
 
+    @property
+    def f(self):
+        text = self._process()
+        return self.make_float(text)
+    
     @classmethod
     def op(cls,text,*args,**kwargs):
-        return text * 2
+        return cls.fn(text)
 
     @classmethod
     def _tolist(cls,text):
@@ -155,6 +177,15 @@ class TextOp(object):
             return text
         return text.splitlines()
 
+class tostr(TextOp): fn = TextOp.make_string
+class tostre(TextOp): fn = classmethod(lambda cls,text: TextOp.make_string(text,''))
+class tolist(TextOp): fn = TextOp.make_list
+class toliste(TextOp): fn = classmethod(lambda cls,text: TextOp.make_list(text,[]))
+class toint(TextOp): fn = TextOp.make_int
+class tofloat(TextOp): fn = TextOp.make_float
+class length(TextOp): fn = classmethod(lambda cls,text: len(text))
+class echo(TextOp): fn = classmethod(lambda cls,text: text)
+    
 class cat(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -184,12 +215,6 @@ class catsq(TextOp):
             return open(text).read()
         except (IOError,TypeError):
             return None
-
-
-class length(TextOp):
-    @classmethod
-    def op(cls,text,*args,**kwargs):
-        return len(text)
 
 class grep(TextOp):
     flags = 0
@@ -307,6 +332,28 @@ class between(TextOp):
                     yield line
 
 class betweeni(between): flags = re.IGNORECASE
+
+class cut(TextOp):
+    @classmethod
+    def split(cls, text, sep):
+        return text.split(sep)
+        
+    @classmethod
+    def op(cls, text, col, sep=None, not_present_value='', *args,**kwargs):
+        if isinstance(col,(list,tuple)):
+            nbcol = len(col)
+            for line in cls._tolist(text):
+                line_cols = cls.split(line,sep)
+                nblinecol = len(line_cols)
+                yield [ line_cols[c] if c < nblinecol else not_present_value for c in col ]
+        else:
+            for line in cls._tolist(text):
+                line_cols = cls.split(line,sep)
+                nblinecol = len(line_cols)
+                if col < nblinecol:
+                    yield line_cols[col]
+                else:          
+                    yield not_present_value            
 
 class StrOp(TextOp):
     @classmethod
