@@ -12,23 +12,20 @@ import sys
 import re
 from inspect import isclass
 
-class TextOp(object):    
+class TextOp(object):
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
-        print self.ops[0]
 
     def __getattr__(self,attr):
         if not attr.startswith('_') and attr in globals():
             self.ops.append([attr, (), {}])
-            print 'op =',attr
             self.op = attr
         else:
             raise AttributeError()
         return self
 
     def __ror__(self,text):
-        print '*** ROR ***'
         return self._process(text)
 
     def __str__(self):
@@ -45,7 +42,6 @@ class TextOp(object):
 
     def __call__(self,*args,**kwargs):
         if self.op:
-            print 'op param =',args,kwargs
             self.ops[-1][1] = args
             self.ops[-1][2] = kwargs
             self.op = None
@@ -54,7 +50,6 @@ class TextOp(object):
             return self._process(args and args[0] or None)
 
     def _process(self,text=None):
-        print 'processing...'
         if text is None:
             args = self.ops[0][1]
             if args:
@@ -62,9 +57,7 @@ class TextOp(object):
                 self.ops[0][1] = []
                 self.ops[0][2] = {}
         for op,args,kwargs in self.ops:
-            print '%%%',op,args,kwargs
             opcls = globals().get(op)
-            print '°°°',opcls,type(opcls)
             if isclass(opcls) and issubclass(opcls, TextOp):
                 try:
                     text = opcls.op(text, *args, **kwargs)
@@ -153,7 +146,7 @@ class TextOp(object):
     def i(self):
         text = self._process()
         return self.make_int(text)
-    
+
     @classmethod
     def make_float(cls, text):
         try:
@@ -165,14 +158,13 @@ class TextOp(object):
     def f(self):
         text = self._process()
         return self.make_float(text)
-    
+
     @classmethod
     def op(cls,text,*args,**kwargs):
         return cls.fn(text)
 
     @classmethod
     def _tolist(cls,text):
-        print 'tolist text :',type(text)
         if not isinstance(text, basestring):
             return text
         return text.splitlines()
@@ -185,7 +177,7 @@ class toint(TextOp): fn = TextOp.make_int
 class tofloat(TextOp): fn = TextOp.make_float
 class length(TextOp): fn = classmethod(lambda cls,text: len(text))
 class echo(TextOp): fn = classmethod(lambda cls,text: text)
-    
+
 class cat(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -337,7 +329,7 @@ class cut(TextOp):
     @classmethod
     def split(cls, text, sep):
         return text.split(sep)
-        
+
     @classmethod
     def op(cls, text, col, sep=None, not_present_value='', *args,**kwargs):
         if isinstance(col,(list,tuple)):
@@ -352,8 +344,24 @@ class cut(TextOp):
                 nblinecol = len(line_cols)
                 if col < nblinecol:
                     yield line_cols[col]
-                else:          
-                    yield not_present_value            
+                else:
+                    yield not_present_value
+
+class cutre(cut):
+    @classmethod
+    def split(cls, text, sep):
+        if hasattr(sep,'match'):
+            return sep.split(text)
+        return re.split(sep,text)
+
+class cutca(cut):
+    @classmethod
+    def split(cls, text, sep):
+        if hasattr(sep,'match'):
+            m = sep.match(text)
+        else:
+            m = re.match(sep,text)
+        return m.groups() if m else []
 
 class StrOp(TextOp):
     @classmethod
