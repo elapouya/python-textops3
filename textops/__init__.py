@@ -10,7 +10,7 @@ __version__ = '0.0.4'
 import os
 import sys
 import re
-from inspect import isclass
+import types
 
 class TextOp(object):
     def __init__(self,*args,**kwargs):
@@ -58,7 +58,7 @@ class TextOp(object):
                 self.ops[0][2] = {}
         for op,args,kwargs in self.ops:
             opcls = globals().get(op)
-            if isclass(opcls) and issubclass(opcls, TextOp):
+            if isinstance(opcls,type) and issubclass(opcls, TextOp):
                 try:
                     text = opcls.op(text, *args, **kwargs)
                     if text is None:
@@ -100,10 +100,10 @@ class TextOp(object):
         if text is None:
             return return_if_none
         elif isinstance(text, basestring):
-            return text.splitlines()
+            return ListExt(text.splitlines())
         elif not isinstance(text, list):
-            return list(text)
-        return text
+            return text
+        return ListExt(text)
 
     @property
     def l(self):
@@ -120,10 +120,10 @@ class TextOp(object):
         if text is None:
             return return_if_none
         elif isinstance(text, basestring):
-            return text
+            return StrExt(text)
         elif not isinstance(text, list):
-            return '\n'.join(list(text))
-        return '\n'.join(text)
+            return StrExt('\n').join(list(text))
+        return StrExt('\n').join(text)
 
     @property
     def s(self):
@@ -385,4 +385,46 @@ class split(StrOp): fn = str.split
 class strip(StrOp): fn = str.strip
 
 
+class StrExt(str):
+    def __getattribute__(self, name):
+        op_cls = globals().get(name)
+        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
+            def fn(*args,**kwargs):
+                return op_cls.op(self,*args,**kwargs)
+        else:
+            fn = super(StrExt, self).__getattribute__(name)
+
+        if not callable(fn):
+            return fn
+
+        def wrapper(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            if isinstance(result, basestring):
+                return StrExt(result)
+            elif isinstance(result, (types.GeneratorType,list,tuple)):
+                return ListExt(result)
+            return result
+        return wrapper
+
+
+class ListExt(list):
+    def __getattribute__(self, name):
+        op_cls = globals().get(name)
+        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
+            def fn(*args,**kwargs):
+                return op_cls.op(self,*args,**kwargs)
+        else:
+            fn = super(ListExt, self).__getattribute__(name)
+
+        if not callable(fn):
+            return fn
+
+        def wrapper(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            if isinstance(result, basestring):
+                return StrExt(result)
+            elif isinstance(result, (types.GeneratorType,list,tuple)):
+                return ListExt(result)
+            return result
+        return wrapper
 
