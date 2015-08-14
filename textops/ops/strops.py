@@ -11,44 +11,6 @@ import re
 class length(TextOp): fn = classmethod(lambda cls,text: len(text))
 class echo(TextOp): fn = classmethod(lambda cls,text: text)
 
-class cut(TextOp):
-    @classmethod
-    def split(cls, text, sep):
-        return text.split(sep)
-
-    @classmethod
-    def op(cls, text, col, sep=None, not_present_value='', *args,**kwargs):
-        if isinstance(col,(list,tuple)):
-            nbcol = len(col)
-            for line in cls._tolist(text):
-                line_cols = cls.split(line,sep)
-                nblinecol = len(line_cols)
-                yield [ line_cols[c] if c < nblinecol else not_present_value for c in col ]
-        else:
-            for line in cls._tolist(text):
-                line_cols = cls.split(line,sep)
-                nblinecol = len(line_cols)
-                if col < nblinecol:
-                    yield line_cols[col]
-                else:
-                    yield not_present_value
-
-class cutre(cut):
-    @classmethod
-    def split(cls, text, sep):
-        if hasattr(sep,'match'):
-            return sep.split(text)
-        return re.split(sep,text)
-
-class cutca(cut):
-    @classmethod
-    def split(cls, text, sep):
-        if hasattr(sep,'match'):
-            m = sep.match(text)
-        else:
-            m = re.match(sep,text)
-        return m.groups() if m else []
-
 class splitln(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -66,6 +28,53 @@ class StrOp(TextOp):
     def gop(cls,text,*args,**kwargs):
         for line in text:
             yield cls.fn(line,*args,**kwargs)
+
+class cut(StrOp):
+    @classmethod
+    def split(cls, text, sep):
+        return text.split(sep)
+
+    @classmethod
+    def fn(cls, text, sep=None, col=None, not_present_value='', *args,**kwargs):
+        if isinstance(col,(list,tuple)):
+            nbcol = len(col)
+            line_cols = cls.split(text,sep)
+            nblinecol = len(line_cols)
+            return [ line_cols[c] if c < nblinecol else not_present_value for c in col ]
+        else:
+            line_cols = cls.split(text,sep)
+            nblinecol = len(line_cols)
+            if col == None:
+                return line_cols
+            elif col < nblinecol:
+                return line_cols[col]
+            else:
+                return not_present_value
+
+class cutre(cut):
+    @classmethod
+    def split(cls, text, sep):
+        if hasattr(sep,'match'):
+            return sep.split(text)
+        return re.split(sep,text)
+
+class cutca(cut):
+    @classmethod
+    def split(cls, text, sep):
+        if hasattr(sep,'match'):
+            m = sep.match(text)
+        else:
+            m = re.match(sep,text)
+        return m.groups() if m else []
+
+class cutcan(cut):
+    @classmethod
+    def split(cls, text, sep):
+        if hasattr(sep,'match'):
+            m = sep.match(text)
+        else:
+            m = re.match(sep,text)
+        return m.groupdict() if m else []
 
 class upper(StrOp): fn = str.upper
 class lower(StrOp): fn = str.lower
