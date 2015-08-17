@@ -67,7 +67,7 @@ class cutca(cut):
             m = re.match(sep,text)
         return m.groups() if m else []
 
-class cutcan(cut):
+class cutdct(cut):
     @classmethod
     def split(cls, text, sep):
         if hasattr(sep,'match'):

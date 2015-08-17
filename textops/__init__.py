@@ -7,6 +7,6 @@ Created : 2015-04-03
 
 __version__ = '0.0.5'
 
-from base import TextOp, StrExt, ListExt
+from base import TextOp, StrExt, ListExt, DictExt
 import ops
 from ops import *

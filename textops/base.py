@@ -20,48 +20,11 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-def extend_type(obj):
-    if isinstance(obj,basestring) and not isinstance(obj,StrExt):
-        return StrExt(obj)
-    elif isinstance(obj,(list,tuple)) and not isinstance(obj,ListExt):
-        return ListExt([ extend_type(i) for i in obj ])
-    elif isinstance(obj,dict) and not isinstance(obj,NoAttrDict):
-        return NoAttrDict([ (k,extend_type(v)) for k,v in obj.items() ])
-    elif isinstance(obj,types.GeneratorType):
-	return extend_type_gen(obj)
-    return obj
-
-def extend_type_gen(obj):
-    for i in obj:
-	yield extend_type(i)
-
-class DebugText(object):
-    def __init__(self,text,nblines=20,more_msg='...'):
-        self.text = text
-	self.nblines = nblines
-	self.more_msg = more_msg
-    def __repr__(self):
-        if isinstance(self.text,basestring):
-            nbchars = self.nblines * 80
-            if len(self.text) > nbchars:
-	    	return self.text[:nbchars] + self.more_msg
-            else:
-	    	return self.text
-        out = '['
-        for i,line in enumerate(self.text):
-            if i == self.nblines:
-                print self.more_msg
-                break 
-            out += '%s,\n' % line
-        out += ']'
-        return out
-            
-            
 class TextOp(object):
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
-        self.debug = kwargs.get('debug',False) 
+        self.debug = kwargs.get('debug',False)
 	self.logger = kwargs.get('logger',logger)
 	self.logger.setLevel(self.debug and logging.DEBUG or logging.CRITICAL)
 
@@ -225,14 +188,41 @@ class TextOp(object):
             return text
         return str.splitlines(text)
 
-class debug(TextOp):
-    @classmethod
-    def op(cls,text,*args,**kwargs):
-	if 'logger' in kwargs:
-            self.logger = kwargs.get('logger')
-	self.logger.setLevel(logging.DEBUG)
-        return text
-    
+def extend_type(obj):
+    if isinstance(obj,basestring) and not isinstance(obj,StrExt):
+        return StrExt(obj)
+    elif isinstance(obj,(list,tuple)) and not isinstance(obj,ListExt):
+        return ListExt(obj)
+    elif isinstance(obj,dict) and not isinstance(obj,DictExt):
+        return DictExt(obj)
+    elif isinstance(obj,types.GeneratorType):
+        return extend_type_gen(obj)
+    return obj
+
+def extend_type_gen(obj):
+    for i in obj:
+        yield extend_type(i)
+
+class DebugText(object):
+    def __init__(self,text,nblines=20,more_msg='...'):
+        self.text = text
+        self.nblines = nblines
+        self.more_msg = more_msg
+    def __repr__(self):
+        if isinstance(self.text,basestring):
+            nbchars = self.nblines * 80
+            if len(self.text) > nbchars:
+                return self.text[:nbchars] + self.more_msg
+            else:
+                return self.text
+        out = '['
+        for i,line in enumerate(self.text):
+            if i == self.nblines:
+                print self.more_msg
+                break
+            out += '%s,\n' % line
+        out += ']'
+        return out
 
 class StrExt(str):
     def __getattribute__(self, name):
@@ -249,10 +239,26 @@ class StrExt(str):
         def wrapper(*args, **kwargs):
             result = fn(*args, **kwargs)
             if isinstance(result,types.GeneratorType):
-		result = list(result)
+                result = list(result)
             return extend_type(result)
         return wrapper
 
+    def __getslice__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__getslice__(*args, **kwargs))
+    def __getitem__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__getitem__(*args, **kwargs))
+    def __add__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__add__(*args, **kwargs))
+    def __mul__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__mul__(*args, **kwargs))
+    def __rmul__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__rmul__(*args, **kwargs))
+    def __mod__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__mod__(*args, **kwargs))
+    def __rmod__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__rmod__(*args, **kwargs))
+    def __format__(self,*args, **kwargs):
+        return extend_type(super(StrExt, self).__format__(*args, **kwargs))
 
 class ListExt(list):
     def __getattribute__(self, name):
@@ -269,6 +275,65 @@ class ListExt(list):
         def wrapper(*args, **kwargs):
             result = fn(*args, **kwargs)
             if isinstance(result,types.GeneratorType):
-		result = list(result)
+                result = list(result)
             return extend_type(result)
         return wrapper
+
+    def __getslice__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
+    def __getitem__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__getitem__(*args, **kwargs))
+    def __add__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__add__(*args, **kwargs))
+    def __mul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__mul__(*args, **kwargs))
+    def __iadd__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__iadd__(*args, **kwargs))
+    def __imul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__imul__(*args, **kwargs))
+    def __rmul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__rmul__(*args, **kwargs))
+    def __format__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__format__(*args, **kwargs))
+    def __iter__(self):
+        return ListExtIterator(self)
+
+class ListExtIterator(object):
+    def __init__(self, obj):
+        self.obj = obj
+        self.index = -1
+        self.len = len(obj)
+    def __iter__(self):
+        return self
+    def next(self):
+        self.index += 1
+        if self.index < self.len:
+            # Will call extend_type() because __getitem__ do it :
+            return self.obj[self.index]
+        else:
+            raise StopIteration
+
+class DictExt(NoAttrDict):
+    def __getattribute__(self, name):
+        op_cls = getattr(textops.ops,name,None)
+        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
+            def fn(*args,**kwargs):
+                return op_cls.op(self,*args,**kwargs)
+        else:
+            fn = super(DictExt, self).__getattribute__(name)
+
+        if not callable(fn):
+            return fn
+
+        def wrapper(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            if isinstance(result,types.GeneratorType):
+                result = list(result)
+            return extend_type(result)
+        return wrapper
+
+    def __getitem__(self,*args, **kwargs):
+        return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
+    def __format__(self,*args, **kwargs):
+        return extend_type(super(DictExt, self).__format__(*args, **kwargs))
+
