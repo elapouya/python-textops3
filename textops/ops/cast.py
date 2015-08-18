@@ -6,6 +6,7 @@ Created : 2015-04-03
 '''
 
 from textops import TextOp
+import dateutil.parser
 
 class tostr(TextOp): fn = TextOp.make_string
 class tostre(TextOp): fn = classmethod(lambda cls,text: TextOp.make_string(text,''))
@@ -13,3 +14,4 @@ class tolist(TextOp): fn = TextOp.make_list
 class toliste(TextOp): fn = classmethod(lambda cls,text: TextOp.make_list(text,[]))
 class toint(TextOp): fn = TextOp.make_int
 class tofloat(TextOp): fn = TextOp.make_float
+class todatetime(TextOp): fn = classmethod(lambda cls,text: dateutil.parser.parse(text))

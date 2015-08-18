@@ -39,6 +39,6 @@ setup(name='python-textops',
       author_email='elapouya@gmail.com',
       license='LGPL 2.1',
       packages=['textops'],
-      install_requires = ['Sphinx<1.3b', 'sphinxcontrib-napoleon', 'addicted'],
+      install_requires = ['Sphinx<1.3b', 'sphinxcontrib-napoleon', 'addicted', 'python-dateutil'],
       eager_resources = ['docs'],
       zip_safe=False)

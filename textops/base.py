@@ -12,7 +12,7 @@ import sys
 import re
 import types
 import textops
-from addicted import NoAttrDict
+from addicted import NoAttrDict, NoAttr
 
 import logging
 logger = logging.getLogger(__name__)
