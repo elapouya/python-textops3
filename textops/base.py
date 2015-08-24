@@ -13,20 +13,20 @@ import re
 import types
 import textops
 from addicted import NoAttrDict, NoAttr
-
 import logging
-logger = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
+
+logger = textops.logger
+def logdebug(flag):
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    logger.addHandler(ch)
+    logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
 class TextOp(object):
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
         self.debug = kwargs.get('debug',False)
-	self.logger = kwargs.get('logger',logger)
-	self.logger.setLevel(self.debug and logging.DEBUG or logging.CRITICAL)
 
     def __getattr__(self,attr):
         if not attr.startswith('_') and hasattr(textops.ops,attr):
@@ -70,8 +70,8 @@ class TextOp(object):
         if self.debug:
             if isinstance(text, types.GeneratorType):
                 text = list(text)
-            self.logger.debug('=== TextOps : %r' % self)
-            self.logger.debug(DebugText(text))
+            logger.debug('=== TextOps : %r' % self)
+            logger.debug(DebugText(text))
         for op,args,kwargs in self.ops:
             opcls = getattr(textops.ops,op,None)
             if isinstance(opcls,type) and issubclass(opcls, TextOp):
@@ -80,12 +80,12 @@ class TextOp(object):
                     if self.debug:
                         if isinstance(text, types.GeneratorType):
                             text = list(text)
-                        self.logger.debug('--- Op : %s(%s,%s)',op,args,kwargs)
-                        self.logger.debug(DebugText(text))
+                        logger.debug('--- Op : %s(%s,%s)',op,args,kwargs)
+                        logger.debug(DebugText(text))
                     if text is None:
                          return text
                 except TypeError:
-                    self.logger.error('*** bad parameters for %s()' % opcls.__name__)
+                    logger.error('*** bad parameters for %s()' % opcls.__name__)
                     raise
 
             else:
