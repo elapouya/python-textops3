@@ -124,3 +124,12 @@ class between(TextOp):
                     yield line
 
 class betweeni(between): flags = re.IGNORECASE
+
+class merge_dicts(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        out = {}
+        for dct in cls._tolist(text):
+            if isinstance(dct, dict):
+                out.update(dct)
+        return out

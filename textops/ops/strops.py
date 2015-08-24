@@ -74,12 +74,18 @@ class cutdct(cut):
             m = sep.match(text)
         else:
             m = re.match(sep,text)
-        return m.groupdict() if m else []
+        return m.groupdict() if m else {}
 
-class upper(StrOp): fn = str.upper
-class lower(StrOp): fn = str.lower
-class capitalize(StrOp): fn = str.capitalize
-class replace(StrOp): fn = str.replace
-class expandtabs(StrOp): fn = str.expandtabs
-class split(StrOp): fn = str.split
-class strip(StrOp): fn = str.strip
+class cutkv(cut):
+    @classmethod
+    def split(cls, text, sep, key_name = 'key'):
+        if hasattr(sep,'match'):
+            m = sep.match(text)
+        else:
+            m = re.match(sep,text)
+        if m:
+            dct = m.groupdict()
+            kv = dct.get(key_name)
+            if kv:
+                return { kv : dct }
+        return {}
