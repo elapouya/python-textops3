@@ -29,7 +29,7 @@ class TextOp(object):
         self.debug = kwargs.get('debug',False)
 
     def __getattr__(self,attr):
-        if not attr.startswith('_') and hasattr(textops.ops,attr):
+        if not attr.startswith('_'):
             self.ops.append([attr, (), {}])
             self.op = attr
         else:
@@ -87,9 +87,8 @@ class TextOp(object):
                 except TypeError:
                     logger.error('*** bad parameters for %s()' % opcls.__name__)
                     raise
-
             else:
-                print '*** TextOp "%s" does not exist.' % op
+                text = object.__getattribute__(text,op)(*args, **kwargs)
         return extend_type(text)
 
     def __repr__(self):
@@ -189,7 +188,9 @@ class TextOp(object):
         return str.splitlines(text)
 
 def extend_type(obj):
-    if isinstance(obj,basestring) and not isinstance(obj,StrExt):
+    if isinstance(obj,unicode) and not isinstance(obj,UnicodeExt):
+        return UnicodeExt(obj)
+    elif isinstance(obj,basestring) and not isinstance(obj,StrExt):
         return StrExt(obj)
     elif isinstance(obj,(list,tuple)) and not isinstance(obj,ListExt):
         return ListExt(obj)
@@ -202,6 +203,9 @@ def extend_type(obj):
 def extend_type_gen(obj):
     for i in obj:
         yield extend_type(i)
+
+def set_debug(flag):
+    logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
 class DebugText(object):
     def __init__(self,text,nblines=20,more_msg='...'):
@@ -224,25 +228,62 @@ class DebugText(object):
         out += ']'
         return out
 
+def get_attribute_or_textop(obj,name):
+    op_cls = getattr(textops.ops,name,None)
+    if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
+        def fn(*args,**kwargs):
+            debug = kwargs.get('debug',False)
+            if debug:
+                log = kwargs.get('logger',logger)
+                log.debug('='*60)
+                log.debug('Before %s(%s,%s):', name,args, kwargs)
+                log.debug('%s', DebugText(obj))
+            result = op_cls.op(obj,*args,**kwargs)
+            if debug:
+                log.debug('-'*60)
+                log.debug('After %s(%s,%s):', name,args, kwargs)
+                log.debug('%s', DebugText(result))
+            return result
+    else:
+        fn = object.__getattribute__(obj,name)
+
+    if not callable(fn):
+        return fn
+
+    def wrapper(*args, **kwargs):
+        try:
+            result = fn(*args, **kwargs)
+        except:
+            logger.error('*** Error when calling %s(%s,%s)' % (fn.__name__,args, kwargs))
+            raise
+        if isinstance(result,types.GeneratorType):
+            result = list(result)
+        return extend_type(result)
+    return wrapper
+
+class UnicodeExt(unicode):
+    def __getattribute__(self, name):
+        return get_attribute_or_textop(self,name)
+    def __getslice__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__getslice__(*args, **kwargs))
+    def __getitem__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__getitem__(*args, **kwargs))
+    def __add__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__add__(*args, **kwargs))
+    def __mul__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__mul__(*args, **kwargs))
+    def __rmul__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__rmul__(*args, **kwargs))
+    def __mod__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__mod__(*args, **kwargs))
+    def __rmod__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__rmod__(*args, **kwargs))
+    def __format__(self,*args, **kwargs):
+        return extend_type(super(UnicodeExt, self).__format__(*args, **kwargs))
+
 class StrExt(str):
     def __getattribute__(self, name):
-        op_cls = getattr(textops.ops,name,None)
-        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
-            def fn(*args,**kwargs):
-                return op_cls.op(self,*args,**kwargs)
-        else:
-            fn = super(StrExt, self).__getattribute__(name)
-
-        if not callable(fn):
-            return fn
-
-        def wrapper(*args, **kwargs):
-            result = fn(*args, **kwargs)
-            if isinstance(result,types.GeneratorType):
-                result = list(result)
-            return extend_type(result)
-        return wrapper
-
+        return get_attribute_or_textop(self,name)
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(StrExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
@@ -262,23 +303,7 @@ class StrExt(str):
 
 class ListExt(list):
     def __getattribute__(self, name):
-        op_cls = getattr(textops.ops,name,None)
-        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
-            def fn(*args,**kwargs):
-                return op_cls.op(self,*args,**kwargs)
-        else:
-            fn = super(ListExt, self).__getattribute__(name)
-
-        if not callable(fn):
-            return fn
-
-        def wrapper(*args, **kwargs):
-            result = fn(*args, **kwargs)
-            if isinstance(result,types.GeneratorType):
-                result = list(result)
-            return extend_type(result)
-        return wrapper
-
+        return get_attribute_or_textop(self,name)
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
@@ -315,23 +340,9 @@ class ListExtIterator(object):
 
 class DictExt(NoAttrDict):
     def __getattribute__(self, name):
-        op_cls = getattr(textops.ops,name,None)
-        if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
-            def fn(*args,**kwargs):
-                return op_cls.op(self,*args,**kwargs)
-        else:
-            fn = super(DictExt, self).__getattribute__(name)
-
-        if not callable(fn):
-            return fn
-
-        def wrapper(*args, **kwargs):
-            result = fn(*args, **kwargs)
-            if isinstance(result,types.GeneratorType):
-                result = list(result)
-            return extend_type(result)
-        return wrapper
-
+        if dict.has_key(self,name):
+            return self[name]
+        return get_attribute_or_textop(self,name)
     def __getitem__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
     def __format__(self,*args, **kwargs):

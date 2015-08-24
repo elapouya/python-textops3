@@ -18,6 +18,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
 
-from base import TextOp, StrExt, ListExt, DictExt, NoAttrDict, NoAttr
+from base import TextOp, StrExt, UnicodeExt, ListExt, DictExt, NoAttrDict, NoAttr
 import ops
 from ops import *
