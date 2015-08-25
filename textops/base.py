@@ -16,11 +16,12 @@ from addicted import NoAttrDict, NoAttr
 import logging
 
 logger = textops.logger
-def logdebug(flag):
+
+def activate_debug():
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
-    logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
+    logger.setLevel(logging.DEBUG)
 
 class TextOp(object):
     def __init__(self,*args,**kwargs):
@@ -234,15 +235,14 @@ def get_attribute_or_textop(obj,name):
         def fn(*args,**kwargs):
             debug = kwargs.get('debug',False)
             if debug:
-                log = kwargs.get('logger',logger)
-                log.debug('='*60)
-                log.debug('Before %s(%s,%s):', name,args, kwargs)
-                log.debug('%s', DebugText(obj))
+                logger.debug('='*60)
+                logger.debug('Before %s(%s,%s):', name,args, kwargs)
+                logger.debug('%s', DebugText(obj))
             result = op_cls.op(obj,*args,**kwargs)
             if debug:
-                log.debug('-'*60)
-                log.debug('After %s(%s,%s):', name,args, kwargs)
-                log.debug('%s', DebugText(result))
+                logger.debug('-'*60)
+                logger.debug('After %s(%s,%s):', name,args, kwargs)
+                logger.debug('%s', DebugText(result))
             return result
     else:
         fn = object.__getattribute__(obj,name)
