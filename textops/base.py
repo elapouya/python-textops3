@@ -187,14 +187,18 @@ class TextOp(object):
         return str.splitlines(text)
 
 def extend_type(obj):
-    if isinstance(obj,unicode) and not isinstance(obj,UnicodeExt):
-        return UnicodeExt(obj)
-    elif isinstance(obj,basestring) and not isinstance(obj,StrExt):
-        return StrExt(obj)
-    elif isinstance(obj,(list,tuple)) and not isinstance(obj,ListExt):
-        return ListExt(obj)
-    elif isinstance(obj,dict) and not isinstance(obj,DictExt):
-        return DictExt(obj)
+    if isinstance(obj,unicode):
+        if not isinstance(obj,UnicodeExt):
+            return UnicodeExt(obj)
+    elif isinstance(obj,basestring):
+        if not isinstance(obj,StrExt):
+            return StrExt(obj)
+    elif isinstance(obj,(list,tuple)):
+        if not isinstance(obj,ListExt):
+            return ListExt(obj)
+    elif isinstance(obj,dict):
+        if not isinstance(obj,DictExt):
+            return DictExt(obj)
     elif isinstance(obj,types.GeneratorType):
         return extend_type_gen(obj)
     return obj
