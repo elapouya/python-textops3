@@ -176,6 +176,10 @@ class TextOp(object):
         text = self._process()
         return self.make_float(text)
 
+    @property
+    def r(self):
+        return self._process()
+
     @classmethod
     def op(cls,text,*args,**kwargs):
         return cls.fn(text)
@@ -185,6 +189,12 @@ class TextOp(object):
         if not isinstance(text, basestring):
             return text
         return str.splitlines(text)
+
+    @classmethod
+    def _tostr(cls,text):
+        if not isinstance(text, basestring):
+            return '\n'.join(text)
+        return text
 
 def extend_type(obj):
     if isinstance(obj,unicode):

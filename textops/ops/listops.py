@@ -8,6 +8,13 @@ Created : 2015-04-03
 from textops import TextOp
 import re
 
+class cat(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        with open(text) as fh:
+            for line in fh:
+                yield line
+
 class grep(TextOp):
     flags = 0
     reverse = False
