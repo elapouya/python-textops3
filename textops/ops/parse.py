@@ -5,7 +5,7 @@ Created : 2015-08-24
 @author: Eric Lapouyade
 '''
 
-from textops import TextOp, NoAttr, slugify
+from textops import TextOp, NoAttr
 import re
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -106,7 +106,7 @@ class find_first_pattern(find_patterns):
 
 class find_first_patterni(find_patterns): ignore_case=True
 
-class parse_with_state_machine(TextOp):
+class state_machine(TextOp):
     @classmethod
     def op(cls,text, state_machine_def):
         parser = StateMachineParser()
