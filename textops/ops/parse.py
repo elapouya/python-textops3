@@ -14,6 +14,21 @@ pp = pprint.PrettyPrinter(indent=4)
 import copy
 from datetime import datetime
 
+class parseg(TextOp):
+    ignore_case = False
+    @classmethod
+    def op(cls,text, pattern, key_update = None, *args,**kwargs):
+        if isinstance(pattern,basestring):
+            pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
+        out = []
+        for line in cls._tolist(text):
+            m = pattern.match(line)
+            if m:
+                out.append(m.groupdict())
+        return out
+
+class parsegi(parseg): ignore_case = True
+
 class parsek(TextOp):
     ignore_case = False
     @classmethod
@@ -107,6 +122,15 @@ class find_first_pattern(find_patterns):
         return data.popitem()[1]
 
 class find_first_patterni(find_patterns): ignore_case=True
+
+class simple_state_machine(TextOp):
+    pass
+
+
+
+
+
+
 
 class state_machine(TextOp):
     @classmethod
