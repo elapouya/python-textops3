@@ -12,6 +12,9 @@ import types
 import textops
 from addicted import NoAttrDict, NoAttr
 import logging
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
 
 logger = textops.logger
 
@@ -139,13 +142,26 @@ class TextOp(object):
         if text is None:
             return return_if_none
         elif isinstance(text, (list,types.GeneratorType)):
-            return '\n'.join(text)
+            return ''.join(text)
         return str(text)
 
     @property
     def s(self):
         text = self._process()
         return self.make_string(text)
+
+    @classmethod
+    def make_string_nl(cls, text, return_if_none=None):
+        if text is None:
+            return return_if_none
+        elif isinstance(text, (list,types.GeneratorType)):
+            return '\n'.join(text)
+        return str(text)
+
+    @property
+    def snl(self):
+        text = self._process()
+        return self.make_string_nl(text)
 
     @property
     def se(self):
@@ -179,6 +195,11 @@ class TextOp(object):
     @property
     def r(self):
         return self._process()
+
+    @property
+    def pp(self):
+        text = self._process()
+        return pp.pformat(text)
 
     @classmethod
     def op(cls,text,*args,**kwargs):

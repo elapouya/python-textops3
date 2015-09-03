@@ -6,6 +6,8 @@ Created : 2015-08-24
 '''
 
 from textops import TextOp, NoAttr
+import textops
+from slugify import slugify
 import re
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -108,13 +110,15 @@ class find_first_patterni(find_patterns): ignore_case=True
 
 class state_machine(TextOp):
     @classmethod
-    def op(cls,text, state_machine_def):
+    def op(cls,text, state_machine_def,*args,**kwargs):
         parser = StateMachineParser()
+        if kwargs.get('debug'):
+            parser.set_debug(True)
         parser.set_params(state_machine_def)
         out = parser.parse(text)
-        return
+        return out
 
-def index_normalize(index_val,trans_index=None):
+def index_normalize(index_val):
     return slugify(index_val)
 
 STATE_MACHINE_LINE_REPARSE_MAX = 5
@@ -271,7 +275,7 @@ class StateMachineParser(object):
         dataset = params.get('dataset')
         store_in_dataset = params.get('store_in_dataset')
         store_current_index = params.get('store_current_index')
-        trans_index = params.get('trans_index',TRANS_INDEX)
+        store_in_path = params.get('store_in_path')
         if not index:
             raise StateMachinePanic('data_collect_params["index"] doit contenir un clef non nulle (ex : "mount_point")',self)
 
@@ -285,7 +289,7 @@ class StateMachineParser(object):
                 groupdict = method(subaction, groupdict)
 
         index_val_org = groupdict.pop(index)
-        index_val = index_normalize(index_val_org,trans_index)
+        index_val = index_normalize(index_val_org)
         if len(groupdict) == 1 and not params.get('keep_dict'):
             groupdict = groupdict.popitem()[1]
         else:
@@ -297,6 +301,13 @@ class StateMachineParser(object):
             if dataset_name not in data:
                 data[dataset_name] = {}
             data = data[dataset_name]
+            
+        if store_in_path:
+            for p in store_in_path:
+                index = p % self.groups_context
+                if index not in data:
+                    data[index] = {}
+                data = data[index]
 
         if store_current_index and self.current_index:
             data = data[self.current_index]
@@ -308,7 +319,7 @@ class StateMachineParser(object):
                 data[index_val] = [data[index_val],]
             data[index_val].append(groupdict)
         else:
-            if not isinstance(data, NoneAttr):
+            if not isinstance(data, NoAttr):
                 if overwrite == 'merge' and index_val in data:
                     if isinstance(groupdict,dict):
                         data[index_val].update(groupdict)
@@ -326,8 +337,8 @@ class StateMachineParser(object):
         if 'data_collect_params' not in subaction:
             raise StateMachinePanic("store_multi_index_dict nécessite une liste d'indexation (overwrite des index implicite)",self)
         params = subaction['data_collect_params']
+        store_in_path = params.get('store_in_path')
         index_list = params.get('index')
-        trans_index = params.get('trans_index',TRANS_INDEX)
         overwrite = params.get('overwrite',False)
         if not index_list:
             raise StateMachinePanic('data_collect_params["index"] doit contenir un clef non nulle (ex : "(index1,index2,)")',self)
@@ -342,8 +353,16 @@ class StateMachineParser(object):
                 groupdict = method(subaction, groupdict)
 
         dct = self.data
+        
+        if store_in_path:
+            for p in store_in_path:
+                index = p % self.groups_context
+                if index not in dct:
+                    dct[index] = {}
+                dct = dct[index]
+        
         for index in index_list:
-            index_val = index_normalize(groupdict.pop(index),trans_index)
+            index_val = index_normalize(groupdict.pop(index))
             if index_val not in dct:
                 dct[index_val] = {}
             prev_dct=dct
@@ -380,12 +399,21 @@ class StateMachineParser(object):
         if 'data_collect_params' not in subaction:
             raise StateMachinePanic('store_dict_in_tab nécessite la clef où sera stocké le tableau de dict ("index" dans le dict data_collect_params)',self)
         index = subaction['data_collect_params'].get('index','')
+        store_in_path = subaction['data_collect_params'].params.get('store_in_path')
         if not index:
             raise StateMachinePanic('data_collect_params["index"] doit contenir un clef non nulle (ex : "cpus")',self)
         index_parts = index.split('.')
         base = index_parts[:-1]
         last = index_parts[-1]
         dest = self.data
+
+        if store_in_path:
+            for p in store_in_path:
+                index = p % self.groups_context
+                if index not in dest:
+                    dest[index] = {}
+                dest = dest[index]
+
         if subaction['data_collect_params'].get('store_current_index') and self.current_index:
             dest = self.data[self.current_index]
         for d in base:
@@ -424,12 +452,21 @@ class StateMachineParser(object):
         if 'data_collect_params' not in subaction:
             raise StateMachinePanic('store_dict_in_tab nécessite la clef où sera stocké le tableau de dict ("index" dans le dict data_collect_params)',self)
         index = subaction['data_collect_params'].get('index','')
+        store_in_path = subaction['data_collect_params'].params.get('store_in_path')
         if not index:
             raise StateMachinePanic('data_collect_params["index"] doit contenir un clef non nulle (ex : "cpus")',self)
         index_parts = index.split('.')
         base = index_parts[:-1]
         last = index_parts[-1]
         dest = self.data
+
+        if store_in_path:
+            for p in store_in_path:
+                index = p % self.groups_context
+                if index not in dest:
+                    dest[index] = {}
+                dest = dest[index]
+
         for d in base:
             if d not in dest:
                 dest[d] = {}
@@ -496,13 +533,23 @@ class StateMachineParser(object):
             self.line = self.text_iter.next().rstrip()
             self.line_reparse_cptr = 0
             self.lineno += 1
+            print self.state,self.line
+            print self.groups_context
+
+    def update_groups_context(self,dct):
+        self.groups_context.update(dct)
 
     def handle_subaction(self,subaction):
         if subaction:
             if 'if_set' not in subaction or self.parser.get(subaction['if_set'],False):
                 pattern = subaction['pattern']
+                if isinstance(pattern,basestring):
+                    pattern = re.compile(pattern)
+                    subaction['pattern'] = pattern
+                    
                 m = pattern.match(self.line)
                 if m :
+                    self.update_groups_context(m.groupdict())
                     self.groupdict = m.groupdict() or { str(self.lineno) : m.group(0)}
                     self.subaction_name = subaction.get('name', 'Unknown')
                     self.data_collect(subaction, self.groupdict)
@@ -533,8 +580,12 @@ class StateMachineParser(object):
         self.groupdict = None
         self.subaction_name = None
         pattern = params['first_look']
+        if isinstance(pattern,basestring):
+            pattern = re.compile(pattern)
+            params['first_look'] = pattern
         m = pattern.match(self.line)
         if m :
+            self.update_groups_context(m.groupdict())
             subaction = params['indirect_subactions'].get(m.group(1).lower())
             self.handle_subaction(subaction)
 
@@ -581,6 +632,7 @@ class StateMachineParser(object):
         self.lineno = 0
         self.current_index = None
         self.dataset = {}
+        self.groups_context = {}
 
     def parse(self,text,attr=None):
         self.parse_init()
@@ -605,6 +657,8 @@ class StateMachineParser(object):
         # On efface le fichier de l'object sinon il n'est pas pickable
 
         self.make_stats()
+        if self.debug:
+            textops.logger.debug('State machine final data : %s',pp.pformat(self.data))
         return self.data
 
     def make_stats(self):
