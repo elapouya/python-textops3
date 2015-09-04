@@ -78,6 +78,7 @@ class TextOp(object):
             opcls = getattr(textops.ops,op,None)
             if isinstance(opcls,type) and issubclass(opcls, TextOp):
                 try:
+                    print 'op,args,kwargs =', op,args,kwargs
                     text = opcls.op(text, *args, **kwargs)
                     if self.debug:
                         if isinstance(text, types.GeneratorType):
