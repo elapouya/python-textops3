@@ -8,6 +8,9 @@ Created : 2015-04-03
 from textops import TextOp
 import re
 
+class ListOpError(Exception):
+    pass
+
 class cat(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -19,11 +22,21 @@ class grep(TextOp):
     flags = 0
     reverse = False
     @classmethod
-    def op(cls,text,pattern,*args,**kwargs):
+    def op(cls,text,pattern,col_or_key = None, *args,**kwargs):
         regex = re.compile(pattern,cls.flags)
         for line in cls._tolist(text):
-            if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
-                yield line
+            try:
+                if isinstance(line,basestring):
+                    if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+                elif col_or_key is None:
+                    if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+                else:
+                    if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+            except (ValueError, TypeError, IndexError, KeyError):
+                pass
 
 class grepi(grep): flags = re.IGNORECASE
 class grepv(grep): reverse = True
@@ -33,42 +46,39 @@ class grepc(TextOp):
     flags = 0
     reverse = False
     @classmethod
-    def op(cls,text,pattern,*args,**kwargs):
+    def op(cls,text,pattern,col_or_key = None,*args,**kwargs):
         if text is None:
             return 0
         regex = re.compile(pattern,cls.flags)
         count = 0
         for line in cls._tolist(text):
-            if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
-                count += 1
+            try:
+                if isinstance(line,basestring):
+                    if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+                elif col_or_key is None:
+                    if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+                else:
+                    if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+            except (ValueError, TypeError, IndexError, KeyError):
+                pass
         return count
 
 class grepci(grepc): flags = re.IGNORECASE
 class grepcv(grepc): reverse = True
 class grepcvi(grepcv): flags = re.IGNORECASE
 
-class grepval(TextOp):
-    flags = 0
-    reverse = False
-    col = 1
-    @classmethod
-    def op(cls,text,pattern,*args,**kwargs):
-        regex = re.compile(pattern,cls.flags)
-        for line in cls._tolist(text):
-            if bool(regex.search(line[cls.col])) != cls.reverse:  # kind of XOR with cls.reverse
-                yield line
-class grepival(grepval): flags = re.IGNORECASE
-class grepvval(grepval): reverse = True
-class grepvival(grepival): reverse = True
-class grepkey(grepval): col=0
-class grepikey(grepkey): flags = re.IGNORECASE
-class grepvkey(grepkey): reverse = True
-class grepvikey(grepikey): reverse = True
-
 class formatitems(TextOp):
     @classmethod
     def op(cls,items,format_str='{0} : {1}\n',*args,**kwargs):
-        return ''.join([format_str.format(k,v) for k,v in items ]) 
+        return ''.join([format_str.format(k,v) for k,v in items ])
+
+class formatdicts(TextOp):
+    @classmethod
+    def op(cls,items,format_str='{key} : {val}\n',*args,**kwargs):
+        return ''.join([format_str.format(**dct) for dct in items ])
 
 class first(TextOp):
     @classmethod
