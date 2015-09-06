@@ -7,7 +7,7 @@ Created : 2015-08-24
 
 from textops import TextOp, NoAttr
 import textops
-from slugify import slugify
+import string
 import re
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -126,6 +126,13 @@ class find_first_pattern(find_patterns):
 
 class find_first_patterni(find_patterns): ignore_case=True
 
+def index_normalize(index_val):
+    index_val = index_val.lower().strip()
+    index_val = re.sub(r'\W','_',index_val)
+    index_val = re.sub('_+','_',index_val)
+    index_val = re.sub('_$','',index_val)
+    return index_val
+
 class state_pattern(TextOp):
     """ states and patterns parser
 
@@ -210,12 +217,12 @@ class state_pattern(TextOp):
                                 prev_data = data
                                 if p[-2:] == '[]':
                                     p = p[:-2]
-                                    p = slugify(p)
+                                    p = index_normalize(p)
                                     if p not in data:
                                         data[p] = []
                                     data = data[p]
                                 else:
-                                    p = slugify(p)
+                                    p = index_normalize(p)
                                     if p not in data:
                                         data[p] = {}
                                     data = data[p]
@@ -247,9 +254,6 @@ class state_machine(TextOp):
         parser.set_params(state_machine_def)
         out = parser.parse(text)
         return out
-
-def index_normalize(index_val):
-    return slugify(index_val)
 
 STATE_MACHINE_LINE_REPARSE_MAX = 5
 

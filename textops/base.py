@@ -78,7 +78,6 @@ class TextOp(object):
             opcls = getattr(textops.ops,op,None)
             if isinstance(opcls,type) and issubclass(opcls, TextOp):
                 try:
-                    print 'op,args,kwargs =', op,args,kwargs
                     text = opcls.op(text, *args, **kwargs)
                     if self.debug:
                         if isinstance(text, types.GeneratorType):
@@ -208,6 +207,8 @@ class TextOp(object):
 
     @classmethod
     def _tolist(cls,text):
+        if isinstance(text, dict):
+            return text.iteritems()
         if not isinstance(text, basestring):
             return text
         return str.splitlines(text)
@@ -257,7 +258,7 @@ class DebugText(object):
         out = '['
         for i,line in enumerate(self.text):
             if i == self.nblines:
-                print self.more_msg
+                logger.debug(self.more_msg)
                 break
             out += '%s,\n' % line
         out += ']'

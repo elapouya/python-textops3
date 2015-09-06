@@ -47,6 +47,28 @@ class grepci(grepc): flags = re.IGNORECASE
 class grepcv(grepc): reverse = True
 class grepcvi(grepcv): flags = re.IGNORECASE
 
+class grepval(TextOp):
+    flags = 0
+    reverse = False
+    col = 1
+    @classmethod
+    def op(cls,text,pattern,*args,**kwargs):
+        regex = re.compile(pattern,cls.flags)
+        for line in cls._tolist(text):
+            if bool(regex.search(line[cls.col])) != cls.reverse:  # kind of XOR with cls.reverse
+                yield line
+class grepival(grepval): flags = re.IGNORECASE
+class grepvval(grepval): reverse = True
+class grepvival(grepival): reverse = True
+class grepkey(grepval): col=0
+class grepikey(grepkey): flags = re.IGNORECASE
+class grepvkey(grepkey): reverse = True
+class grepvikey(grepikey): reverse = True
+
+class formatitems(TextOp):
+    @classmethod
+    def op(cls,items,format_str='{0} : {1}\n',*args,**kwargs):
+        return ''.join([format_str.format(k,v) for k,v in items ]) 
 
 class first(TextOp):
     @classmethod
