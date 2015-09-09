@@ -198,13 +198,7 @@ class state_pattern(TextOp):
                     datapath = []
                 else:
                     datapath = datapath.split('.')
-            if callable(outfilter):
-                outf = outfilter
-            elif isinstance(outfilter, basestring):
-                outf=lambda x:x.format(**groups_context)
-            else:
-                outf=lambda x:x
-            states_patterns.append((ifstate, gotostate, pattern, datapath, outf))
+            states_patterns.append((ifstate, gotostate, pattern, datapath, outfilter))
 
         # parse the text
         for line in cls._tolist(text):
@@ -233,7 +227,10 @@ class state_pattern(TextOp):
                                         data[p] = {}
                                     data = data[p]
 
-                            g=outfilter(g)
+                            if callable(outfilter):
+                                g=outfilter(g)
+                            elif isinstance(outfilter, basestring):
+                                g=outfilter.format(**groups_context)
 
                             if isinstance(data,list):
                                 data.append(g)
