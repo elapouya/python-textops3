@@ -90,8 +90,16 @@ class TextOp(object):
                     logger.error('*** bad parameters for %s()' % opcls.__name__)
                     raise
             else:
-                text = object.__getattribute__(text,op)(*args, **kwargs)
+                if isinstance(text,basestring):
+                    text = object.__getattribute__(text,op)(*args, **kwargs)
+                else:
+                    text = self._apply_op_gen(text,op,*args, **kwargs)
+
         return extend_type(text)
+
+    def _apply_op_gen(self, text, op, *args, **kwargs):
+        for line in text:
+            yield object.__getattribute__(line,op)(*args, **kwargs)
 
     def __repr__(self):
         rops = []

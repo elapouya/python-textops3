@@ -7,6 +7,7 @@ Created : 2015-04-03
 
 from textops import TextOp
 import re
+import subprocess
 
 class ListOpError(Exception):
     pass
@@ -17,6 +18,16 @@ class cat(TextOp):
         with open(text) as fh:
             for line in fh:
                 yield line
+
+class run(TextOp):
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
+        status = None
+        while status is None:
+            status=p.poll()
+            if status is None:
+                yield p.stdout.readline()
 
 class grep(TextOp):
     flags = 0
