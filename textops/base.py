@@ -130,9 +130,9 @@ class TextOp(object):
         if text is None:
             return return_if_none
         elif isinstance(text, basestring):
-            return str.splitlines(text)
+            return text.splitlines()
         elif isinstance(text, types.GeneratorType):
-            return list(text)
+            return ListExt(text)
         return text
 
     @property
@@ -150,21 +150,26 @@ class TextOp(object):
         if text is None:
             return return_if_none
         elif isinstance(text, (list,types.GeneratorType)):
-            return ''.join(text)
-        return str(text)
+            return StrExt(''.join(text))
+        return StrExt(text)
 
     @property
     def s(self):
         text = self._process()
         return self.make_string(text)
 
+    @property
+    def se(self):
+        text = self._process()
+        return self.make_string(text,'')
+
     @classmethod
     def make_string_nl(cls, text, return_if_none=None):
         if text is None:
             return return_if_none
         elif isinstance(text, (list,types.GeneratorType)):
-            return '\n'.join(text)
-        return str(text)
+            return StrExt('\n'.join(text))
+        return StrExt(text)
 
     @property
     def snl(self):
@@ -172,9 +177,9 @@ class TextOp(object):
         return self.make_string_nl(text)
 
     @property
-    def se(self):
+    def senl(self):
         text = self._process()
-        return self.make_string(text,'')
+        return self.make_string_nl(text,'')
 
     @classmethod
     def make_int(cls, text):
