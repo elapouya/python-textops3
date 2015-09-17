@@ -22,7 +22,10 @@ class cat(TextOp):
 class run(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
+        if isinstance(text, basestring):
+            p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
+        else:
+            p=subprocess.Popen(text,stdout=subprocess.PIPE)
         status = None
         while status is None:
             status=p.poll()
