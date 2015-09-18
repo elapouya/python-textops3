@@ -17,6 +17,35 @@ from datetime import datetime
 class ParsingError(Exception):
     pass
 
+class mgrep(TextOp):
+    flags = 0
+    reverse = False
+    @classmethod
+    def op(cls,text,patterns_dict,col_or_key = None, *args,**kwargs):
+        for k,pattern in patterns_dict.items():
+            if isinstance(pattern,basestring):
+                patterns_dict[k] = re.compile(pattern,cls.flags)
+        dct = {}
+        for line in cls._tolist(text):
+            for k,regex in patterns_dict.items():
+                try:
+                    if isinstance(line,basestring):
+                        if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                            dct.setdefault(k,[]).append(line)
+                    elif col_or_key is None:
+                        if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                            dct.setdefault(k,[]).append(line)
+                    else:
+                        if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                            dct.setdefault(k,[]).append(line)
+                except (ValueError, TypeError, IndexError, KeyError):
+                    pass
+        return dct
+
+class mgrepi(mgrep): flags = re.IGNORECASE
+class mgrepv(mgrep): reverse = True
+class mgrepvi(mgrepv): flags = re.IGNORECASE
+
 class parseg(TextOp):
     ignore_case = False
     @classmethod

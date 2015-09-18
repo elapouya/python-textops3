@@ -17,7 +17,7 @@ class cat(TextOp):
     def op(cls,text,*args,**kwargs):
         with open(text) as fh:
             for line in fh:
-                yield line
+                yield line.rstrip('\r\n')
 
 class run(TextOp):
     @classmethod
@@ -30,7 +30,7 @@ class run(TextOp):
         while status is None:
             status=p.poll()
             if status is None:
-                yield p.stdout.readline()
+                yield p.stdout.readline().rstrip('\r\n')
 
 class grep(TextOp):
     flags = 0
