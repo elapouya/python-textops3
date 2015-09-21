@@ -26,17 +26,19 @@ class run(TextOp):
             p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
         else:
             p=subprocess.Popen(text,stdout=subprocess.PIPE)
-        status = None
-        while status is None:
-            status=p.poll()
-            if status is None:
-                yield p.stdout.readline().rstrip('\r\n')
+        while p.returncode is None:
+            (stdout, stderr) = p.communicate()
+            for line in stdout.splitlines():
+                yield line
 
 class grep(TextOp):
     flags = 0
     reverse = False
+    pattern = ''
     @classmethod
-    def op(cls,text,pattern,col_or_key = None, *args,**kwargs):
+    def op(cls,text,pattern=None,col_or_key = None, *args,**kwargs):
+        if pattern is None:
+            pattern = cls.pattern
         regex = re.compile(pattern,cls.flags)
         for line in cls._tolist(text):
             try:
@@ -59,10 +61,13 @@ class grepvi(grepv): flags = re.IGNORECASE
 class grepc(TextOp):
     flags = 0
     reverse = False
+    pattern = ''
     @classmethod
-    def op(cls,text,pattern,col_or_key = None,*args,**kwargs):
+    def op(cls,text,pattern=None,col_or_key = None,*args,**kwargs):
         if text is None:
             return 0
+        if pattern is None:
+            pattern = cls.pattern
         regex = re.compile(pattern,cls.flags)
         count = 0
         for line in cls._tolist(text):
@@ -83,6 +88,8 @@ class grepc(TextOp):
 class grepci(grepc): flags = re.IGNORECASE
 class grepcv(grepc): reverse = True
 class grepcvi(grepcv): flags = re.IGNORECASE
+
+class rmblank(grepv): pattern = r'^\s*$'
 
 class formatitems(TextOp):
     @classmethod
@@ -159,14 +166,14 @@ class between(TextOp):
         state = 0 if begin else 1
 
         for line in cls._tolist(text):
-            if state == 0:
+            if state == 0 and begin:
                 if begin[0].search(line):
                     begin.pop(0)
                 if not begin:
                     if get_begin:
                         yield line
                     state = 1
-            elif state == 1:
+            elif state == 1 and end:
                 if end[0].search(line):
                     end.pop(0)
                 if not end:
@@ -175,8 +182,24 @@ class between(TextOp):
                     break
                 else:
                     yield line
+            else:
+                yield line
 
 class betweeni(between): flags = re.IGNORECASE
+
+class before(between):
+    @classmethod
+    def op(cls, text, pattern, get_end=False,*args,**kwargs):
+        return between.op(text,None,pattern,get_end=get_end)
+
+class beforei(before): flags = re.IGNORECASE
+
+class after(between):
+    @classmethod
+    def op(cls, text, pattern, get_begin=False,*args,**kwargs):
+        return between.op(text,pattern,None,get_begin=get_begin)
+
+class afteri(after): flags = re.IGNORECASE
 
 class merge_dicts(TextOp):
     @classmethod
