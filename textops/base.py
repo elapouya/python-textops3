@@ -293,7 +293,11 @@ def get_attribute_or_textop(obj,name):
                 logger.debug('%s', DebugText(result))
             return result
     else:
-        fn = object.__getattribute__(obj,name)
+        try:
+            fn = object.__getattribute__(obj,name)
+        except AttributeError:
+            def fn(*args,**kwargs):
+                return map(lambda s:getattr(str, name)(s,*args,**kwargs),obj)
 
     if not callable(fn):
         return fn
