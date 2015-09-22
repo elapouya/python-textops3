@@ -8,6 +8,7 @@ Created : 2015-04-03
 from textops import TextOp
 import re
 import subprocess
+import sys
 
 class ListOpError(Exception):
     pass
@@ -201,6 +202,31 @@ class after(between):
 
 class afteri(after): flags = re.IGNORECASE
 
+class mapfn(TextOp):
+    @classmethod
+    def op(cls, text, map_fn, *args,**kwargs):
+        for line in cls._tolist(text):
+            yield map_fn(line)
+
+class iffn(TextOp):
+    @classmethod
+    def op(cls, text, filter_fn=None, *args,**kwargs):
+        if filter_fn is None:
+            filter_fn = lambda x:x
+        for line in cls._tolist(text):
+            if filter_fn(line):
+                yield line
+
+class mapif(TextOp):
+    @classmethod
+    def op(cls, text, map_fn, filter_fn=None,*args,**kwargs):
+        if filter_fn is None:
+            filter_fn = lambda x:x
+        for line in cls._tolist(text):
+            if filter_fn(line):
+                yield map_fn(line)
+
+
 class merge_dicts(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -209,3 +235,30 @@ class merge_dicts(TextOp):
             if isinstance(dct, dict):
                 out.update(dct)
         return out
+
+class span(TextOp):
+    @classmethod
+    def op(cls, text, nbcols, fill_str='', *args,**kwargs):
+        fill_list = [fill_str] * nbcols
+        for sublist in cls._tolist(text):
+            yield (sublist+fill_list)[:nbcols]
+
+class slice(TextOp):
+    @classmethod
+    def op(cls, text, begin=0, end=sys.maxsize, step = 1, fill_str=None, *args,**kwargs):
+        for sublist in cls._tolist(text):
+            yield sublist[begin:end:step]
+
+class subitem(TextOp):
+    @classmethod
+    def op(cls, text, n, *args,**kwargs):
+        for sublist in cls._tolist(text):
+            yield sublist[n]
+
+class subitems(TextOp):
+    @classmethod
+    def op(cls, text, ntab, *args,**kwargs):
+        if isinstance(ntab,basestring):
+            ntab = [ int(n) for n in ntab.split(',') ]
+        for sublist in cls._tolist(text):
+            yield [ sublist[n] for n in ntab ]

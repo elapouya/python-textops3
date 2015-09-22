@@ -36,6 +36,8 @@ class cut(StrOp):
 
     @classmethod
     def fn(cls, text, sep=None, col=None, not_present_value='', *args,**kwargs):
+        if isinstance(col, basestring):
+            col = [int(i) for i in col.split(',')]
         if isinstance(col,(list,tuple)):
             nbcol = len(col)
             line_cols = cls.split(text,sep)
