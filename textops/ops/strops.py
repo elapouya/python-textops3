@@ -8,8 +8,8 @@ Created : 2015-04-03
 from textops import TextOp
 import re
 
-class length(TextOp): fn = classmethod(lambda cls,text: len(text))
-class echo(TextOp): fn = classmethod(lambda cls,text: text)
+class length(TextOp): fn = staticmethod(lambda text: len(text))
+class echo(TextOp): fn = staticmethod(lambda text: text)
 
 class splitln(TextOp):
     @classmethod

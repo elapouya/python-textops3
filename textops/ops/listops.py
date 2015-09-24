@@ -226,6 +226,10 @@ class mapif(TextOp):
             if filter_fn(line):
                 yield map_fn(line)
 
+class doreduce(TextOp):
+    @classmethod
+    def op(cls, text, reduce_fn, *args, **kwargs):
+        return reduce(reduce_fn, cls._tolist(text))
 
 class merge_dicts(TextOp):
     @classmethod
@@ -262,3 +266,12 @@ class subitems(TextOp):
             ntab = [ int(n) for n in ntab.split(',') ]
         for sublist in cls._tolist(text):
             yield [ sublist[n] for n in ntab ]
+
+class uniq(TextOp):
+    @classmethod
+    def op(cls, text, *args,**kwargs):
+        s=[]
+        for line in cls._tolist(text):
+            if line not in s:
+                s.append(line)
+                yield line

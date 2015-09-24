@@ -256,6 +256,31 @@ def extend_type_gen(obj):
 def set_debug(flag):
     logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
+class WrapOpIter(TextOp):
+    # fn=<to be defined in child class>
+    @classmethod
+    def op(cls, text,*args,**kwargs):
+        return cls.fn(cls._tolist(text), *args,**kwargs)
+
+class WrapOpYield(TextOp):
+    # fn=<to be defined in child class>
+    @classmethod
+    def op(cls, text,*args,**kwargs):
+        for line in cls.fn(cls._tolist(text), *args,**kwargs):
+            yield line
+
+def add_textop(func):
+    setattr(textops.ops,func.__name__,type(func.__name__,(TextOp,), {'fn':staticmethod(func)}))
+    return func
+
+def add_textop_iter(func):
+    setattr(textops.ops,func.__name__,type(func.__name__,(WrapOpIter,), {'fn':staticmethod(func)}))
+    return func
+
+def add_textop_yield(func):
+    setattr(textops.ops,func.__name__,type(func.__name__,(WrapOpYield,), {'fn':staticmethod(func)}))
+    return func
+
 class DebugText(object):
     def __init__(self,text,nblines=20,more_msg='...'):
         self.text = text
