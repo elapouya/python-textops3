@@ -103,15 +103,32 @@ class parsekv(TextOp):
 
 class parsekvi(parsekv): ignore_case = True
 
+class find_pattern(TextOp):
+    ignore_case = False
+
+    @classmethod
+    def op(cls,text, pattern, *args,**kwargs):
+        if isinstance(pattern,basestring):
+            pattern = re.compile(pattern, re.M | (re.I if cls.ignore_case else 0))
+        text = cls._tostr(text)
+        m = pattern.search(text)
+        if m :
+            grps = m.groups()
+            return grps[0] if grps else NoAttr
+
+class find_patterni(find_pattern): ignore_case=True
+
 class find_patterns(TextOp):
     stop_when_found = False
     ignore_case = False
 
     @classmethod
-    def op(cls,text, patterns_dict,*args,**kwargs):
+    def op(cls,text, patterns,*args,**kwargs):
         out = {}
         text = cls._tostr(text)
-        for attr,pattern in patterns_dict.items():
+        if isinstance(patterns, dict):
+            patterns = patterns.items()
+        for attr,pattern in patterns:
             if isinstance(pattern,basestring):
                 pattern = re.compile(pattern, re.M | (re.I if cls.ignore_case else 0))
             if pattern:
@@ -212,6 +229,16 @@ class state_pattern(TextOp):
         root_data = {}
         groups_context = {}
         states_patterns = []
+
+        #check states_patterns_desc is a correct tuple/list of tuples/lists
+        if not isinstance(states_patterns_desc,(list,tuple)):
+            raise ParsingError('states_patterns_desc must contains a tuple/list of tuples/lists')
+        if not states_patterns_desc or not states_patterns_desc[0]:
+            raise ParsingError('states_patterns_desc must not be empty')
+        if not isinstance(states_patterns_desc[0],(list,tuple)):
+            raise ParsingError('states_patterns_desc must contains a tuple/list of tuples/lists : one level of parenthesis or a coma is missing somewhere.')
+        if len(states_patterns_desc[0]) != 5:
+            raise ParsingError('states_patterns_desc subtuple must contain 5 elements : ifstate, gotostate, pattern, datapath and outfilter')
 
         #normalizing states_patterns_desc :
         for ifstate, gotostate, pattern, datapath, outfilter in states_patterns_desc:
