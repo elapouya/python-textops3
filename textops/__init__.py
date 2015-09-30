@@ -5,9 +5,10 @@ Created : 2015-04-03
 @author: Eric Lapouyade
 '''
 
-__version__ = '0.0.5'
+__version__ = '0.0.9'
 
 import logging
+
 try:  # Python 2.7+
     from logging import NullHandler
 except ImportError:
