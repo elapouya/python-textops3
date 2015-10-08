@@ -49,7 +49,7 @@ class mgrepvi(mgrepv): flags = re.IGNORECASE
 class parseg(TextOp):
     ignore_case = False
     @classmethod
-    def op(cls,text, pattern, key_update = None, *args,**kwargs):
+    def op(cls,text, pattern, *args,**kwargs):
         if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
         out = []
@@ -115,6 +115,7 @@ class find_pattern(TextOp):
         if m :
             grps = m.groups()
             return grps[0] if grps else NoAttr
+        return NoAttr
 
 class find_patterni(find_pattern): ignore_case=True
 

@@ -94,13 +94,13 @@ class rmblank(grepv): pattern = r'^\s*$'
 
 class formatitems(TextOp):
     @classmethod
-    def op(cls,items,format_str='{0} : {1}\n',*args,**kwargs):
-        return ''.join([format_str.format(k,v) for k,v in items ])
+    def op(cls,items,format_str='{0} : {1}\n',join_str = '', *args,**kwargs):
+        return join_str.join([format_str.format(k,v) for k,v in items ])
 
 class formatdicts(TextOp):
     @classmethod
-    def op(cls,items,format_str='{key} : {val}\n',*args,**kwargs):
-        return ''.join([format_str.format(**dct) for dct in items ])
+    def op(cls,items,format_str='{key} : {val}\n',join_str = '',*args,**kwargs):
+        return join_str.join([format_str.format(**dct) for dct in items ])
 
 class first(TextOp):
     @classmethod

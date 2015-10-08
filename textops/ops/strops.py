@@ -45,7 +45,6 @@ class cut(StrOp):
             return [ line_cols[c] if c < nblinecol else not_present_value for c in col ]
         else:
             line_cols = cls.split(text,sep, *args,**kwargs)
-            print 'fn :',args,kwargs
             nblinecol = len(line_cols)
             if col == None:
                 return line_cols
