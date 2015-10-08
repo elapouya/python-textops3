@@ -31,7 +31,7 @@ class StrOp(TextOp):
 
 class cut(StrOp):
     @classmethod
-    def split(cls, text, sep):
+    def split(cls, text, sep, *args,**kwargs):
         return text.split(sep)
 
     @classmethod
@@ -40,11 +40,12 @@ class cut(StrOp):
             col = [int(i) for i in col.split(',')]
         if isinstance(col,(list,tuple)):
             nbcol = len(col)
-            line_cols = cls.split(text,sep)
+            line_cols = cls.split(text,sep, *args,**kwargs)
             nblinecol = len(line_cols)
             return [ line_cols[c] if c < nblinecol else not_present_value for c in col ]
         else:
-            line_cols = cls.split(text,sep)
+            line_cols = cls.split(text,sep, *args,**kwargs)
+            print 'fn :',args,kwargs
             nblinecol = len(line_cols)
             if col == None:
                 return line_cols
@@ -55,14 +56,14 @@ class cut(StrOp):
 
 class cutre(cut):
     @classmethod
-    def split(cls, text, sep):
+    def split(cls, text, sep, *args,**kwargs):
         if hasattr(sep,'match'):
             return sep.split(text)
         return re.split(sep,text)
 
 class cutca(cut):
     @classmethod
-    def split(cls, text, sep):
+    def split(cls, text, sep, *args,**kwargs):
         if hasattr(sep,'match'):
             m = sep.match(text)
         else:
@@ -71,7 +72,7 @@ class cutca(cut):
 
 class cutdct(cut):
     @classmethod
-    def split(cls, text, sep):
+    def split(cls, text, sep, *args,**kwargs):
         if hasattr(sep,'match'):
             m = sep.match(text)
         else:
@@ -80,7 +81,8 @@ class cutdct(cut):
 
 class cutkv(cut):
     @classmethod
-    def split(cls, text, sep, key_name = 'key'):
+    def split(cls, text, sep, key_name = 'key', *args,**kwargs):
+        # Use named 'key_name' parameter, not postionnal
         if hasattr(sep,'match'):
             m = sep.match(text)
         else:
