@@ -19,6 +19,8 @@ class splitln(TextOp):
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
+        if '\n' in text:
+            text = cls._tolist(text)
         if isinstance(text, basestring):
             return cls.fn(text,*args,**kwargs)
         elif isinstance(text, list):

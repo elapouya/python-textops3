@@ -321,6 +321,8 @@ def get_attribute_or_textop(obj,name):
         try:
             fn = object.__getattribute__(obj,name)
         except AttributeError:
+            if isinstance(obj,DictExt):
+                return NoAttr
             def fn(*args,**kwargs):
                 return map(lambda s:getattr(str, name)(s,*args,**kwargs),obj)
 
