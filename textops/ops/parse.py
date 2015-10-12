@@ -175,10 +175,58 @@ class find_first_patterni(find_patterns): ignore_case=True
 
 def index_normalize(index_val):
     index_val = index_val.lower().strip()
-    index_val = re.sub(r'\W','_',index_val)
+    index_val = re.sub(r'^\W*','',index_val)
+    index_val = re.sub(r'\W*$','',index_val)
+    index_val = re.sub(r'\W+','_',index_val)
     index_val = re.sub('_+','_',index_val)
-    index_val = re.sub('_$','',index_val)
     return index_val
+
+class parse_indented(TextOp):
+    @classmethod
+    def op(cls, text, sep=r':', *args,**kwargs):
+        indent_level = 0
+        out = {}
+        indent_node = {indent_level:out}
+        dct = out
+        prev_k = None
+        # parse the text
+        for line in cls._tolist(text):
+            m = re.match(r'^(\s*)\S', line)
+            if m:
+                k,v = (re.split(sep,line) + [''])[:2]
+                indent = len(m.group(1))
+                if indent < indent_level:
+                    dct = indent_node.get(indent)
+                    while dct is None:
+                        indent -= 1
+                        dct = indent_node.get(indent)
+                    indent_level = indent
+                elif indent > indent_level:
+                    if prev_k is not None:
+                        dct[prev_k] = {}
+                        dct = dct[prev_k]
+                        indent_node[indent] = dct
+                    indent_level = indent                    
+                k = index_normalize(k)
+                v = v.strip()
+                if k in dct:
+                    prev_v = dct[k]
+                    if isinstance(prev_v,dict):
+                        dct[k]=[prev_v,{}]
+                        dct = dct[k][-1]
+                    elif isinstance(prev_v,basestring):
+                        dct[k]=[prev_v,v]
+                    else:
+                        if isinstance(prev_v[0],basestring):
+                            dct[k].append(v)
+                        else:
+                            dct[k].append({})
+                            dct = dct[k][-1]
+                    prev_k = None
+                else:                        
+                    dct[k]=v
+                    prev_k = k
+        return out            
 
 class state_pattern(TextOp):
     """ states and patterns parser
