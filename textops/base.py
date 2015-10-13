@@ -343,6 +343,9 @@ def get_attribute_or_textop(obj,name):
 class UnicodeExt(unicode):
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
+    @property
+    def aslist(self):
+        return ListExt([self])            
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(UnicodeExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
@@ -363,6 +366,9 @@ class UnicodeExt(unicode):
 class StrExt(str):
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
+    @property
+    def aslist(self):
+        return ListExt([self])            
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(StrExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
@@ -383,6 +389,9 @@ class StrExt(str):
 class ListExt(list):
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
+    @property
+    def aslist(self):
+        return self
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
@@ -422,6 +431,9 @@ class DictExt(NoAttrDict):
         if dict.has_key(self,name):
             return self[name]
         return get_attribute_or_textop(self,name)
+    @property
+    def aslist(self):
+        return ListExt([self])            
     def __getitem__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
