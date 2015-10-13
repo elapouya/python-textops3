@@ -16,6 +16,11 @@ class splitln(TextOp):
     def op(cls,text,*args,**kwargs):
 	return cls._tolist(text)
 
+class matches(TextOp):
+    @classmethod
+    def op(cls,text,pattern,*args,**kwargs):
+        return re.match(pattern,text)
+
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):

@@ -191,9 +191,9 @@ class parse_indented(TextOp):
         prev_k = None
         # parse the text
         for line in cls._tolist(text):
-            m = re.match(r'^(\s*)\S', line)
+            m = re.match(r'^(\s*)(\S.*)', line)
             if m:
-                k,v = (re.split(sep,line) + [''])[:2]
+                k,v = (re.split(sep,m.group(2)) + [''])[:2]
                 indent = len(m.group(1))
                 if indent < indent_level:
                     dct = indent_node.get(indent)
@@ -201,12 +201,15 @@ class parse_indented(TextOp):
                         indent -= 1
                         dct = indent_node.get(indent)
                     indent_level = indent
+                    for ik in indent_node.keys():
+                        if ik > indent:
+                            del indent_node[ik]
                 elif indent > indent_level:
                     if prev_k is not None:
                         dct[prev_k] = {}
                         dct = dct[prev_k]
-                        indent_node[indent] = dct
-                    indent_level = indent                    
+                    indent_node[indent] = dct
+                    indent_level = indent
                 k = index_normalize(k)
                 v = v.strip()
                 if k in dct:
@@ -223,10 +226,10 @@ class parse_indented(TextOp):
                             dct[k].append({})
                             dct = dct[k][-1]
                     prev_k = None
-                else:                        
+                else:
                     dct[k]=v
                     prev_k = k
-        return out            
+        return out
 
 class state_pattern(TextOp):
     """ states and patterns parser
