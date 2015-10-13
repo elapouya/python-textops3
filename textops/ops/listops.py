@@ -63,6 +63,7 @@ class grepc(TextOp):
     flags = 0
     reverse = False
     pattern = ''
+    exit_on_found = False
     @classmethod
     def op(cls,text,pattern=None,col_or_key = None,*args,**kwargs):
         if text is None:
@@ -76,19 +77,30 @@ class grepc(TextOp):
                 if isinstance(line,basestring):
                     if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
+                        if cls.exit_on_found:
+                            break
                 elif col_or_key is None:
                     if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
+                        if cls.exit_on_found:
+                            break
                 else:
                     if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
+                        if cls.exit_on_found:
+                            break
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
+        if cls.exit_on_found:
+            return bool(count)
         return count
 
 class grepci(grepc): flags = re.IGNORECASE
 class grepcv(grepc): reverse = True
 class grepcvi(grepcv): flags = re.IGNORECASE
+
+class haspattern(grepc): exit_on_found = True
+class haspatterni(haspattern): flags = re.IGNORECASE
 
 class rmblank(grepv): pattern = r'^\s*$'
 
