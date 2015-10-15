@@ -1,6 +1,7 @@
-==============
-python-textops
-==============
+.. python-textops documentation master file,
+
+Welcome to python-textops documentation !
+=========================================
 
 Introduction
 ------------
@@ -209,3 +210,23 @@ Extended Types:
 * ListExt
 * StrExt
 * UnicodeExt
+
+.. rubric:: Functions index
+
+.. currentmodule:: textops
+
+.. to list all function : grep "def " *.py | sed -e 's,^def ,,' -e 's,(.*,,' | sort
+
+.. rubric:: Functions documentation
+
+.. automodule:: textops
+   :members:
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

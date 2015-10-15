@@ -24,7 +24,7 @@ class matches(TextOp):
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if '\n' in text:
+        if isinstance(text, basestring) and '\n' in text:
             text = cls._tolist(text)
         if isinstance(text, basestring):
             return cls.fn(text,*args,**kwargs)

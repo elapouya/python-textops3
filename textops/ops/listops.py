@@ -9,6 +9,7 @@ from textops import TextOp
 import re
 import subprocess
 import sys
+import os
 
 class ListOpError(Exception):
     pass
@@ -16,21 +17,24 @@ class ListOpError(Exception):
 class cat(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        with open(text) as fh:
-            for line in fh:
-                yield line.rstrip('\r\n')
+        for path in cls._tolist(text):
+            if os.path.isfile(path) or os.path.islink(path):
+                with open(path) as fh:
+                    for line in fh:
+                        yield line.rstrip('\r\n')
 
 class run(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if isinstance(text, basestring):
-            p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
-        else:
-            p=subprocess.Popen(text,stdout=subprocess.PIPE)
-        while p.returncode is None:
-            (stdout, stderr) = p.communicate()
-            for line in stdout.splitlines():
-                yield line
+        for cmd in cls._tolist(text):
+            if isinstance(text, basestring):
+                p=subprocess.Popen(['sh','-c',cmd],stdout=subprocess.PIPE)
+            else:
+                p=subprocess.Popen(cmd,stdout=subprocess.PIPE)
+            while p.returncode is None:
+                (stdout, stderr) = p.communicate()
+                for line in stdout.splitlines():
+                    yield line
 
 class grep(TextOp):
     flags = 0
@@ -161,6 +165,7 @@ class sedi(sed): flags = re.IGNORECASE
 
 class between(TextOp):
     flags = 0
+    boundaries = False
     @classmethod
     def _build_regex_list(cls,string_or_list):
         if string_or_list is None:
@@ -172,7 +177,11 @@ class between(TextOp):
         return [ re.compile(pat,cls.flags) if isinstance(pat, basestring) else pat for pat in lst ]
 
     @classmethod
-    def op(cls, text, begin, end, get_begin=False, get_end=False,*args,**kwargs):
+    def op(cls, text, begin, end, get_begin=None, get_end=None,*args,**kwargs):
+        if get_begin is None:
+            get_begin = cls.boundaries
+        if get_end is None:
+            get_end = cls.boundaries
         begin = cls._build_regex_list(begin)
         end = cls._build_regex_list(end)
 
@@ -199,6 +208,19 @@ class between(TextOp):
                 yield line
 
 class betweeni(between): flags = re.IGNORECASE
+class betweenb(between): boundaries = True
+class betweenbi(betweenb): flags = re.IGNORECASE
+
+class range(TextOp):
+    flags = 0
+
+    @classmethod
+    def op(cls, text, begin, end, *args,**kwargs):
+        state = 0
+
+        for line in cls._tolist(text):
+            if line >= begin and line < end:
+                yield line
 
 class before(between):
     @classmethod
