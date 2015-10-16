@@ -111,7 +111,7 @@ class TextOp(object):
 
     @classmethod
     def make_gen(cls, text, return_if_none=None):
-        if text is None:
+        if text in [None,NoAttr]:
             return return_if_none
         return cls._tolist(text)
 
@@ -127,7 +127,7 @@ class TextOp(object):
 
     @classmethod
     def make_list(cls, text, return_if_none=None):
-        if text is None:
+        if text in [None,NoAttr]:
             return return_if_none
         elif isinstance(text, basestring):
             return text.splitlines()
@@ -146,11 +146,11 @@ class TextOp(object):
         return self.make_list(text,[])
 
     @classmethod
-    def make_string(cls, text, return_if_none=None):
-        if text is None:
+    def make_string(cls, text, join_str='\n', return_if_none=None):
+        if text in [None,NoAttr]:
             return return_if_none
         elif isinstance(text, (list,types.GeneratorType)):
-            return StrExt(''.join(text))
+            return StrExt(join_str.join(text))
         return StrExt(text)
 
     @property
@@ -161,25 +161,17 @@ class TextOp(object):
     @property
     def se(self):
         text = self._process()
-        return self.make_string(text,'')
-
-    @classmethod
-    def make_string_nl(cls, text, return_if_none=None):
-        if text is None:
-            return return_if_none
-        elif isinstance(text, (list,types.GeneratorType)):
-            return StrExt('\n'.join(text))
-        return StrExt(text)
+        return self.make_string(text,return_if_none='')
 
     @property
-    def snl(self):
+    def j(self):
         text = self._process()
-        return self.make_string_nl(text)
+        return self.make_string(text,join_str='')
 
     @property
-    def senl(self):
+    def je(self):
         text = self._process()
-        return self.make_string_nl(text,'')
+        return self.make_string(text,join_str='',return_if_none='')
 
     @classmethod
     def make_int(cls, text):
