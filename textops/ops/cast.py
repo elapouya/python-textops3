@@ -11,12 +11,6 @@ from slugify import slugify
 
 class tostr(TextOp): fn = TextOp.make_string
 class tostre(TextOp): fn = staticmethod(lambda text: TextOp.make_string(text,''))
-
-class join(TextOp):
-    @classmethod
-    def op(cls,text,*args,**kwargs):
-        return cls.make_string(text,*args,**kwargs)
-
 class tostrenl(TextOp): fn = staticmethod(lambda text: TextOp.make_string_nl(text,''))
 class tolist(TextOp): fn = TextOp.make_list
 class toliste(TextOp): fn = staticmethod(lambda text: TextOp.make_list(text,[]))

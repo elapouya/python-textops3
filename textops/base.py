@@ -11,6 +11,7 @@ import re
 import types
 import textops
 from addicted import NoAttrDict, NoAttr
+import string
 import logging
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -67,8 +68,7 @@ class TextOp(object):
             args = self.ops[0][1]
             if args:
                 text = args[0]
-                self.ops[0][1] = []
-                self.ops[0][2] = {}
+                self.ops[0][1] = args[1:]
         if self.debug:
             if isinstance(text, types.GeneratorType):
                 text = list(text)
@@ -261,6 +261,7 @@ class WrapOpYield(TextOp):
         for line in cls.fn(cls._tolist(text), *args,**kwargs):
             yield line
 
+# decorators to declare custom function as a new textops op
 def add_textop(func):
     setattr(textops.ops,func.__name__,type(func.__name__,(TextOp,), {'fn':staticmethod(func)}))
     return func
@@ -426,8 +427,21 @@ class DictExt(NoAttrDict):
     @property
     def as_list(self):
         return ListExt([self])
+    def amend(self,*args, **kwargs):
+        return DictExt(self,*args, **kwargs)
+    def render(self,format_string,defvalue='-'):
+        return DefaultFormatter(defvalue).vformat(format_string,(),dict(self))
     def __getitem__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__format__(*args, **kwargs))
 
+class DefaultFormatter(string.Formatter):
+    def __init__(self,defvalue,*args,**kwargs):
+        self.defvalue = defvalue
+        super(DefaultFormatter,self).__init__(*args,**kwargs)
+    def get_value(self, key, args, kwargs):
+        try:
+            return super(DefaultFormatter,self).get_value(key,args,kwargs)
+        except (KeyError, IndexError):
+            return self.defvalue

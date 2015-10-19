@@ -16,8 +16,10 @@ class ListOpError(Exception):
 
 class cat(TextOp):
     @classmethod
-    def op(cls,text,*args,**kwargs):
+    def op(cls,text, context = {},*args,**kwargs):
         for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
             if os.path.isfile(path) or os.path.islink(path):
                 with open(path) as fh:
                     for line in fh:
@@ -25,12 +27,27 @@ class cat(TextOp):
 
 class run(TextOp):
     @classmethod
-    def op(cls,text,*args,**kwargs):
+    def op(cls,text, context = {},*args,**kwargs):
+        if isinstance(text, basestring):
+            if context:
+                text = text.format(**context)
+            p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
+        else:
+            if context:
+                text = [ t.format(**context) for t in text ]
+            p=subprocess.Popen(text,stdout=subprocess.PIPE)
+        while p.returncode is None:
+            (stdout, stderr) = p.communicate()
+            for line in stdout.splitlines():
+                yield line
+
+class mrun(TextOp):
+    @classmethod
+    def op(cls,text, context = {}, *args,**kwargs):
         for cmd in cls._tolist(text):
-            if isinstance(text, basestring):
-                p=subprocess.Popen(['sh','-c',cmd],stdout=subprocess.PIPE)
-            else:
-                p=subprocess.Popen(cmd,stdout=subprocess.PIPE)
+            if context:
+                cmd = cmd.format(**context)
+            p=subprocess.Popen(['sh','-c',cmd],stdout=subprocess.PIPE)
             while p.returncode is None:
                 (stdout, stderr) = p.communicate()
                 for line in stdout.splitlines():
