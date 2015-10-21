@@ -6,7 +6,7 @@ Introduction
 ------------
 
 python-textops provides many text operations at string level, line level or whole text level.
-These operations can be chained with the 'dotted' notation or 'piped' notation. 
+These operations can be chained with a 'dotted' or 'piped' notation. 
 You can also build a lazy filter object to apply operations after their definition.
 
 
@@ -65,8 +65,8 @@ Usage::
     print ListExt([{ 'msg':'this is an', 'level':'error'},{'msg':'this is a','level':'warning'}]).grepi('error','level').first()
 
     # textops provides DictExt class that has got the attribute access functionnality :
-    d = DictExt({ 'a' : { 'b' : 1}})
-    print d.a.b
+    d = DictExt({ 'a' : { 'b' : 'this is an error'}})
+    print d.a.b.grepi('error').first().upper()
 
     # If attributes are reserved or contains space, one can use normal form :
     d = DictExt({ 'this' : { 'is' : { 'a' : {'very deep' : { 'dict' : 'yes it is'}}}}})

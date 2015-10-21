@@ -14,6 +14,7 @@ class echo(TextOp): fn = staticmethod(lambda text: text)
 strop = echo()
 
 class splitln(TextOp):
+    """ Transforms a string with newlines into a list of lines"""
     @classmethod
     def op(cls,text,*args,**kwargs):
 	return cls._tolist(text)
