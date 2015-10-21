@@ -11,6 +11,8 @@ import re
 class length(TextOp): fn = staticmethod(lambda text: len(text))
 class echo(TextOp): fn = staticmethod(lambda text: text)
 
+strop = echo()
+
 class splitln(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):

@@ -24,6 +24,9 @@ def activate_debug():
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
+    
+class TextOpException(Exception):
+    pass
 
 class TextOp(object):
     def __init__(self,*args,**kwargs):
@@ -37,6 +40,12 @@ class TextOp(object):
             self.op = attr
         else:
             raise AttributeError()
+        return self
+
+    def __or__(self,other):
+        if not isinstance(other,TextOp):
+            raise TextOpException('Please use "|" only between two TextOp or AFTER a string or list of strings')
+        self.ops += other.ops
         return self
 
     def __ror__(self,text):
@@ -208,7 +217,7 @@ class TextOp(object):
 
     @classmethod
     def op(cls,text,*args,**kwargs):
-        return cls.fn(text)
+        return cls.fn(text,*args,**kwargs)
 
     @classmethod
     def _tolist(cls,text):
@@ -263,7 +272,10 @@ class WrapOpYield(TextOp):
 
 # decorators to declare custom function as a new textops op
 def add_textop(func):
-    setattr(textops.ops,func.__name__,type(func.__name__,(TextOp,), {'fn':staticmethod(func)}))
+    if isinstance(func,type):
+        setattr(textops.ops,func.__name__,func)
+    else:
+        setattr(textops.ops,func.__name__,type(func.__name__,(TextOp,), {'fn':staticmethod(func)}))
     return func
 
 def add_textop_iter(func):

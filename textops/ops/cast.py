@@ -9,12 +9,42 @@ from textops import TextOp
 import dateutil.parser
 from slugify import slugify
 
-class tostr(TextOp): fn = TextOp.make_string
-class tostre(TextOp): fn = staticmethod(lambda text: TextOp.make_string(text,''))
-class tostrenl(TextOp): fn = staticmethod(lambda text: TextOp.make_string_nl(text,''))
-class tolist(TextOp): fn = TextOp.make_list
-class toliste(TextOp): fn = staticmethod(lambda text: TextOp.make_list(text,[]))
-class toint(TextOp): fn = TextOp.make_int
-class tofloat(TextOp): fn = TextOp.make_float
-class todatetime(TextOp): fn = staticmethod(lambda text: dateutil.parser.parse(text))
-class toslug(TextOp): fn = staticmethod(lambda text: slugify(text))
+class tostr(TextOp):
+    @classmethod 
+    def fn(cls, text, join_str='\n', return_if_none=None,*args,**kwargs):
+        return TextOp.make_string(text,join_str,return_if_none)
+
+class tostre(TextOp):
+    @classmethod 
+    def fn(cls, text, join_str='\n', return_if_none='',*args,**kwargs):
+        return TextOp.make_string(text,join_str,return_if_none)
+    
+class tolist(TextOp):
+    @classmethod 
+    def fn(cls, text, return_if_none=None,*args,**kwargs):
+        return TextOp.make_list(text,return_if_none)
+
+class toliste(TextOp):
+    @classmethod 
+    def fn(cls, text, return_if_none=[],*args,**kwargs):
+        return TextOp.make_list(text,return_if_none)
+
+class toint(TextOp):
+    @classmethod 
+    def fn(cls, text,*args,**kwargs):
+        return TextOp.make_int(text)
+
+class tofloat(TextOp):
+    @classmethod 
+    def fn(cls, text,*args,**kwargs):
+        return TextOp.make_float(text)
+
+class todatetime(TextOp):
+    @classmethod 
+    def fn(cls, text,*args,**kwargs):
+        return dateutil.parser.parse(text)
+
+class toslug(TextOp):
+    @classmethod 
+    def fn(cls, text,*args,**kwargs):
+        return slugify(text)
