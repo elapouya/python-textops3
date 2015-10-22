@@ -2,6 +2,9 @@
 Getting started
 ===============
 
+| python-textops provides many text operations at string level, list level or whole text level.
+| These operations can be chained with a 'dotted' or 'piped' notation.
+| You can also build lazy filter objects to apply operations after their definition.
 
 Install
 -------
@@ -21,7 +24,7 @@ Here is a filter to find the first line with an error and put it in uppercase::
 
     myfilter = grepi('error').first().upper()
     # Note : str standard methods (like 'upper') can be used directly in chained dotted notation
-    
+
 You can use unix shell 'pipe' symbol into python code to chain operations::
 
     myfilter = grepi('error') | first() | strop.upper()
@@ -41,9 +44,9 @@ or use the pipe symbol (the bitwise operator has been redefined)::
     print 'this is an error' | grepi('error').first().upper()
 
 or use the pipe everywhere ::
- 
+
     print 'this is an error\nthis is a warning' | grepi('error') | first() | strop.upper()
-    
+
 or use chained textop in a 'for' loop::
 
     for line in cat('errors.log').grep('that'):

@@ -32,6 +32,7 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinxcontrib.napoleon',
+    'rst2pdf.pdfbuilder',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,13 +51,21 @@ master_doc = 'index'
 project = u'python-textops'
 copyright = u'2015, Eric Lapouyade'
 
+   
+# pdf_documents :
+#   index - master document
+#   rst2pdf - name of the generated pdf
+#   Sample rst2pdf doc - title of the pdf
+#   Your Name - author name in the pdf
+pdf_documents = [('index', u'textops_pdf', u'python-textops', u'Eric Lapouyade'),]
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 import re
 def get_version(pkg):
-    path = os.path.join(os.path.dirname(os.path.dirname(__file__)),pkg,'__init__.py')
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),pkg,'__init__.py')
     with open(path) as fh:
         m = re.search(r'^__version__\s*=\s*[\'"]([^\'"]+)[\'"]',fh.read(),re.M)
     if m:
