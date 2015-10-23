@@ -32,16 +32,17 @@ You can use unix shell 'pipe' symbol into python code to chain operations::
 
 To execute the filter::
 
-    print myfilter('this is an error')
-    # Note : python generators are used as far as possible to be able to manage huge data set like big files.
+    print myfilter('this is an error\nthis is a warning')
+    # Note : python generators are used as far as possible to be able
+    # to manage huge data set like big files.
 
 To execute operations at once, specify the input text ::
 
-    print grepi('error').first().upper()('this is an error')
+    print grepi('error').first().upper()('this is an error\nthis is a warning')
 
 or use the pipe symbol (the bitwise operator has been redefined)::
 
-    print 'this is an error' | grepi('error').first().upper()
+    print 'this is an error\nthis is a warning' | grepi('error').first().upper()
 
 or use the pipe everywhere ::
 
@@ -57,27 +58,26 @@ you just have to use textops Extended types : StrExt and ListExt::
 
     s = StrExt('this is an error\nthis is a warning')
     print s.grepi('error').first().upper()
-    # Note : As soon as you are using textops Extended type, generators cannot be used anymore : all data must fit into memory
+    # Note : As soon as you are using textops Extended type, generators cannot be used anymore :
+    # all data must fit into memory
 
-your text can have multiple lines::
-
-    print 'this is an error\nthis is a warning' | grepi('error').first().upper()
-
-or can be a list::
+your text can be a list::
 
     print ['this is an error','this is a warning'] | grepi('error').first().upper()
 
 textops works also on list of list (you can optionally grep on a specific column)::
 
-    print ListExt([['this is an','error'],['this is a','warning']]).grepi('error',1).first().upper()
+    l = ListExt([['this is an','error'],['this is a','warning']])
+    print l.grepi('error',1).first().upper()
 
 ... or a list of dict (you can optionally grep on a specific key)::
 
-    print ListExt([{ 'msg':'this is an', 'level':'error'},{'msg':'this is a','level':'warning'}]).grepi('error','level').first()
+    l = ListExt([{ 'msg':'this is an', 'level':'error'},{'msg':'this is a','level':'warning'}])
+    print l.grepi('error','level').first()
 
 textops provides DictExt class that has got the attribute access functionnality::
 
-    d = DictExt({ 'a' : { 'b' : 'this is an error'}})
+    d = DictExt({ 'a' : { 'b' : 'this is an error\nthis is a warning'}})
     print d.a.b.grepi('error').first().upper()
 
 If attributes are reserved or contains space, one can use normal form::
@@ -91,7 +91,8 @@ You can use dotted notation for setting information in dict BUT only on one leve
     d.a = DictExt()
     d.a.b = 'this is my logging data'
 
-Above you saw `cat`,`grep`,`first` and `upper`, but there are many more operations available : Read The Fabulous Manual !
+| Above you saw ``cat``, ``grep``, ``first`` and ``upper``, but there are many more operations available :
+| Read The Fabulous Manual !
 
 
 Example
@@ -122,8 +123,8 @@ First solution : by using textops Extended type "StrExt" (Not optimized for big 
 
 Second solution by using a fully dotted chained operations (optimized for huge file)::
 
-    for date,level,msg in cat('my_log_file.log').range('2014','2016').grepi(r'error|critical').cut(':'):
-        print 'date = %s, level = %s : %s' % (date,level,msg)
+    for d,l,m in cat('my_log_file.log').range('2014','2016').grepi(r'error|critical').cut(':'):
+        print 'date = %s, level = %s : %s' % (d,l,m)
 
 
 * :ref:`genindex`

@@ -6,7 +6,7 @@
 
 __version__ = '0.1.1'
 __author__ = 'Eric Lapouyade'
-__copyright__ = 'Copyright 2015, textops project'
+__copyright__ = 'Copyright 2015, python-textops project'
 __credits__ = ['Eric Lapouyade']
 __license__ = 'LGPL'
 __maintainer__ = 'Eric Lapouyade'
