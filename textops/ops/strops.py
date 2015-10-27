@@ -10,7 +10,7 @@ from textops import TextOp
 import re
 
 class length(TextOp):
-    """ Returns the length of a string
+    r""" Returns the length of a string
 
     Returns:
         int: length of the string
@@ -27,7 +27,7 @@ class length(TextOp):
     fn = staticmethod(lambda text: len(text))
 
 class echo(TextOp):
-    """ identity operation
+    r""" identity operation
 
     it returns the same text, except that is uses textops Extended classes (StrExt, ListExt ...).
     This could be usefull in some cases to access str methods (upper, replace, ...) just after a pipe.
@@ -62,9 +62,9 @@ class echo(TextOp):
 strop = echo()
 
 class splitln(TextOp):
-    """ Transforms a string with newlines into a list of lines
+    r""" Transforms a string with newlines into a list of lines
 
-    It uses python str.splitlines() : newline separator can be \\\\n or \\\\r or both. They are removed
+    It uses python str.splitlines() : newline separator can be \\n or \\r or both. They are removed
     during the process.
 
     Returns:
@@ -72,7 +72,7 @@ class splitln(TextOp):
 
     Example:
 
-        >>> s='this is\\na multi-line\\nstring'
+        >>> s='this is\na multi-line\nstring'
         >>> s | splitln()
         ['this is', 'a multi-line', 'string']
     """
@@ -81,7 +81,7 @@ class splitln(TextOp):
         return cls._tolist(text)
 
 class matches(TextOp):
-    """ Tests whether a pattern is present or not
+    r""" Tests whether a pattern is present or not
 
     Uses re.match() to match a pattern against the string.
 
@@ -114,7 +114,7 @@ class matches(TextOp):
         return re.match(pattern,text,*args,**kwargs)
 
 class searches(TextOp):
-    """ Search a pattern
+    r""" Search a pattern
 
     Uses re.search() to find a pattern in the string.
 
@@ -161,7 +161,7 @@ class StrOp(TextOp):
             yield cls.fn(line,*args,**kwargs)
 
 class cut(StrOp):
-    """ Extract columns from a string or a list of strings
+    r""" Extract columns from a string or a list of strings
 
     This works like the unix shell command 'cut'. It uses str.split() function.
 
@@ -195,7 +195,7 @@ class cut(StrOp):
         'col2'
         >>> s | cut(col='1,2,10',not_present_value='N/A')
         ['col2', 'col3', 'N/A']
-        >>> s='col1.1 col1.2 col1.3\\ncol2.1 col2.2 col2.3'
+        >>> s='col1.1 col1.2 col1.3\ncol2.1 col2.2 col2.3'
         >>> s | cut()
         [['col1.1', 'col1.2', 'col1.3'], ['col2.1', 'col2.2', 'col2.3']]
         >>> s | cut(col=1)
@@ -204,7 +204,7 @@ class cut(StrOp):
         [['col1.1', 'col1.2'], ['col2.1', 'col2.2']]
         >>> s | cut(col=[1,2])
         [['col1.2', 'col1.3'], ['col2.2', 'col2.3']]
-        >>> s='col1.1 | col1.2 |  col1.3\\ncol2.1 | col2.2 | col2.3'
+        >>> s='col1.1 | col1.2 |  col1.3\ncol2.1 | col2.2 | col2.3'
         >>> s | cut()
         [['col1.1', '|', 'col1.2', '|', 'col1.3'], ['col2.1', '|', 'col2.2', '|', 'col2.3']]
         >>> s | cut(sep=' | ')
@@ -234,7 +234,7 @@ class cut(StrOp):
                 return not_present_value
 
 class cutre(cut):
-    """ Extract columns from a string or a list of strings with re.split()
+    r""" Extract columns from a string or a list of strings with re.split()
 
     This works like the unix shell command 'cut'. It uses re.split() function.
 
@@ -261,17 +261,17 @@ class cutre(cut):
 
     Examples:
 
-        >>> s='col1.1 | col1.2 | col1.3\\ncol2.1 | col2.2 | col2.3'
+        >>> s='col1.1 | col1.2 | col1.3\ncol2.1 | col2.2 | col2.3'
         >>> print s
         col1.1 | col1.2 | col1.3
         col2.1 | col2.2 | col2.3
-        >>> s | cutre(r'\\s+')
+        >>> s | cutre(r'\s+')
         [['col1.1', '|', 'col1.2', '|', 'col1.3'], ['col2.1', '|', 'col2.2', '|', 'col2.3']]
-        >>> s | cutre(r'[\\s|]+')
+        >>> s | cutre(r'[\s|]+')
         [['col1.1', 'col1.2', 'col1.3'], ['col2.1', 'col2.2', 'col2.3']]
-        >>> s | cutre(r'[\\s|]+','0,2,4','-')
+        >>> s | cutre(r'[\s|]+','0,2,4','-')
         [['col1.1', 'col1.3', '-'], ['col2.1', 'col2.3', '-']]
-        >>> mysep = re.compile(r'[\\s|]+')
+        >>> mysep = re.compile(r'[\s|]+')
         >>> s | cutre(mysep)
         [['col1.1', 'col1.2', 'col1.3'], ['col2.1', 'col2.2', 'col2.3']]
     """
@@ -282,7 +282,7 @@ class cutre(cut):
         return re.split(sep,text)
 
 class cutca(cut):
-    """ Extract columns from a string or a list of strings through pattern capture
+    r""" Extract columns from a string or a list of strings through pattern capture
 
     This works like cutre() except it needs a pattern having parenthesis to capture column.
 
@@ -325,7 +325,7 @@ class cutca(cut):
         return m.groups() if m else []
 
 class cutdct(cut):
-    """ Extract columns from a string or a list of strings through pattern capture
+    r""" Extract columns from a string or a list of strings through pattern capture
 
     This works like cutcat() except it needs a pattern having *named* parenthesis to capture column.
 
@@ -356,7 +356,7 @@ class cutdct(cut):
         >>> s='item="col1" count="col2" price="col3"'
         >>> s | cutdct(r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"')
         {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}
-        >>> s='item="col1" count="col2" price="col3"\\nitem="col11" count="col22" price="col33"'
+        >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
         >>> s | cutdct(r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"') # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         [{'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'},...
         {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}]
@@ -370,7 +370,7 @@ class cutdct(cut):
         return m.groupdict() if m else {}
 
 class cutkv(cut):
-    """ Extract columns from a string or a list of strings through pattern capture
+    r""" Extract columns from a string or a list of strings through pattern capture
 
     This works like cutdct() except it return a dict where the key is the one captured with the
     name given in parameter 'key_name', and where the value is the full dict of captured values.
@@ -394,7 +394,7 @@ class cutkv(cut):
         >>> pattern=r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"'
         >>> s | cutkv(pattern,key_name='item')
         {'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}}
-        >>> s='item="col1" count="col2" price="col3"\\nitem="col11" count="col22" price="col33"'
+        >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
         >>> s | cutkv(pattern,key_name='item')                                                         # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         [{'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}},...
         {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}}]
