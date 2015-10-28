@@ -24,7 +24,7 @@ def activate_debug():
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
-    
+
 class TextOpException(Exception):
     pass
 
@@ -184,10 +184,15 @@ class TextOp(object):
 
     @classmethod
     def make_int(cls, text):
-        try:
-            return int(float(text))
-        except (ValueError, TypeError):
-            return 0
+        def _to_int(text):
+            try:
+                return int(float(text))
+            except (ValueError, TypeError):
+                return 0
+        if isinstance(text, basestring):
+            return _to_int(text)
+        else:
+            return map(_to_int,text)
 
     @property
     def i(self):
@@ -196,10 +201,15 @@ class TextOp(object):
 
     @classmethod
     def make_float(cls, text):
-        try:
-            return float(text)
-        except (ValueError, TypeError):
-            return 0.0
+        def _to_float(text):
+            try:
+                return float(text)
+            except (ValueError, TypeError):
+                return 0.0
+        if isinstance(text, basestring):
+            return _to_float(text)
+        else:
+            return map(_to_float,text)
 
     @property
     def f(self):
