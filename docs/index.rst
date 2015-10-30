@@ -9,6 +9,7 @@ Welcome to python-textops documentation !
 
    intro
    strops
+   listops
    cast
 
 Indices and tables

@@ -2,7 +2,7 @@ import doctest
 from textops import *
 import os
 
-modules = [ 'textops.ops.strops', 'textops.ops.cast']
+modules = [ 'textops.ops.strops', 'textops.ops.listops', 'textops.ops.cast']
 files = [ 'docs/intro.rst' ]
 
 for m in modules:

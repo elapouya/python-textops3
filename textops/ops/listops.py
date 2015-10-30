@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
-Created : 2015-04-03
-
-@author: Eric Lapouyade
-'''
+#
+# Created : 2015-04-03
+#
+# @author: Eric Lapouyade
+#
+""" This module gathers list/line operations """
 
 from textops import TextOp
 import re
@@ -15,6 +16,62 @@ class ListOpError(Exception):
     pass
 
 class cat(TextOp):
+    r""" Return the content of the file with the path given in the input text
+
+    If a context dict is specified, the path is formatted with that context (str.format)
+
+    Args:
+        context (dict): The context to format the file path (Optionnal)
+
+    Returns:
+        generator: the file content
+
+    Examples:
+        >>> open('/tmp/testfile.txt','w').write('here is the file content')
+        >>> '/tmp/testfile.txt' | cat()                 #doctest: +ELLIPSIS
+        <generator object extend_type_gen at ...>
+        >>> '/tmp/testfile.txt' | cat().tostr()
+        'here is the file content'
+        >>> '/tmp/testfile.txt' | cat().upper().tostr()
+        'HERE IS THE FILE CONTENT'
+        >>> context = {'path':'/tmp/'}
+        >>> '{path}testfile.txt' | cat(context)                 #doctest: +ELLIPSIS
+        <generator object extend_type_gen at ...>
+        >>> '{path}testfile.txt' | cat(context).tostr()
+        'here is the file content'
+        >>> cat('/tmp/testfile.txt').s
+        'here is the file content'
+        >>> cat('/tmp/testfile.txt').upper().s
+        'HERE IS THE FILE CONTENT'
+        >>> cat('/tmp/testfile.txt').l
+        ['here is the file content']
+        >>> cat('/tmp/testfile.txt').g                 #doctest: +ELLIPSIS
+        <generator object extend_type_gen at ...>
+        >>> for line in cat('/tmp/testfile.txt'):
+        ...     print line
+        ...
+        here is the file content
+        >>> for bits in cat('/tmp/testfile.txt').grep('content').cut():
+        ...     print bits
+        ...
+        ['here', 'is', 'the', 'file', 'content']
+        >>> open('/tmp/testfile.txt','w').write('here is the file content\nanother line')
+        >>> '/tmp/testfile.txt' | cat().tostr()
+        'here is the file content\nanother line'
+        >>> '/tmp/testfile.txt' | cat().tolist()
+        ['here is the file content', 'another line']
+        >>> cat('/tmp/testfile.txt').s
+        'here is the file content\nanother line'
+        >>> cat('/tmp/testfile.txt').l
+        ['here is the file content', 'another line']
+        >>> context = {'path': '/tmp/'}
+        >>> cat('/{path}/testfile.txt',context).l
+        ['here is the file content', 'another line']
+        >>> for bits in cat('/tmp/testfile.txt').grep('content').cut():
+        ...     print bits
+        ...
+        ['here', 'is', 'the', 'file', 'content']
+    """
     @classmethod
     def op(cls,text, context = {},*args,**kwargs):
         for path in cls._tolist(text):
@@ -26,6 +83,34 @@ class cat(TextOp):
                         yield line.rstrip('\r\n')
 
 class run(TextOp):
+    r""" Run the command from the input text and return execution output
+
+    | This text operation use subprocess.Popen to call the command.
+    | If the command is a string, it will be executed within a shell.
+    | If the command is a list (the command and its arguments), the command is executed without a shell.
+    | If a context dict is specified, the command is formatted with that context (str.format)
+
+    Args:
+        context (dict): The context to format the command to run
+
+    Returns:
+        generator: the execution output
+
+    Examples:
+        >>> cmd='mkdir -p /tmp/textops_tests_run; cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
+        >>> print cmd | run().tostr()
+        f1
+        f2
+        f3
+        >>> print ['ls', '/tmp/textops_tests_run'] | run().tostr()
+        f1
+        f2
+        f3
+        >>> print ['ls', '{path}'] | run({'path':'/tmp/textops_tests_run'}).tostr()
+        f1
+        f2
+        f3
+    """
     @classmethod
     def op(cls,text, context = {},*args,**kwargs):
         if isinstance(text, basestring):
