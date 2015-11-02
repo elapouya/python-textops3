@@ -49,12 +49,13 @@ To execute operations at once, specify the input text ::
    >>> print grepi('error').first().upper()('this is an error\nthis is a warning')
    THIS IS AN ERROR
 
-... or use the pipe symbol (the bitwise operator has been redefined)::
+... or use one pipe symbol (the bitwise operator has been redefined), 
+then use dotted notation for other operations : this is the **recommended way to use textops**::
 
    >>> print 'this is an error\nthis is a warning' | grepi('error').first().upper()
    THIS IS AN ERROR
 
-... or use the pipe everywhere ::
+... or use the pipe everywhere (internally a little less optimized, but looks like shell)::
 
    >>> print 'this is an error\nthis is a warning' | grepi('error') | first() | strop.upper()
    THIS IS AN ERROR

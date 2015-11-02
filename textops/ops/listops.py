@@ -127,6 +127,38 @@ class run(TextOp):
                 yield line
 
 class mrun(TextOp):
+    r""" Run multiple commands from the input text and return execution output
+
+    | This works like run() except that each line of the input text will be used as a command.
+    | The input text must be a list of strings (list, generator, or newline separated), \
+      not a list of lists. Commands will be executed inside a shell.
+    | If a context dict is specified, commands are formatted with that context (str.format)
+
+    Args:
+        context (dict): The context to format the command to run
+
+    Returns:
+        generator: the execution output
+
+    Examples:
+        >>> cmds='mkdir -p /tmp/textops_tests_run\ncd /tmp/textops_tests_run;touch f1 f2 f3\n'
+        >>> cmds+= 'ls /tmp/textops_tests_run'
+        >>> print cmds | mrun().tostr()
+        f1
+        f2
+        f3
+        >>> cmds=['mkdir -p /tmp/textops_tests_run','cd /tmp/textops_tests_run; touch f1 f2 f3']
+        >>> cmds.append('ls /tmp/textops_tests_run')
+        >>> print cmds | mrun().tostr()
+        f1
+        f2
+        f3
+        >>> print ['ls {path}', 'echo "Cool !"'] | mrun({'path':'/tmp/textops_tests_run'}).tostr()
+        f1
+        f2
+        f3
+        Cool !
+    """
     @classmethod
     def op(cls,text, context = {}, *args,**kwargs):
         for cmd in cls._tolist(text):
@@ -139,6 +171,48 @@ class mrun(TextOp):
                     yield line
 
 class grep(TextOp):
+    r"""Select lines having a specified pattern
+
+    This works like the shell command 'egrep' : it will filter the input text and retain only
+    lines matching the pattern.
+    
+    It works for any kind of list of strings, but also for list of lists and list of dicts.
+    In these cases, one can test only one column or one key but return the whole list/dict.
+    before testing, the object to be tested is converted into a string with str() so the grep 
+    will work for any kind of object.
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        generator: the filtered input text
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grep('error')  #doctest: +ELLIPSIS
+        <generator object extend_type_gen at ...>
+        >>> input | grep('error').tolist()
+        ['error1', 'error2']
+        >>> input | grep('ERROR').tolist()
+        []
+        >>> input | grep('error|warning').tolist()
+        ['error1', 'error2', 'warning1', 'warning2']
+        >>> input | cutca(r'(\D+)(\d+)')
+        [('error', '1'), ('error', '2'), ('warning', '1'), ('info', '1'), ('warning', '2'), ('info', '2')]
+        >>> input | cutca(r'(\D+)(\d+)').grep('1',1).tolist()
+        [('error', '1'), ('warning', '1'), ('info', '1')]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)')  #doctest: +NORMALIZE_WHITESPACE
+        [{'nb': '1', 'level': 'error'}, {'nb': '2', 'level': 'error'}, {'nb': '1', 'level': 'warning'},
+        {'nb': '1', 'level': 'info'}, {'nb': '2', 'level': 'warning'}, {'nb': '2', 'level': 'info'}]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)').grep('1','nb').tolist()
+        [{'nb': '1', 'level': 'error'}, {'nb': '1', 'level': 'warning'}, {'nb': '1', 'level': 'info'}]
+        >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('way').tolist()
+        [{'way to grep': 2}]
+        >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('3').tolist()
+        [{'list of dicts': 3}]
+        
+    """
     flags = 0
     reverse = False
     pattern = ''
@@ -156,14 +230,69 @@ class grep(TextOp):
                     if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 else:
-                    if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(str(line[col_or_key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
 
-class grepi(grep): flags = re.IGNORECASE
-class grepv(grep): reverse = True
-class grepvi(grepv): flags = re.IGNORECASE
+class grepi(grep):
+    r"""grep case insensitive 
+
+    This works like grep(), except it is case insensitive.
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        generator: the filtered input text
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepi('ERROR').tolist()
+        ['error1', 'error2']
+    """
+    flags = re.IGNORECASE
+    
+class grepv(grep):
+    r"""grep with inverted matching
+
+    This works like grep(), except it returns lines that does NOT match the specified pattern.
+
+    Args:
+        pattern (str): a regular expression string
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        generator: the filtered input text
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepv('error').tolist()
+        ['warning1', 'info1', 'warning2', 'info2']
+        >>> input | grepv('ERROR').tolist()
+        ['error1', 'error2', 'warning1', 'info1', 'warning2', 'info2']
+    """
+    reverse = True
+    
+class grepvi(grepv): 
+    r"""grep case insensitive with inverted matching
+
+    This works like grepv(), except it is case insensitive.
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        generator: the filtered input text
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepvi('ERROR').tolist()
+        ['warning1', 'info1', 'warning2', 'info2']
+    """
+    flags = re.IGNORECASE
 
 class grepc(TextOp):
     flags = 0
