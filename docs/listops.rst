@@ -8,27 +8,27 @@ Operations :
 ------------
 
 | textops.cat_
-| textops.run_
-| textops.mrun_
+| textops.first_
+| textops.formatdicts_
+| textops.formatitems_
+| textops.formatlists_
 | textops.grep_
-| textops.grepi_
-| textops.grepv_
-| textops.grepvi_
 | textops.grepc_
 | textops.grepci_
 | textops.grepcv_
 | textops.grepcvi_
+| textops.grepi_
+| textops.grepv_
+| textops.grepvi_
 | textops.haspattern_
 | textops.haspatterni_
-| textops.formatitems_
-| textops.formatlists_
-| textops.formatdicts_
-| textops.first_
-| textops.last_
 | textops.head_
-| textops.tail_
+| textops.last_
+| textops.mrun_
+| textops.run_
 | textops.sed_
 | textops.sedi_
+| textops.tail_
 
 
 Description :
