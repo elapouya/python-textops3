@@ -4,6 +4,25 @@ strops
 
 .. automodule:: textops.ops.strops
 
+Operations :
+------------
+
+| textops.length_
+| textops.echo_
+| textops.splitln_
+| textops.matches_
+| textops.searches_
+| textops.cut_
+| textops.cutre_
+| textops.cutca_
+| textops.cutdct_
+| textops.cutkv_
+
+Description :
+-------------
+
+.. automodule:: textops
+
    .. autoclass:: length( )
    .. autoclass:: echo( )
    .. autoclass:: splitln( )

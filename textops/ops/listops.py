@@ -23,8 +23,8 @@ class cat(TextOp):
     Args:
         context (dict): The context to format the file path (Optionnal)
 
-    Returns:
-        generator: the file content
+    Yields:
+        str: the file content lines
 
     Examples:
         >>> open('/tmp/testfile.txt','w').write('here is the file content')
@@ -93,8 +93,8 @@ class run(TextOp):
     Args:
         context (dict): The context to format the command to run
 
-    Returns:
-        generator: the execution output
+    Yields:
+        str: the execution output
 
     Examples:
         >>> cmd='mkdir -p /tmp/textops_tests_run; cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
@@ -129,7 +129,7 @@ class run(TextOp):
 class mrun(TextOp):
     r""" Run multiple commands from the input text and return execution output
 
-    | This works like run() except that each line of the input text will be used as a command.
+    | This works like textops.run_ except that each line of the input text will be used as a command.
     | The input text must be a list of strings (list, generator, or newline separated), \
       not a list of lists. Commands will be executed inside a shell.
     | If a context dict is specified, commands are formatted with that context (str.format)
@@ -137,8 +137,8 @@ class mrun(TextOp):
     Args:
         context (dict): The context to format the command to run
 
-    Returns:
-        generator: the execution output
+    Yields:
+        str: the execution output
 
     Examples:
         >>> cmds='mkdir -p /tmp/textops_tests_run\ncd /tmp/textops_tests_run;touch f1 f2 f3\n'
@@ -175,18 +175,18 @@ class grep(TextOp):
 
     This works like the shell command 'egrep' : it will filter the input text and retain only
     lines matching the pattern.
-    
+
     It works for any kind of list of strings, but also for list of lists and list of dicts.
     In these cases, one can test only one column or one key but return the whole list/dict.
-    before testing, the object to be tested is converted into a string with str() so the grep 
+    before testing, the object to be tested is converted into a string with str() so the grep
     will work for any kind of object.
 
     Args:
         pattern (str): a regular expression string (case sensitive)
         col_or_key (int or str): test only one column or one key (optional)
 
-    Returns:
-        generator: the filtered input text
+    Yields:
+        str, list or dict: the filtered input text
 
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
@@ -211,7 +211,7 @@ class grep(TextOp):
         [{'way to grep': 2}]
         >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('3').tolist()
         [{'list of dicts': 3}]
-        
+
     """
     flags = 0
     reverse = False
@@ -236,16 +236,16 @@ class grep(TextOp):
                 pass
 
 class grepi(grep):
-    r"""grep case insensitive 
+    r"""grep case insensitive
 
-    This works like grep(), except it is case insensitive.
+    This works like textops.grep_, except it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
         col_or_key (int or str): test only one column or one key (optional)
 
-    Returns:
-        generator: the filtered input text
+    Yields:
+        str, list or dict: the filtered input text
 
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
@@ -253,18 +253,18 @@ class grepi(grep):
         ['error1', 'error2']
     """
     flags = re.IGNORECASE
-    
+
 class grepv(grep):
     r"""grep with inverted matching
 
-    This works like grep(), except it returns lines that does NOT match the specified pattern.
+    This works like textops.grep_, except it returns lines that does NOT match the specified pattern.
 
     Args:
         pattern (str): a regular expression string
         col_or_key (int or str): test only one column or one key (optional)
 
-    Returns:
-        generator: the filtered input text
+    Yields:
+        str, list or dict: the filtered input text
 
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
@@ -274,18 +274,18 @@ class grepv(grep):
         ['error1', 'error2', 'warning1', 'info1', 'warning2', 'info2']
     """
     reverse = True
-    
-class grepvi(grepv): 
+
+class grepvi(grepv):
     r"""grep case insensitive with inverted matching
 
-    This works like grepv(), except it is case insensitive.
+    This works like textops.grepv_, except it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
         col_or_key (int or str): test only one column or one key (optional)
 
-    Returns:
-        generator: the filtered input text
+    Yields:
+        str, list or dict: the filtered input text
 
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
@@ -295,6 +295,32 @@ class grepvi(grepv):
     flags = re.IGNORECASE
 
 class grepc(TextOp):
+    r"""Count lines having a specified pattern
+
+    This works like textops.grep_ except that instead of filtering the input text,
+    it counts lines matching the pattern.
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the matched lines count
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepc('error')
+        2
+        >>> input | grepc('ERROR')
+        0
+        >>> input | grepc('error|warning')
+        4
+        >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grepc('3')
+        1
+        >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grepc('2','way to grep')
+        1
+
+    """
     flags = 0
     reverse = False
     pattern = ''
@@ -320,7 +346,7 @@ class grepc(TextOp):
                         if cls.exit_on_found:
                             break
                 else:
-                    if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(str(line[col_or_key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
@@ -330,26 +356,205 @@ class grepc(TextOp):
             return bool(count)
         return count
 
-class grepci(grepc): flags = re.IGNORECASE
-class grepcv(grepc): reverse = True
-class grepcvi(grepcv): flags = re.IGNORECASE
+class grepci(grepc):
+    r"""Count lines having a specified pattern (case insensitive)
 
-class haspattern(grepc): exit_on_found = True
-class haspatterni(haspattern): flags = re.IGNORECASE
+    This works like textops.grepc_ except that the pattern is case insensitive
 
-class rmblank(grepv): pattern = r'^\s*$'
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the matched lines count
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepci('ERROR')
+        2
+    """
+    flags = re.IGNORECASE
+
+class grepcv(grepc):
+    r"""Count lines NOT having a specified pattern
+
+    This works like textops.grepc_ except that it counts line that does NOT match the pattern.
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the NOT matched lines count
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepcv('error')
+        4
+        >>> input | grepcv('ERROR')
+        6
+    """
+    reverse = True
+
+class grepcvi(grepcv):
+    r"""Count lines NOT having a specified pattern (case insensitive)
+
+    This works like textops.grepcv_ except that the pattern is case insensitive
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the NOT matched lines count
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepcvi('ERROR')
+        4
+    """
+    flags = re.IGNORECASE
+
+class haspattern(grepc):
+    r"""Tests if the input text matches the specified pattern
+
+    This reads the input text line by line (or item by item for lists and generators), cast into
+    a string before testing. like textops.grepc_ it accepts testing on a specific column
+    for a list of lists or testing on a specific key for list of dicts.
+    It stops reading the input text as soon as the pattern is found : it is useful for big input text.
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        bool: True if the pattern is found.
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | haspattern('error')
+        True
+        >>> input | haspattern('ERROR')
+        False
+    """
+    exit_on_found = True
+
+class haspatterni(haspattern):
+    r"""Tests if the input text matches the specified pattern
+
+    Works like textops.haspattern except that it is case insensitive.
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        bool: True if the pattern is found.
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | haspatterni('ERROR')
+        True
+    """
+    flags = re.IGNORECASE
+
+class rmblank(grepv):
+    r"""Remove any kind of blank lines from the input text
+
+    A blank line can be an empty line or a line with only spaces and/or tabs.
+
+    Returns:
+        generator: input text without blank lines
+
+    Examples:
+        >>> input = 'error1\n\n\nerror2\nwarning1\n   \t \t \ninfo1\nwarning2\ninfo2'
+        >>> input | rmblank().tostr()
+        'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input = ['a','','b','   ','c','  \t\t','d']
+        >>> input | rmblank().tolist()
+        ['a', 'b', 'c', 'd']
+    """
+    pattern = r'^\s*$'
 
 class formatitems(TextOp):
+    r"""Formats list of 2-sized tuples
+
+    Useful to convert list of 2-sized tuples into a simple string
+
+    Returns:
+        str: formatted input
+
+    Examples:
+        >>> [('key1','val1'),('key2','val2')] | formatitems('{0} -> {1}\n')
+        'key1 -> val1\nkey2 -> val2\n'
+        >>> [('key1','val1'),('key2','val2')] | formatitems('{0}:{1}',', ')
+        'key1:val1, key2:val2'
+    """
     @classmethod
     def op(cls,items,format_str='{0} : {1}\n',join_str = '', *args,**kwargs):
         return join_str.join([format_str.format(k,v) for k,v in items ])
 
+class formatlists(TextOp):
+    r"""Formats list of lists
+
+    Useful to convert list of lists into a simple string
+
+    Returns:
+        str: formatted input
+
+    Examples:
+        >>> [['key1','val1','help1'],['key2','val2','help2']] | formatlists('{2} : {0} -> {1}\n')
+        'help1 : key1 -> val1\nhelp2 : key2 -> val2\n'
+        >>> [['key1','val1','help1'],['key2','val2','help2']] | formatlists('{0}:{1} ({2})',', ')
+        'key1:val1 (help1), key2:val2 (help2)'
+    """
+    @classmethod
+    def op(cls,items,format_str='{0} : {1}\n',join_str = '', *args,**kwargs):
+        return join_str.join([format_str.format(*lst) for lst in items ])
+
 class formatdicts(TextOp):
+    r"""Formats list of dicts
+
+    Useful to convert list of dicts into a simple string
+
+    Returns:
+        str: formatted input
+
+    Examples:
+        >>> input = [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}]
+        >>> input | formatdicts()
+        'a : 1\nb : 2\nc : 3\n'
+        >>> input | formatdicts('{key} -> {val}\n')
+        'a -> 1\nb -> 2\nc -> 3\n'
+        >>> input = [{'name':'Eric','age':47,'level':'guru'},{'name':'Guido','age':59,'level':'god'}]
+        >>> print input | formatdicts('{name}({age}) : {level}\n')   #doctest: +NORMALIZE_WHITESPACE
+        Eric(47) : guru
+        Guido(59) : god
+        >>> print input | formatdicts('{name}',', ')
+        Eric, Guido
+    """
     @classmethod
     def op(cls,items,format_str='{key} : {val}\n',join_str = '',*args,**kwargs):
         return join_str.join([format_str.format(**dct) for dct in items ])
 
 class first(TextOp):
+    r"""Return the first line/item from the input text
+
+    Returns:
+        StrExt, ListExt or DictExt: the first line/item from the input text
+
+    Examples:
+        >>> 'a\nb\nc' | first()
+        'a'
+        >>> ['a','b','c'] | first()
+        'a'
+        >>> [('a',1),('b',2),('c',3)] | first()
+        ['a', 1]
+        >>> [['key1','val1','help1'],['key2','val2','help2']] | first()
+        ['key1', 'val1', 'help1']
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | first()
+        {'key': 'a', 'val': 1}
+    """
     @classmethod
     def op(cls,text,*args,**kwargs):
         for line in cls._tolist(text):
@@ -357,6 +562,23 @@ class first(TextOp):
         return ''
 
 class last(TextOp):
+    r"""Return the last line/item from the input text
+
+    Returns:
+        StrExt, ListExt or DictExt: the last line/item from the input text
+
+    Examples:
+        >>> 'a\nb\nc' | last()
+        'c'
+        >>> ['a','b','c'] | last()
+        'c'
+        >>> [('a',1),('b',2),('c',3)] | last()
+        ['c', 3]
+        >>> [['key1','val1','help1'],['key2','val2','help2']] | last()
+        ['key2', 'val2', 'help2']
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | last()
+        {'key': 'c', 'val': 3}
+    """
     @classmethod
     def op(cls,text,*args,**kwargs):
         last = ''
@@ -365,6 +587,28 @@ class last(TextOp):
         return last
 
 class head(TextOp):
+    r"""Return first lines from the input text
+
+    Args:
+        lines(int): The number of lines/items to return.
+
+    Yields:
+        str, lists or dicts: the first 'lines' lines from the input text
+
+    Examples:
+        >>> 'a\nb\nc' | head(2).tostr()
+        'a\nb'
+        >>> for l in 'a\nb\nc' | head(2):
+        ...   print l
+        a
+        b
+        >>> ['a','b','c'] | head(2).tolist()
+        ['a', 'b']
+        >>> [('a',1),('b',2),('c',3)] | head(2).tolist()
+        [('a', 1), ('b', 2)]
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | head(2).tolist()
+        [{'val': 1, 'key': 'a'}, {'val': 2, 'key': 'b'}]
+    """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
         for i,line in enumerate(cls._tolist(text)):
@@ -373,6 +617,28 @@ class head(TextOp):
             yield line
 
 class tail(TextOp):
+    r"""Return last lines from the input text
+
+    Args:
+        lines(int): The number of lines/items to return.
+
+    Yields:
+        str, lists or dicts: the last 'lines' lines from the input text
+
+    Examples:
+        >>> 'a\nb\nc' | tail(2).tostr()
+        'b\nc'
+        >>> for l in 'a\nb\nc' | tail(2):
+        ...   print l
+        b
+        c
+        >>> ['a','b','c'] | tail(2).tolist()
+        ['b', 'c']
+        >>> [('a',1),('b',2),('c',3)] | tail(2).tolist()
+        [('b', 2), ('c', 3)]
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | tail(2).tolist()
+        [{'val': 2, 'key': 'b'}, {'val': 3, 'key': 'c'}]
+    """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
         buffer = []
@@ -384,6 +650,31 @@ class tail(TextOp):
             yield line
 
 class sed(TextOp):
+    r"""Replace pattern on-the-fly
+
+    Works like the shell command 'sed'. It uses re.sub() to replace the pattern, this means that
+    you can include back-reference into the replacement string.
+
+    Args:
+        pat(str): a string (case sensitive) or a regular expression for the pattern to search
+        repl(str): the replace string.
+
+    Yields:
+        str: the replaced lines from the input text
+
+    Examples:
+        >>> 'Hello Eric\nHello Guido' | sed('Hello','Bonjour').tostr()
+        'Bonjour Eric\nBonjour Guido'
+        >>> [ 'Hello Eric','Hello Guido'] | sed('Hello','Bonjour').tolist()
+        ['Bonjour Eric', 'Bonjour Guido']
+        >>> [ 'Hello Eric','Hello Guido'] | sed(r'$',' !').tolist()
+        ['Hello Eric !', 'Hello Guido !']
+        >>> import re
+        >>> [ 'Hello Eric','Hello Guido'] | sed(re.compile('hello',re.I),'Good bye').tolist()
+        ['Good bye Eric', 'Good bye Guido']
+        >>> [ 'Hello Eric','Hello Guido'] | sed('hello','Good bye').tolist()
+        ['Hello Eric', 'Hello Guido']
+    """
     flags = 0
     @classmethod
     def op(cls,text,pat,repl,*args,**kwargs):
@@ -392,7 +683,23 @@ class sed(TextOp):
         for line in cls._tolist(text):
             yield pat.sub(repl,line)
 
-class sedi(sed): flags = re.IGNORECASE
+class sedi(sed):
+    r"""Replace pattern on-the-fly (case insensitive)
+
+    Works like textops.sed_ except that the string as the search pattern is case insensitive.
+
+    Args:
+        pat(str): a string (case insensitive) or a regular expression for the pattern to search
+        repl(str): the replace string.
+
+    Yields:
+        str: the replaced lines from the input text
+
+    Examples:
+        >>> [ 'Hello Eric','Hello Guido'] | sedi('hello','Good bye').tolist()
+        ['Good bye Eric', 'Good bye Guido']
+    """
+    flags = re.IGNORECASE
 
 class between(TextOp):
     flags = 0

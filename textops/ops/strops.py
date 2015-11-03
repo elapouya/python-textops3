@@ -284,7 +284,7 @@ class cutre(cut):
 class cutca(cut):
     r""" Extract columns from a string or a list of strings through pattern capture
 
-    This works like cutre() except it needs a pattern having parenthesis to capture column.
+    This works like textops.cutre_ except it needs a pattern having parenthesis to capture column.
 
         * if the input is a simple string, cutca() will return a list of strings
           representing the splitted input string.
@@ -327,7 +327,7 @@ class cutca(cut):
 class cutdct(cut):
     r""" Extract columns from a string or a list of strings through pattern capture
 
-    This works like cutcat() except it needs a pattern having *named* parenthesis to capture column.
+    This works like textops.cutca_ except it needs a pattern having *named* parenthesis to capture column.
 
         * if the input is a simple string, cutca() will return a list of strings
           representing the splitted input string.
@@ -372,7 +372,7 @@ class cutdct(cut):
 class cutkv(cut):
     r""" Extract columns from a string or a list of strings through pattern capture
 
-    This works like cutdct() except it return a dict where the key is the one captured with the
+    This works like textops.cutdct_ except it return a dict where the key is the one captured with the
     name given in parameter 'key_name', and where the value is the full dict of captured values.
     The interest is to merge informations into a bigger dict : see ``merge_dicts()``
 
