@@ -704,7 +704,7 @@ class sedi(sed):
 class between(TextOp):
     r"""Extract lines between two patterns
 
-    It will search for the starting pattern and yield lines until it reaches the ending pattern.
+    It will search for the starting pattern then yield lines until it reaches the ending pattern.
     Pattern can be a string or a Regex object, it can be also a list of strings or Regexs,
     in this case, all patterns in the list must be matched in the same order, this may be useful
     to better select some part of the text in some cases.

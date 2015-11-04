@@ -13,6 +13,7 @@ Operations :
 ------------
 
 | textops.cat_
+| textops.between_
 | textops.first_
 | textops.formatdicts_
 | textops.formatitems_
@@ -63,6 +64,7 @@ Description :
    .. autoclass:: tail(lines)
    .. autoclass:: sed(pat,repl)
    .. autoclass:: sedi(pat,repl)
+   .. autoclass:: between(begin, end, get_begin=False, get_end=False, col_or_key=None)
 
 * :ref:`genindex`
 * :ref:`modindex`
