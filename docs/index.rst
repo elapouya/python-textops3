@@ -1,11 +1,16 @@
-.. python-textops documentation master file,
+.. 
+   Created : 2015-11-04
+   
+   @author: Eric Lapouyade
+
+   python-textops documentation master file,
 
 
 Welcome to python-textops documentation !
 =========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    intro
    strops

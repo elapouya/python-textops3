@@ -1,10 +1,16 @@
+.. 
+   Created : 2015-11-04
+   
+   @author: Eric Lapouyade
+
+
 ===============
 Getting started
 ===============
 
 | python-textops provides many text operations at string level, list level or whole text level.
 | These operations can be chained with a 'dotted' or 'piped' notation.
-| You can also build lazy filter objects to apply operations after their definition.
+| Chained operations are stored into a single lazy object, they will be executed only when an input text will be provided.
 
 Install
 -------
@@ -16,60 +22,100 @@ To install::
 Quickstart
 ----------
 
-Usage::
-
+The usual way to use textops is something like below. IMPORTANT : Note that textops library redefines 
+the python **bitwise OR** operator '|' in order to use it as a 'pipe' like in a Unix shell::
+   
    from textops import *
+   
+   result = "an input text" | my().chained().operations()
+   
+   or
+   
+   for result_item in "an input text" | my().chained().operations():
+      do_something(result_item)
+      
+   or
+   
+   myops = my().chained().operations()
+   # and later in the code, use them :   
+   result = myops("an input text")
+   or
+   result = "an input text" | myops
+   
+An "input text" can be :
 
-Here is a text filter to find the first line with an error and put it in uppercase::
+   * a simple string,
+   * a multi-line string (one string having newlines),
+   * a list of strings,
+   * a strings generator,
+   * a list of lists (useful when you cut lines into columns),
+   * a list of dicts (useful when you parse a line).
 
-   myfilter = grepi('error').first().upper()
+Of course, depending on the operation, only some kind of input text can be used : read the detailed
+documentation.
+
+Here is an example of chained operations to find the first line with an error and put it in uppercase::
+
+   >>> from textops import *
+   >>> myops = grepi('error').first().upper()
 
 **Note :**
-   str standard methods (like 'upper') can be used directly in chained dotted notation
+   str standard methods (like 'upper') can be used directly in chained dotted notation.
 
 You can use unix shell 'pipe' symbol into python code to chain operations::
 
-   myfilter = grepi('error') | first() | strop.upper()
+   >>> from textops import *
+   >>> myops = grepi('error') | first() | strop.upper()
+   
+The main interest for the piped notation is the possibility to avoid importing all operations, 
+that is to import only textops module::
+
+   >>> import textops as op
+   >>> myops = op.grepi('error') | op.first() | op.strop.upper()
 
 **Note :**
-   str methods must be prefixed with 'strop.' in piped notations.
+   str methods must be prefixed with ``strop.`` in piped notations.
 
-To execute the filter::
+Chained operations are not executed (lazy object) until an input text has been provided. You can
+use chained operations like a function, or use the pipe symbol to "stream" input text::
 
-   >>> myfilter = grepi('error').first().upper()
-   >>> print myfilter('this is an error\nthis is a warning')
+   >>> myops = grepi('error').first().upper()
+   >>> print myops('this is an error\nthis is a warning')
+   THIS IS AN ERROR
+   >>> print 'this is an error\nthis is a warning' | myops
    THIS IS AN ERROR
 
 **Note :**
    python generators are used as far as possible to be able to manage huge data set like big files.
    Prefer to use the dotted notation, it is more optimized.
 
-To execute operations at once, specify the input text ::
+To execute operations at once, specify the input text on the same line::
 
    >>> print grepi('error').first().upper()('this is an error\nthis is a warning')
    THIS IS AN ERROR
 
-... or use one pipe symbol (the bitwise operator has been redefined), 
-then use dotted notation for other operations : this is the **recommended way to use textops**::
+A more readable way is to use ONE pipe symbol, then use dotted notation for other operations : 
+this is the **recommended way to use textops**. Because of the first pipe, there is no need to use
+special textops Extended types, you can use standard strings or lists as an input text::
 
    >>> print 'this is an error\nthis is a warning' | grepi('error').first().upper()
    THIS IS AN ERROR
 
-... or use the pipe everywhere (internally a little less optimized, but looks like shell)::
+You could use the pipe everywhere (internally a little less optimized, but looks like shell)::
 
    >>> print 'this is an error\nthis is a warning' | grepi('error') | first() | strop.upper()
    THIS IS AN ERROR
 
-To execute ops directly from strings or lists with the dotted notation,
-you just have to use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt`` ::
+To execute an operation directly from strings, lists or dicts *with the dotted notation*,
+you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
 
    >>> s = StrExt('this is an error\nthis is a warning')
    >>> print s.grepi('error').first().upper()
    THIS IS AN ERROR
 
 **Note :**
-   As soon as you are using textops Extended type, generators cannot be used anymore :
-   all data must fit into memory (it is usually the case).
+   As soon as you are using textops Extended type, textops cannot use gnerators internally anymore :
+   all data must fit into memory (it is usually the case, so it is not a real problem).
 
 You can use the operations result in a 'for' loop::
 
@@ -78,18 +124,32 @@ You can use the operations result in a 'for' loop::
    ...   print line
    WARNING 1
 
-A shortcut is possible when there is no parameter in the first operation : the input text can be put
-as the first parameter of the first operation::
+A shortcut is possible : the input text can be put as the first parameter of the first operation. 
+nevertheless, in this case, despite the input text is provided, chained operations won't be executed
+until used in a for-loop, converted into a string/list or forced by special attributes::
 
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
+
+   # Here, operations are excuted because 'print' converts into string : 
+   # it triggers execution.
+   >>> print cat('/tmp/errors.log').grepi('warning').head(1).upper()
+   WARNING 1
+   
+   # Here, operations are excuted because for-loops or list casting triggers execution.
    >>> for line in cat('/tmp/errors.log').grepi('warning').head(1).upper():
    ...   print line
    WARNING 1
-
-...The shortcut works because the 'for' loop triggers operations execution. The print or str() will
-also trigger operations execution. for simple assignement, you have to trigger manually
-with special attributes::
-
+   
+   # Here, operations are NOT executed because there is no for-loops nor string/list cast :
+   # operations are considered as a lazy object, that is the reason why 
+   # only the object representation is returned (chained operations in dotted notation)
+   >>> logs = cat('/tmp/errors.log')
+   >>> logs
+   cat('/tmp/errors.log')
+   >>> print type(logs)
+   <class 'textops.ops.listops.cat'>
+   
+   # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')
    >>> logs = cat('/tmp/errors.log').s
    >>> print type(logs)
@@ -128,7 +188,8 @@ textops works also on list of lists (you can optionally grep on a specific colum
 
 ... or a list of dicts (you can optionally grep on a specific key)::
 
-   >>> l = ListExt([{ 'msg':'this is an', 'level':'error'},{'msg':'this is a','level':'warning'}])
+   >>> l = ListExt([{ 'msg':'this is an', 'level':'error'},
+   ... {'msg':'this is a','level':'warning'}])
    >>> print l.grepi('error','level').first()
    {'msg': 'this is an', 'level': 'error'}
 
