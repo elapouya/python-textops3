@@ -1,3 +1,3 @@
-0.0.2 (2015-04-03)
+0.1.1 (2015-11-04)
 ------------------
-Still developping...
+First working package

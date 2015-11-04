@@ -1,28 +1,29 @@
-from setuptools import setup
+from setuptools import setup,find_packages
 import os
 import re
 
 def read(*names):
-    values = dict()
-    for name in names:
-        filename = name + '.rst'
+    values = []
+    for filename in names:
         if os.path.isfile(filename):
-            fd = open(filename)
-            value = fd.read()
-            fd.close()
+            try:
+                with open(filename) as fd:
+                    values.append(fd.read())
+            except:
+                values.append('')                
         else:
-            value = ''
-        values[name] = value
+            values.append('')
     return values
 
 
 long_description = """
-%(README)s
+{0}
 
 News
 ====
-%(CHANGES)s
-""" % read('README', 'CHANGES')
+
+{1}
+""".format(*read('docs/intro.rst', 'CHANGES.rst'))
 
 def get_version(pkg):
     path = os.path.join(os.path.dirname(__file__),pkg,'__init__.py')
@@ -48,7 +49,7 @@ setup(name='python-textops',
       author='Eric Lapouyade',
       author_email='elapouya@gmail.com',
       license='LGPL 2.1',
-      packages=['textops'],
+      packages=find_packages(),
       install_requires = ['Sphinx==1.2.3', 'sphinxcontrib-napoleon', 'addicted', 'python-dateutil', 'python-slugify'],
       eager_resources = ['docs'],
       zip_safe=False)
