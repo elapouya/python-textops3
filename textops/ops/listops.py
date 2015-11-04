@@ -702,6 +702,63 @@ class sedi(sed):
     flags = re.IGNORECASE
 
 class between(TextOp):
+    r"""Extract lines between two patterns
+
+    It will search for the starting pattern and yield lines until it reaches the ending pattern.
+    Pattern can be a string or a Regex object, it can be also a list of strings or Regexs,
+    in this case, all patterns in the list must be matched in the same order, this may be useful
+    to better select some part of the text in some cases.
+    
+    ``between`` works for any kind of list of strings, but also for list of lists and list of dicts.
+    In these cases, one can test only one column or one key but return the whole list/dict.
+
+    Args:
+        begin(str or regex or list): the pattern(s) to reach before yielding lines from the input
+        end(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the begin pattern (Default : False)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> 'a\nb\nc\nd\ne\nf' | between('b','e').tostr()
+        'c\nd'
+        >>> 'a\nb\nc\nd\ne\nf' | between('b','e',True,True).tostr()
+        'b\nc\nd\ne'
+        >>> ['a','b','c','d','e','f'] | between('b','e').tolist()
+        ['c', 'd']
+        >>> ['a','b','c','d','e','f'] | between('b','e',True,True).tolist()
+        ['b', 'c', 'd', 'e']
+        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e').tolist()
+        [('c', 3), ('d', 4)]
+        >>> [{'a':1},{'b':2},{'c':3},{'d':4},{'e':5},{'f':6}] | between('b','e').tolist()
+        [{'c': 3}, {'d': 4}]
+        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | between('2','5',col_or_key='k').tolist()
+        [{'k': 3}, {'k': 4}]
+        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | between('2','5',col_or_key='v').tolist()
+        []
+        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e',col_or_key=0).tolist()
+        [('c', 3), ('d', 4)]
+        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e',col_or_key=1).tolist()
+        []
+        >>> s='''Chapter 1
+        ... ------------
+        ... some infos
+        ... 
+        ... Chapter 2
+        ... ---------
+        ... infos I want
+        ... 
+        ... Chaper 3
+        ... --------
+        ... some other infos'''
+        >>> print s | between('---',r'^\s*$').tostr()
+        some infos
+        >>> print s | between(['Chapter 2','---'],r'^\s*$').tostr()
+        infos I want
+    """
     flags = 0
     boundaries = False
     @classmethod
@@ -715,7 +772,7 @@ class between(TextOp):
         return [ re.compile(pat,cls.flags) if isinstance(pat, basestring) else pat for pat in lst ]
 
     @classmethod
-    def op(cls, text, begin, end, get_begin=None, get_end=None,*args,**kwargs):
+    def op(cls, text, begin, end, get_begin=None, get_end=None, col_or_key=None, *args,**kwargs):
         if get_begin is None:
             get_begin = cls.boundaries
         if get_end is None:
@@ -726,24 +783,29 @@ class between(TextOp):
         state = 0 if begin else 1
 
         for line in cls._tolist(text):
-            if state == 0 and begin:
-                if begin[0].search(line):
-                    begin.pop(0)
-                if not begin:
-                    if get_begin:
+            try:
+                to_test = line if col_or_key is None else line[col_or_key]
+                to_test = to_test if isinstance(to_test, basestring) else str(to_test)
+                if state == 0 and begin:
+                    if begin[0].search(to_test):
+                        begin.pop(0)
+                    if not begin:
+                        if get_begin:
+                            yield line
+                        state = 1
+                elif state == 1 and end:
+                    if end[0].search(to_test):
+                        end.pop(0)
+                    if not end:
+                        if get_end:
+                            yield line
+                        break
+                    else:
                         yield line
-                    state = 1
-            elif state == 1 and end:
-                if end[0].search(line):
-                    end.pop(0)
-                if not end:
-                    if get_end:
-                        yield line
-                    break
                 else:
                     yield line
-            else:
-                yield line
+            except (ValueError, TypeError, IndexError, KeyError):
+                pass
 
 class betweeni(between): flags = re.IGNORECASE
 class betweenb(between): boundaries = True
