@@ -8,17 +8,49 @@ listops
 =======
 .. automodule:: textops
 
+before
+------
+   .. autoclass:: before(pattern, get_end=False, col_or_key=None)
+
+beforei
+-------
+   .. autoclass:: beforei(pattern, get_end=False, col_or_key=None)
+
+between
+-------
+   .. autoclass:: between(begin, end, get_begin=False, get_end=False, col_or_key=None)
+
+betweeni
+--------
+   .. autoclass:: betweeni(begin, end, get_begin=False, get_end=False, col_or_key=None)
+
+betweenb
+--------
+   .. autoclass:: betweenb(begin, end, get_begin=False, get_end=False, col_or_key=None)
+
+betweenbi
+---------
+   .. autoclass:: betweenbi(begin, end, get_begin=False, get_end=False, col_or_key=None)
+
 cat
 ---
    .. autoclass:: cat(context={})
 
-run
----
-   .. autoclass:: run(context={})
+first
+-----
+   .. autoclass:: first( )
 
-mrun
-----
-   .. autoclass:: mrun(context={})
+formatdicts
+-----------
+   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '')
+
+formatitems
+-----------
+   .. autoclass:: formatitems(format_str='{0} : {1}\\n',join_str = '')
+
+formatlists
+-----------
+   .. autoclass:: formatlists(format_str='{0} : {1}\\n',join_str = '')
 
 grep
 ----
@@ -60,33 +92,29 @@ haspatterni
 -----------
    .. autoclass:: haspatterni(pattern, col_or_key=None)
 
-formatitems
------------
-   .. autoclass:: formatitems(format_str='{0} : {1}\n',join_str = '')
+head
+----
+   .. autoclass:: head(lines)
 
-formatlists
------------
-   .. autoclass:: formatlists(format_str='{0} : {1}\n',join_str = '')
-
-formatdicts
------------
-   .. autoclass:: formatdicts(format_str='{key} : {val}\n',join_str = '')
-
-first
------
-   .. autoclass:: first( )
+inrange
+-------
+   .. autoclass:: inrange(begin, end, col_or_key=None)
 
 last
 ----
    .. autoclass:: last( )
 
-head
+mrun
 ----
-   .. autoclass:: head(lines)
+   .. autoclass:: mrun(context={})
 
-tail
-----
-   .. autoclass:: tail(lines)
+outrange
+--------
+   .. autoclass:: outrange(begin, end, col_or_key=None)
+
+run
+---
+   .. autoclass:: run(context={})
 
 sed
 ---
@@ -96,29 +124,9 @@ sedi
 ----
    .. autoclass:: sedi(pat,repl)
 
-between
--------
-   .. autoclass:: between(begin, end, get_begin=False, get_end=False, col_or_key=None)
-
-betweeni
---------
-   .. autoclass:: betweeni(begin, end, get_begin=False, get_end=False, col_or_key=None)
-
-betweenb
---------
-   .. autoclass:: betweenb(begin, end, get_begin=False, get_end=False, col_or_key=None)
-
-betweenbi
----------
-   .. autoclass:: betweenbi(begin, end, get_begin=False, get_end=False, col_or_key=None)
-
-before
-------
-   .. autoclass:: before(pattern, get_end=False, col_or_key=None)
-
-beforei
--------
-   .. autoclass:: beforei(pattern, get_end=False, col_or_key=None)
+tail
+----
+   .. autoclass:: tail(lines)
 
 * :ref:`genindex`
 * :ref:`modindex`

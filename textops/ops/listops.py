@@ -97,7 +97,8 @@ class run(TextOp):
         str: the execution output
 
     Examples:
-        >>> cmd='mkdir -p /tmp/textops_tests_run; cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
+        >>> cmd = 'mkdir -p /tmp/textops_tests_run;\
+        ... cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
         >>> print cmd | run().tostr()
         f1
         f2
@@ -141,19 +142,22 @@ class mrun(TextOp):
         str: the execution output
 
     Examples:
-        >>> cmds='mkdir -p /tmp/textops_tests_run\ncd /tmp/textops_tests_run;touch f1 f2 f3\n'
+        >>> cmds = 'mkdir -p /tmp/textops_tests_run\n'
+        >>> cmds+= 'cd /tmp/textops_tests_run;touch f1 f2 f3\n'
         >>> cmds+= 'ls /tmp/textops_tests_run'
         >>> print cmds | mrun().tostr()
         f1
         f2
         f3
-        >>> cmds=['mkdir -p /tmp/textops_tests_run','cd /tmp/textops_tests_run; touch f1 f2 f3']
+        >>> cmds=['mkdir -p /tmp/textops_tests_run',
+        ... 'cd /tmp/textops_tests_run; touch f1 f2 f3']
         >>> cmds.append('ls /tmp/textops_tests_run')
         >>> print cmds | mrun().tostr()
         f1
         f2
         f3
-        >>> print ['ls {path}', 'echo "Cool !"'] | mrun({'path':'/tmp/textops_tests_run'}).tostr()
+        >>> cmds = ['ls {path}', 'echo "Cool !"']
+        >>> print cmds | mrun({'path':'/tmp/textops_tests_run'}).tostr()
         f1
         f2
         f3
@@ -198,15 +202,18 @@ class grep(TextOp):
         []
         >>> input | grep('error|warning').tolist()
         ['error1', 'error2', 'warning1', 'warning2']
-        >>> input | cutca(r'(\D+)(\d+)')
-        [('error', '1'), ('error', '2'), ('warning', '1'), ('info', '1'), ('warning', '2'), ('info', '2')]
+        >>> input | cutca(r'(\D+)(\d+)')                         #doctest: +NORMALIZE_WHITESPACE
+        [('error', '1'), ('error', '2'), ('warning', '1'),
+        ('info', '1'), ('warning', '2'), ('info', '2')]
         >>> input | cutca(r'(\D+)(\d+)').grep('1',1).tolist()
         [('error', '1'), ('warning', '1'), ('info', '1')]
-        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)')  #doctest: +NORMALIZE_WHITESPACE
-        [{'nb': '1', 'level': 'error'}, {'nb': '2', 'level': 'error'}, {'nb': '1', 'level': 'warning'},
-        {'nb': '1', 'level': 'info'}, {'nb': '2', 'level': 'warning'}, {'nb': '2', 'level': 'info'}]
-        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)').grep('1','nb').tolist()
-        [{'nb': '1', 'level': 'error'}, {'nb': '1', 'level': 'warning'}, {'nb': '1', 'level': 'info'}]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)') #doctest: +NORMALIZE_WHITESPACE
+        [{'nb': '1', 'level': 'error'}, {'nb': '2', 'level': 'error'},
+        {'nb': '1', 'level': 'warning'}, {'nb': '1', 'level': 'info'},
+        {'nb': '2', 'level': 'warning'}, {'nb': '2', 'level': 'info'}]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)').grep('1','nb').tolist() #doctest: +NORMALIZE_WHITESPACE
+        [{'nb': '1', 'level': 'error'}, {'nb': '1', 'level': 'warning'},
+        {'nb': '1', 'level': 'info'}]
         >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('way').tolist()
         [{'way to grep': 2}]
         >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('3').tolist()
@@ -526,7 +533,8 @@ class formatdicts(TextOp):
         'a : 1\nb : 2\nc : 3\n'
         >>> input | formatdicts('{key} -> {val}\n')
         'a -> 1\nb -> 2\nc -> 3\n'
-        >>> input = [{'name':'Eric','age':47,'level':'guru'},{'name':'Guido','age':59,'level':'god'}]
+        >>> input = [{'name':'Eric','age':47,'level':'guru'},
+        ... {'name':'Guido','age':59,'level':'god'}]
         >>> print input | formatdicts('{name}({age}) : {level}\n')   #doctest: +NORMALIZE_WHITESPACE
         Eric(47) : guru
         Guido(59) : god
@@ -731,17 +739,23 @@ class between(TextOp):
         ['c', 'd']
         >>> ['a','b','c','d','e','f'] | between('b','e',True,True).tolist()
         ['b', 'c', 'd', 'e']
-        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e').tolist()
+        >>> input_text = [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)]
+        >>> input_text | between('b','e').tolist()
         [('c', 3), ('d', 4)]
-        >>> [{'a':1},{'b':2},{'c':3},{'d':4},{'e':5},{'f':6}] | between('b','e').tolist()
+        >>> input_text = [{'a':1},{'b':2},{'c':3},{'d':4},{'e':5},{'f':6}]
+        >>> input_text | between('b','e').tolist()
         [{'c': 3}, {'d': 4}]
-        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | between('2','5',col_or_key='k').tolist()
+        >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
+        >>> input_text | between('2','5',col_or_key='k').tolist()
         [{'k': 3}, {'k': 4}]
-        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | between('2','5',col_or_key='v').tolist()
+        >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
+        >>> input_text | between('2','5',col_or_key='v').tolist()
         []
-        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e',col_or_key=0).tolist()
+        >>> input_text = [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)]
+        >>> input_text | between('b','e',col_or_key=0).tolist()
         [('c', 3), ('d', 4)]
-        >>> [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)] | between('b','e',col_or_key=1).tolist()
+        >>> input_text = [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)]
+        >>> input_text | between('b','e',col_or_key=1).tolist()
         []
         >>> s='''Chapter 1
         ... ------------
@@ -876,16 +890,92 @@ class betweenbi(betweenb):
     """
     flags = re.IGNORECASE
 
-class range(TextOp):
-    flags = 0
+class linetester(TextOp):
+    r""" Abstract class for by-line testing"""
+    @classmethod
+    def testline(cls, to_test, *args,**kwargs):
+        raise AssertionError('Method testline must be defined in derivated class.')
 
     @classmethod
-    def op(cls, text, begin, end, *args,**kwargs):
-        state = 0
-
+    def op(cls, text, *args,**kwargs):
+        col_or_key = kwargs.get('col_or_key')
         for line in cls._tolist(text):
-            if line >= begin and line < end:
-                yield line
+            try:
+                to_test = line if col_or_key is None else line[col_or_key]
+                to_test = to_test if isinstance(to_test, basestring) else str(to_test)
+                if cls.testline(to_test, *args,**kwargs):
+                    yield line
+            except (ValueError, TypeError, IndexError, KeyError):
+                pass
+
+class inrange(linetester):
+    r"""Extract lines between a range of strings
+
+    For each input line, it tests whether it is greater or equal than ``begin`` argument and
+    strictly less than ``end`` argument. At the opposite of textops.between_, there no need to
+    match begin or end string.
+
+    ``inrange`` works for any kind of list of strings, but also for list of lists and list of dicts.
+    In these cases, one can test only one column or one key but return the whole list/dict.
+
+    Args:
+        begin(str): range begin string
+        end(str): range end string
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values inside the specified range
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | inrange('2015-08-12','2015-11-05').tolist()
+        ['2015-08-23 bbbb', '2015-09-14 ccc']
+        >>> logs = [ ('aaaa','2015-08-11'),
+        ... ('bbbb','2015-08-23'),
+        ... ('ccc','2015-09-14'),
+        ... ('ddd','2015-11-05') ]
+        >>> logs | inrange('2015-08-12','2015-11-05',col_or_key=1).tolist()
+        [('bbbb', '2015-08-23'), ('ccc', '2015-09-14')]
+        >>> logs = [ {'data':'aaaa','date':'2015-08-11'},
+        ... {'data':'bbbb','date':'2015-08-23'},
+        ... {'data':'ccc','date':'2015-09-14'},
+        ... {'data':'ddd','date':'2015-11-05'} ]
+        >>> logs | inrange('2015-08-12','2015-11-05',col_or_key='date').tolist()
+        [{'date': '2015-08-23', 'data': 'bbbb'}, {'date': '2015-09-14', 'data': 'ccc'}]
+    """
+    @classmethod
+    def testline(cls, to_test,  begin, end, *args,**kwargs):
+        return to_test >= begin and to_test < end
+
+class outrange(linetester):
+    r"""Extract lines NOT between a range of strings
+
+    Works like textops.inrange_ except it yields lines that are NOT in the range
+
+    Args:
+        begin(str): range begin string
+        end(str): range end string
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values outside the specified range
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | outrange('2015-08-12','2015-11-05').tolist()
+        ['2015-08-11 aaaa', '2015-11-05 ddd']
+    """
+    @classmethod
+    def testline(cls, to_test,  begin, end, *args,**kwargs):
+        return not (to_test >= begin and to_test < end)
 
 class before(between):
     r"""Extract lines before a patterns
@@ -906,7 +996,8 @@ class before(between):
         ['a', 'b']
         >>> ['a','b','c','d','e','f'] | before('c',True).tolist()
         ['a', 'b', 'c']
-        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | before('3',col_or_key='k').tolist()
+        >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
+        >>> input_text | before('3',col_or_key='k').tolist()
         [{'k': 1}, {'k': 2}]
     """
     @classmethod
