@@ -708,7 +708,7 @@ class between(TextOp):
     Pattern can be a string or a Regex object, it can be also a list of strings or Regexs,
     in this case, all patterns in the list must be matched in the same order, this may be useful
     to better select some part of the text in some cases.
-    
+
     ``between`` works for any kind of list of strings, but also for list of lists and list of dicts.
     In these cases, one can test only one column or one key but return the whole list/dict.
 
@@ -746,11 +746,11 @@ class between(TextOp):
         >>> s='''Chapter 1
         ... ------------
         ... some infos
-        ... 
+        ...
         ... Chapter 2
         ... ---------
         ... infos I want
-        ... 
+        ...
         ... Chaper 3
         ... --------
         ... some other infos'''
@@ -807,9 +807,74 @@ class between(TextOp):
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
 
-class betweeni(between): flags = re.IGNORECASE
-class betweenb(between): boundaries = True
-class betweenbi(betweenb): flags = re.IGNORECASE
+class betweeni(between):
+    r"""Extract lines between two patterns (case insensitive)
+
+    Works like textops.between_ except patterns are case insensitive
+
+    Args:
+        begin(str or regex or list): the pattern(s) to reach before yielding lines from the input
+        end(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the begin pattern (Default : False)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | between('B','E').tolist()
+        []
+        >>> ['a','b','c','d','e','f'] | betweeni('B','E').tolist()
+        ['c', 'd']
+    """
+    flags = re.IGNORECASE
+
+class betweenb(between):
+    r"""Extract lines between two patterns (includes boundaries)
+
+    Works like textops.between_ except it return boundaries by default that is
+    get_begin = get_end = True.
+
+    Args:
+        begin(str or regex or list): the pattern(s) to reach before yielding lines from the input
+        end(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the begin pattern (Default : False)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | betweenb('b','e').tolist()
+        ['b', 'c', 'd', 'e']
+    """
+    boundaries = True
+
+class betweenbi(betweenb):
+    r"""Extract lines between two patterns (includes boundaries and case insensitive)
+
+    Works like textops.between_ except patterns are case insensitive and it yields boundaries too.
+    That is get_begin = get_end = True.
+
+    Args:
+        begin(str or regex or list): the pattern(s) to reach before yielding lines from the input
+        end(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the begin pattern (Default : False)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | betweenb('B','E').tolist()
+        []
+        >>> ['a','b','c','d','e','f'] | betweenbi('B','E').tolist()
+        ['b', 'c', 'd', 'e']
+    """
+    flags = re.IGNORECASE
 
 class range(TextOp):
     flags = 0
@@ -823,11 +888,51 @@ class range(TextOp):
                 yield line
 
 class before(between):
-    @classmethod
-    def op(cls, text, pattern, get_end=False,*args,**kwargs):
-        return between.op(text,None,pattern,get_end=get_end)
+    r"""Extract lines before a patterns
 
-class beforei(before): flags = re.IGNORECASE
+    Works like textops.between_ except that it requires only the ending pattern : it will yields
+    all line from the input text beginning until the specified pattern has been reached.
+
+    Args:
+        pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | before('c').tolist()
+        ['a', 'b']
+        >>> ['a','b','c','d','e','f'] | before('c',True).tolist()
+        ['a', 'b', 'c']
+        >>> [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}] | before('3',col_or_key='k').tolist()
+        [{'k': 1}, {'k': 2}]
+    """
+    @classmethod
+    def op(cls, text, pattern, get_end=False, col_or_key=None,*args,**kwargs):
+        return super(before,cls).op(text,None,pattern,get_end=get_end,col_or_key=col_or_key)
+
+class beforei(before):
+    r"""Extract lines before a patterns (case insensitive)
+
+    Works like textops.before_ except that the pattern is case insensitive.
+
+    Args:
+        pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines between two patterns
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | before('C').tolist()
+        ['a', 'b', 'c', 'd', 'e', 'f']
+        >>> ['a','b','c','d','e','f'] | beforei('C',True).tolist()
+        ['a', 'b', 'c']
+    """
+    flags = re.IGNORECASE
 
 class after(between):
     @classmethod
