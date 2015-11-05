@@ -442,7 +442,7 @@ class haspattern(grepc):
 class haspatterni(haspattern):
     r"""Tests if the input text matches the specified pattern
 
-    Works like textops.haspattern except that it is case insensitive.
+    Works like textops.haspattern_ except that it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -929,6 +929,8 @@ class beforei(before):
     Examples:
         >>> ['a','b','c','d','e','f'] | before('C').tolist()
         ['a', 'b', 'c', 'd', 'e', 'f']
+        >>> ['a','b','c','d','e','f'] | beforei('C').tolist()
+        ['a', 'b']
         >>> ['a','b','c','d','e','f'] | beforei('C',True).tolist()
         ['a', 'b', 'c']
     """
