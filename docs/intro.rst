@@ -1,6 +1,6 @@
-.. 
+..
    Created : 2015-11-04
-   
+
    @author: Eric Lapouyade
 
 
@@ -8,9 +8,6 @@
 Getting started
 ===============
 
-| python-textops provides many text operations at string level, list level or whole text level.
-| These operations can be chained with a 'dotted' or 'piped' notation.
-| Chained operations are stored into a single lazy object, they will be executed only when an input text will be provided.
 
 Install
 -------
@@ -22,26 +19,26 @@ To install::
 Quickstart
 ----------
 
-The usual way to use textops is something like below. IMPORTANT : Note that textops library redefines 
+The usual way to use textops is something like below. IMPORTANT : Note that textops library redefines
 the python **bitwise OR** operator '|' in order to use it as a 'pipe' like in a Unix shell::
-   
+
    from textops import *
-   
+
    result = "an input text" | my().chained().operations()
-   
+
    or
-   
+
    for result_item in "an input text" | my().chained().operations():
       do_something(result_item)
-      
+
    or
-   
+
    myops = my().chained().operations()
-   # and later in the code, use them :   
+   # and later in the code, use them :
    result = myops("an input text")
    or
    result = "an input text" | myops
-   
+
 An "input text" can be :
 
    * a simple string,
@@ -66,8 +63,8 @@ You can use unix shell 'pipe' symbol into python code to chain operations::
 
    >>> from textops import *
    >>> myops = grepi('error') | first() | strop.upper()
-   
-The main interest for the piped notation is the possibility to avoid importing all operations, 
+
+The main interest for the piped notation is the possibility to avoid importing all operations,
 that is to import only textops module::
 
    >>> import textops as op
@@ -94,7 +91,7 @@ To execute operations at once, specify the input text on the same line::
    >>> print grepi('error').first().upper()('this is an error\nthis is a warning')
    THIS IS AN ERROR
 
-A more readable way is to use ONE pipe symbol, then use dotted notation for other operations : 
+A more readable way is to use ONE pipe symbol, then use dotted notation for other operations :
 this is the **recommended way to use textops**. Because of the first pipe, there is no need to use
 special textops Extended types, you can use standard strings or lists as an input text::
 
@@ -124,31 +121,31 @@ You can use the operations result in a 'for' loop::
    ...   print line
    WARNING 1
 
-A shortcut is possible : the input text can be put as the first parameter of the first operation. 
+A shortcut is possible : the input text can be put as the first parameter of the first operation.
 nevertheless, in this case, despite the input text is provided, chained operations won't be executed
 until used in a for-loop, converted into a string/list or forced by special attributes::
 
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
 
-   # Here, operations are excuted because 'print' converts into string : 
+   # Here, operations are excuted because 'print' converts into string :
    # it triggers execution.
    >>> print cat('/tmp/errors.log').grepi('warning').head(1).upper()
    WARNING 1
-   
+
    # Here, operations are excuted because for-loops or list casting triggers execution.
    >>> for line in cat('/tmp/errors.log').grepi('warning').head(1).upper():
    ...   print line
    WARNING 1
-   
+
    # Here, operations are NOT executed because there is no for-loops nor string/list cast :
-   # operations are considered as a lazy object, that is the reason why 
+   # operations are considered as a lazy object, that is the reason why
    # only the object representation is returned (chained operations in dotted notation)
    >>> logs = cat('/tmp/errors.log')
    >>> logs
    cat('/tmp/errors.log')
    >>> print type(logs)
    <class 'textops.ops.listops.cat'>
-   
+
    # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')
    >>> logs = cat('/tmp/errors.log').s

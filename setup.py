@@ -10,20 +10,19 @@ def read(*names):
                 with open(filename) as fd:
                     values.append(fd.read())
             except:
-                values.append('')                
+                values.append('')
         else:
             values.append('')
     return values
 
 
-long_description = """
-{0}
+long_description = """{0}
 
 News
 ====
 
 {1}
-""".format(*read('docs/intro.rst', 'CHANGES.rst'))
+""".format(*read('README.rst', 'CHANGES.rst'))
 
 def get_version(pkg):
     path = os.path.join(os.path.dirname(__file__),pkg,'__init__.py')
