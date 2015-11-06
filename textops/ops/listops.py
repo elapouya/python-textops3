@@ -897,12 +897,17 @@ class linetester(TextOp):
         raise AssertionError('Method testline must be defined in derivated class.')
 
     @classmethod
+    def cast_to(cls, *args, **kwargs):
+        return type(args[0])
+
+    @classmethod
     def op(cls, text, *args,**kwargs):
         col_or_key = kwargs.get('col_or_key')
+        cast_to = cls.cast_to(*args,**kwargs)
         for line in cls._tolist(text):
             try:
                 to_test = line if col_or_key is None else line[col_or_key]
-                to_test = to_test if isinstance(to_test, basestring) else str(to_test)
+                to_test = cast_to(to_test)
                 if cls.testline(to_test, *args,**kwargs):
                     yield line
             except (ValueError, TypeError, IndexError, KeyError):
@@ -917,6 +922,8 @@ class inrange(linetester):
 
     ``inrange`` works for any kind of list of strings, but also for list of lists and list of dicts.
     In these cases, one can test only one column or one key but return the whole list/dict.
+
+    Each strings that will be tested is converted with the same type of the first argument.
 
     Args:
         begin(str): range begin string
@@ -946,6 +953,11 @@ class inrange(linetester):
         ... {'data':'ddd','date':'2015-11-05'} ]
         >>> logs | inrange('2015-08-12','2015-11-05',col_or_key='date').tolist()
         [{'date': '2015-08-23', 'data': 'bbbb'}, {'date': '2015-09-14', 'data': 'ccc'}]
+        >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
+        >>> ints | inrange(1,3).tolist()
+        ['1', '2', '01', '02']
+        >>> ints | inrange('1','3').tolist()
+        ['1', '2', '11', '12', '22', '20']
     """
     @classmethod
     def testline(cls, to_test,  begin, end, *args,**kwargs):
@@ -977,11 +989,84 @@ class outrange(linetester):
     def testline(cls, to_test,  begin, end, *args,**kwargs):
         return not (to_test >= begin and to_test < end)
 
+class lessthan(linetester):
+    r"""Extract lines with value strictly less than specified string
+
+    It works for any kind of list of strings, but also for list of lists and list of dicts.
+    In these cases, one can test only one column or one key but return the whole list/dict.
+
+    Each strings that will be tested is temporarily converted with the same type as the first
+    argument given to ``lessthan`` (see examples).
+
+    Args:
+        value(str): string to test with
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values strictly less than the specified reference value
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | lessthan('2015-09-14').tolist()
+        ['2015-08-11 aaaa', '2015-08-23 bbbb']
+        >>> logs = [ ('aaaa','2015-08-11'),
+        ... ('bbbb','2015-08-23'),
+        ... ('ccc','2015-09-14'),
+        ... ('ddd','2015-11-05') ]
+        >>> logs | lessthan('2015-11-05',col_or_key=1).tolist()
+        [('aaaa', '2015-08-11'), ('bbbb', '2015-08-23'), ('ccc', '2015-09-14')]
+        >>> logs = [ {'data':'aaaa','date':'2015-08-11'},
+        ... {'data':'bbbb','date':'2015-08-23'},
+        ... {'data':'ccc','date':'2015-09-14'},
+        ... {'data':'ddd','date':'2015-11-05'} ]
+        >>> logs | lessthan('2015-09-14',col_or_key='date').tolist()
+        [{'date': '2015-08-11', 'data': 'aaaa'}, {'date': '2015-08-23', 'data': 'bbbb'}]
+        >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
+        >>> ints | lessthan(3).tolist()
+        ['1', '2', '01', '02']
+        >>> ints | lessthan('3').tolist()
+        ['1', '2', '01', '02', '11', '12', '22', '20']
+        """
+    @classmethod
+    def testline(cls, to_test, value, *args,**kwargs):
+        return to_test < value
+
+class lessequal(linetester):
+    r"""Extract lines with value strictly less than specified string
+
+    It works like textops.lessthan_ except its tests "less or equal"
+
+    Args:
+        value(str): string to test with
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values less than or equal to the specified value
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | lessequal('2015-09-14').tolist()
+        ['2015-08-11 aaaa', '2015-08-23 bbbb']
+        >>> logs | lessequal('2015-09-14 ccc').tolist()
+        ['2015-08-11 aaaa', '2015-08-23 bbbb', '2015-09-14 ccc']
+        """
+    @classmethod
+    def testline(cls, to_test, value, *args,**kwargs):
+        return to_test <= value
+
 class before(between):
     r"""Extract lines before a patterns
 
     Works like textops.between_ except that it requires only the ending pattern : it will yields
-    all line from the input text beginning until the specified pattern has been reached.
+    all lines from the input text beginning until the specified pattern has been reached.
 
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)

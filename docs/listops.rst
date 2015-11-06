@@ -104,6 +104,14 @@ last
 ----
    .. autoclass:: last( )
 
+lessequal
+---------
+   .. autoclass:: lessequal(value, col_or_key=None)
+
+lessthan
+--------
+   .. autoclass:: lessthan(value, col_or_key=None)
+
 mrun
 ----
    .. autoclass:: mrun(context={})
