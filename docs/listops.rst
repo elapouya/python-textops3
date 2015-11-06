@@ -8,6 +8,14 @@ listops
 =======
 .. automodule:: textops
 
+after
+-----
+   .. autoclass:: after(pattern, get_begin=False, col_or_key=None)
+
+afteri
+------
+   .. autoclass:: afteri(pattern, get_begin=False, col_or_key=None)
+
 before
 ------
    .. autoclass:: before(pattern, get_end=False, col_or_key=None)
@@ -51,6 +59,14 @@ formatitems
 formatlists
 -----------
    .. autoclass:: formatlists(format_str='{0} : {1}\\n',join_str = '')
+
+greaterequal
+------------
+   .. autoclass:: greaterequal(value, col_or_key=None)
+
+greaterthan
+-----------
+   .. autoclass:: greaterthan(value, col_or_key=None)
 
 grep
 ----
@@ -98,7 +114,7 @@ head
 
 inrange
 -------
-   .. autoclass:: inrange(begin, end, col_or_key=None)
+   .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, col_or_key=None)
 
 last
 ----
@@ -118,7 +134,7 @@ mrun
 
 outrange
 --------
-   .. autoclass:: outrange(begin, end, col_or_key=None)
+   .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, col_or_key=None)
 
 run
 ---

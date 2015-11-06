@@ -928,6 +928,10 @@ class inrange(linetester):
     Args:
         begin(str): range begin string
         end(str): range end string
+        get_begin(bool): if True : include lines having the same value as the range begin,
+            Default : True
+        get_end(bool): if True : include lines having the same value as the range end,
+            Default : False
         col_or_key (int or str): test only one column or one key (optional).
             it *MUST BE PASSED BY NAME* if you want to use this argument.
 
@@ -958,10 +962,15 @@ class inrange(linetester):
         ['1', '2', '01', '02']
         >>> ints | inrange('1','3').tolist()
         ['1', '2', '11', '12', '22', '20']
+        >>> ints | inrange('1','3',get_begin=False).tolist()
+        ['2', '11', '12', '22', '20']
     """
     @classmethod
-    def testline(cls, to_test,  begin, end, *args,**kwargs):
-        return to_test >= begin and to_test < end
+    def testline(cls, to_test,  begin, end, get_begin=True, get_end=False, *args,**kwargs):
+        return  (to_test > begin and to_test < end) or \
+                (to_test == begin and get_begin) or \
+                (to_test == end and get_end)
+
 
 class outrange(linetester):
     r"""Extract lines NOT between a range of strings
@@ -971,6 +980,10 @@ class outrange(linetester):
     Args:
         begin(str): range begin string
         end(str): range end string
+        get_begin(bool): if True : include lines having the same value as the range begin,
+            Default : False
+        get_end(bool): if True : include lines having the same value as the range end,
+            Default : False
         col_or_key (int or str): test only one column or one key (optional).
             it *MUST BE PASSED BY NAME* if you want to use this argument.
 
@@ -984,10 +997,16 @@ class outrange(linetester):
         ... 2015-11-05 ddd'''
         >>> logs | outrange('2015-08-12','2015-11-05').tolist()
         ['2015-08-11 aaaa', '2015-11-05 ddd']
+        >>> logs | outrange('2015-08-23 bbbb','2015-09-14 ccc').tolist()
+        ['2015-08-11 aaaa', '2015-11-05 ddd']
+        >>> logs | outrange('2015-08-23 bbbb','2015-09-14 ccc', get_begin=True).tolist()
+        ['2015-08-11 aaaa', '2015-08-23 bbbb', '2015-11-05 ddd']
     """
     @classmethod
-    def testline(cls, to_test,  begin, end, *args,**kwargs):
-        return not (to_test >= begin and to_test < end)
+    def testline(cls, to_test,  begin, end, get_begin=False, get_end=False, *args,**kwargs):
+        return       to_test < begin or to_test > end or \
+                     (to_test == begin and get_begin) or \
+                     (to_test == end and get_end)
 
 class lessthan(linetester):
     r"""Extract lines with value strictly less than specified string
@@ -1038,7 +1057,7 @@ class lessthan(linetester):
 class lessequal(linetester):
     r"""Extract lines with value strictly less than specified string
 
-    It works like textops.lessthan_ except its tests "less or equal"
+    It works like textops.lessthan_ except the test is "less or equal"
 
     Args:
         value(str): string to test with
@@ -1062,6 +1081,56 @@ class lessequal(linetester):
     def testline(cls, to_test, value, *args,**kwargs):
         return to_test <= value
 
+class greaterthan(linetester):
+    r"""Extract lines with value strictly less than specified string
+
+    It works like textops.lessthan_ except the test is "greater than"
+
+    Args:
+        value(str): string to test with
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values greater than the specified value
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | greaterthan('2015-09-14 ccc').tolist()
+        ['2015-11-05 ddd']
+        """
+    @classmethod
+    def testline(cls, to_test, value, *args,**kwargs):
+        return to_test > value
+
+class greaterequal(linetester):
+    r"""Extract lines with value strictly less than specified string
+
+    It works like textops.greaterthan_ except the test is "greater than or equal to"
+
+    Args:
+        value(str): string to test with
+        col_or_key (int or str): test only one column or one key (optional).
+            it *MUST BE PASSED BY NAME* if you want to use this argument.
+
+    Yields:
+        str or list or dict: lines having values greater than or equal to the specified value
+
+    Examples:
+        >>> logs = '''2015-08-11 aaaa
+        ... 2015-08-23 bbbb
+        ... 2015-09-14 ccc
+        ... 2015-11-05 ddd'''
+        >>> logs | greaterequal('2015-09-14 ccc').tolist()
+        ['2015-09-14 ccc', '2015-11-05 ddd']
+        """
+    @classmethod
+    def testline(cls, to_test, value, *args,**kwargs):
+        return to_test >= value
+
 class before(between):
     r"""Extract lines before a patterns
 
@@ -1074,7 +1143,7 @@ class before(between):
         col_or_key (int or str): test only one column or one key (optional)
 
     Yields:
-        str or list or dict: lines between two patterns
+        str or list or dict: lines before the specified pattern
 
     Examples:
         >>> ['a','b','c','d','e','f'] | before('c').tolist()
@@ -1096,11 +1165,11 @@ class beforei(before):
 
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
-        get_end(bool): if True : include the line matching the end pattern (Default : False)
+        get_end(bool): if True : include the line matching the pattern (Default : False)
         col_or_key (int or str): test only one column or one key (optional)
 
     Yields:
-        str or list or dict: lines between two patterns
+        str or list or dict: lines before the specified pattern
 
     Examples:
         >>> ['a','b','c','d','e','f'] | before('C').tolist()
@@ -1113,19 +1182,93 @@ class beforei(before):
     flags = re.IGNORECASE
 
 class after(between):
+    r"""Extract lines after a patterns
+
+    Works like textops.before_ except that it will yields all lines from the input AFTER the given
+    pattern has been found.
+
+    Args:
+        pattern(str or regex or list): start yielding lines after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines after the specified pattern
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | after('c').tolist()
+        ['d', 'e', 'f']
+        >>> ['a','b','c','d','e','f'] | after('c',True).tolist()
+        ['c', 'd', 'e', 'f']
+        >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
+        >>> input_text | after('3',col_or_key='k').tolist()
+        [{'k': 4}, {'k': 5}, {'k': 6}]
+    """
     @classmethod
     def op(cls, text, pattern, get_begin=False,*args,**kwargs):
-        return between.op(text,pattern,None,get_begin=get_begin)
+        return super(after,cls).op(text,pattern,None,get_begin=get_begin)
 
-class afteri(after): flags = re.IGNORECASE
+class afteri(after):
+    r"""Extract lines after a patterns (case insensitive)
+
+    Works like textops.after_ except that the pattern is case insensitive.
+
+    Args:
+        pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
+        get_begin(bool): if True : include the line matching the pattern (Default : False)
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines before the specified pattern
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | after('C').tolist()
+        []
+        >>> ['a','b','c','d','e','f'] | afteri('C').tolist()
+        ['d', 'e', 'f']
+        >>> ['a','b','c','d','e','f'] | afteri('C',True).tolist()
+        ['c', 'd', 'e', 'f']
+    """
+    flags = re.IGNORECASE
 
 class mapfn(TextOp):
+    r"""Apply a specified function on every line
+
+    It works like the python map() function.
+
+    Args:
+        map_fn(callable): a function or a callable to apply on every line
+
+    Yields:
+        any: lines modified by the map_fn function
+
+    Examples:
+        >>> ['a','b','c'] | mapfn(lambda l:l*2).tolist()
+        ['aa', 'bb', 'cc']
+    """
     @classmethod
     def op(cls, text, map_fn, *args,**kwargs):
         for line in cls._tolist(text):
             yield map_fn(line)
 
 class iffn(TextOp):
+    r"""Filters the input text with a specified function
+
+    It works like the python filter() fonction.
+
+    Args:
+        filter_fn(callable): a function to be called against each line and returning a boolean.
+        True means : yield the line.
+
+    Yields:
+        any: lines filtered by the filter_fn function
+
+    Examples:
+        # return odd lines :
+        import re
+        >>> 'line1\nline2\nline3\nline4' | iffn(lambda l:int(re.sub(r'\D','',l)) % 2).tolist()
+        ['line1', 'line3']
+    """
     @classmethod
     def op(cls, text, filter_fn=None, *args,**kwargs):
         if filter_fn is None:
@@ -1135,6 +1278,24 @@ class iffn(TextOp):
                 yield line
 
 class mapif(TextOp):
+    r"""Filters and maps the input text with 2 specified functions
+
+    Filters input text AND apply a map function on every filtered lines.
+
+    Args:
+        map_fn(callable): a function or a callable to apply on every line to be yield
+        filter_fn(callable): a function to be called against each line and returning a boolean.
+        True means : yield the line.
+
+    Yields:
+        any: lines filtered by the filter_fn function and modified by map_fn function
+
+    Examples:
+        # return odd lines :
+        >>> import re
+        >>> 'a1\nb2\nc3\nd4' | mapif(lambda l:l*2,lambda l:int(re.sub(r'\D','',l)) % 2).tolist()
+        ['a1a1', 'c3c3']
+    """
     @classmethod
     def op(cls, text, map_fn, filter_fn=None,*args,**kwargs):
         if filter_fn is None:
@@ -1144,11 +1305,37 @@ class mapif(TextOp):
                 yield map_fn(line)
 
 class doreduce(TextOp):
+    r"""Reduce the input text
+
+    Uses python reduce() function.
+
+    Args:
+        reduce_fn(callable): a function or a callable to reduce every line.
+        initializer: initial accumulative value (Default : None)
+
+    Returns:
+        any: reduced value
+
+    Examples:
+        >>> import re
+        >>> 'a1\nb2\nc3\nd4' | doreduce(lambda x,y:x+re.sub(r'\d','',y),'').tolist()
+        ['abcd']
+    """
     @classmethod
-    def op(cls, text, reduce_fn, *args, **kwargs):
-        return reduce(reduce_fn, cls._tolist(text))
+    def op(cls, text, reduce_fn, initializer=None, *args, **kwargs):
+        return reduce(reduce_fn, cls._tolist(text), initializer)
 
 class merge_dicts(TextOp):
+    r"""Merge a list of dicts into one single dict
+
+    Uses python reduce() function.
+
+    Returns:
+        dict: merged dicts
+
+    Examples:
+
+    """
     @classmethod
     def op(cls,text,*args,**kwargs):
         out = {}

@@ -48,8 +48,21 @@ An "input text" can be :
    * a list of lists (useful when you cut lines into columns),
    * a list of dicts (useful when you parse a line).
 
-Of course, depending on the operation, only some kind of input text can be used : read the detailed
-documentation.
+So one can do::
+
+   >>> 'line1line2line3' | grep('2').tolist()
+   ['line1line2line3']
+   >>> 'line1\nline2\nline3' | grep('2').tolist()
+   ['line2']
+   >>> ['line1','line2','line3'] | grep('2').tolist()
+   ['line2']
+   >>> [['line','1'],['line','2'],['line','3']] | grep('2').tolist()
+   [['line', '2']]
+   >>> [{'line':1},{'line':'2'},{'line':3}] | grep('2').tolist()
+   [{'line': '2'}]
+
+**Note :**
+   ``.tolist()`` is used because textops.grep_ returns a generator
 
 Here is an example of chained operations to find the first line with an error and put it in uppercase::
 

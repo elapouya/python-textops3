@@ -209,3 +209,8 @@ class toslug(TextOp):
     @classmethod
     def fn(cls, text,*args,**kwargs):
         return slugify(text)
+
+class todict(TextOp):
+    @classmethod
+    def fn(cls, text,*args,**kwargs):
+        return TextOp.make_dict(text)

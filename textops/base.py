@@ -243,6 +243,10 @@ class TextOp(object):
             return '\n'.join(text)
         return text
 
+    @classmethod
+    def make_dict(cls, text):
+        return DictExt(text)
+
 def extend_type(obj):
     if isinstance(obj,unicode):
         if not isinstance(obj,UnicodeExt):
