@@ -10,6 +10,19 @@ from textops import TextOp
 import re
 import types
 
+class PyStrWrapper(object):
+    """ This is a help to be able to use python string method with piped notation """
+
+    def __getattr__(self,attr):
+        if not attr.startswith('_'):
+            op = TextOp()
+            op.ops=[[attr, (), {}]]
+            op.op = attr
+        else:
+            raise AttributeError()
+        return op
+
+strop = PyStrWrapper()
 
 class length(TextOp):
     r""" Returns the length of a string, list or generator
@@ -46,9 +59,6 @@ class echo(TextOp):
     Returns:
         int: length of the string
 
-    Note:
-        ``strop`` is a shortcut for ``echo()``
-
     Examples:
 
         >>> s='this is a string'
@@ -69,8 +79,6 @@ class echo(TextOp):
         'THIS IS A STRING'
     """
     fn = staticmethod(lambda text: text)
-
-strop = echo()
 
 class splitln(TextOp):
     r""" Transforms a string with newlines into a list of lines

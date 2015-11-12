@@ -19,6 +19,7 @@ Welcome to python-textops documentation !
    intro
    strops
    listops
+   wrapops
    cast
 
 Indices and tables

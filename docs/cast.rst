@@ -6,8 +6,8 @@
 ====
 cast
 ====
-
-.. automodule:: textops
+.. automodule:: textops.ops.cast
+.. currentmodule:: textops
 
 todatetime
 ----------

@@ -6,7 +6,8 @@
 =======
 listops
 =======
-.. automodule:: textops
+.. automodule:: textops.ops.listops
+.. currentmodule:: textops
 
 after
 -----

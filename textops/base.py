@@ -44,7 +44,7 @@ class TextOp(object):
 
     def __or__(self,other):
         if not isinstance(other,TextOp):
-            raise TextOpException('Please use "|" only between two TextOp or AFTER a string or list of strings')
+            raise TextOpException('Please use "|" only between two TextOp or AFTER a string or a list')
         self.ops += other.ops
         return self
 
@@ -53,9 +53,15 @@ class TextOp(object):
 
     def __rrshift__(self,text):
         result = self._process(text)
-        if isinstance(result, types.GeneratorType):
+        if isinstance(result, (types.GeneratorType,enumerate)):
             return ListExt(result)
         return result
+
+    def __rshift__(self,other):
+        if not isinstance(other,TextOp):
+            raise TextOpException('Please use ">>" only between two TextOp or AFTER a string or a list')
+        self.ops += other.ops
+        return self
 
     def __str__(self):
         return self.se
@@ -146,7 +152,7 @@ class TextOp(object):
             return return_if_none
         elif isinstance(text, basestring):
             return text.splitlines()
-        elif isinstance(text, types.GeneratorType):
+        elif isinstance(text, (types.GeneratorType, enumerate)):
             return ListExt(text)
         return text
 
