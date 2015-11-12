@@ -48,6 +48,10 @@ doreduce
 --------
    .. autoclass:: doreduce(reduce_fn, initializer=None)
 
+doslice
+-------
+   .. autoclass:: doslice(begin=0, end=sys.maxsize, step=1)
+
 first
 -----
    .. autoclass:: first( )
@@ -136,6 +140,10 @@ lessthan
 --------
    .. autoclass:: lessthan(value, col_or_key=None)
 
+merge_dicts
+-----------
+   .. autoclass:: merge_dicts()
+
 mapfn
 -----
    .. autoclass:: mapfn(map_fn)
@@ -164,9 +172,29 @@ sedi
 ----
    .. autoclass:: sedi(pat,repl)
 
+span
+----
+   .. autoclass:: span(nbcols, fill_str='')
+
+subslice
+--------
+   .. autoclass:: subslice(begin=0, end=sys.maxsize, step=1)
+
+subitem
+-------
+   .. autoclass:: subitem(n)
+
+subitems
+--------
+   .. autoclass:: subitem(ntab)
+
 tail
 ----
    .. autoclass:: tail(lines)
+
+uniq
+----
+   .. autoclass:: uniq()
 
 * :ref:`genindex`
 * :ref:`modindex`
