@@ -1545,10 +1545,10 @@ class subitems(TextOp):
             yield [ sublist[n] for n in ntab ]
 
 class uniq(TextOp):
-    r"""Remove repetition of a same line that could anywhere in the text
+    r"""Remove all line repetitions
 
-    If a line is many times in the same text, only the first will be taken.
-    Works also with list of lists or dicts.
+    If a line is many times in the same text (even if there are some different lines between),
+    only the first will be taken. Works also with list of lists or dicts.
 
     Returns:
         generator: Unified text line by line.
@@ -1564,6 +1564,12 @@ class uniq(TextOp):
         b
         c
         e
+        >>> l = [ [1,2], [3,4], [1,2] ]
+        >>> l >> uniq()
+        [[1, 2], [3, 4]]
+        >>> d = [ {'a':1}, {'b':2}, {'a':1} ]
+        >>> d >> uniq()
+        [{'a': 1}, {'b': 2}]
     """
     @classmethod
     def op(cls, text, *args,**kwargs):
