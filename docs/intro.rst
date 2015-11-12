@@ -65,7 +65,7 @@ So one can do::
    As many operations return a generator, they can be used directly in for-loops, but in this
    documentation we added ``.tolist()`` to show the result as a list.
 
-Textops library also redefines ``>>`` operator that works like the '|' except that it converts
+Textops library also redefines ``>>`` operator that works like the ``|`` except that it converts
 generators results into lists::
 
    >>> 'a\nb' | grep('a')                                # doctest: +ELLIPSIS
