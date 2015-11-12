@@ -8,9 +8,11 @@
 
 from textops import TextOp
 import re
+import types
+
 
 class length(TextOp):
-    r""" Returns the length of a string
+    r""" Returns the length of a string, list or generator
 
     Returns:
         int: length of the string
@@ -23,8 +25,17 @@ class length(TextOp):
         >>> s=StrExt(s)
         >>> s.length()
         16
+        >>> ['a','b','c'] | length()
+        3
+        >>> def mygenerator():yield 3; yield 2
+        >>> mygenerator() | length()
+        2
     """
-    fn = staticmethod(lambda text: len(text))
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        if isinstance(text, types.GeneratorType):
+            return reduce(lambda x,y:x+1,text,0)
+        return len(text)
 
 class echo(TextOp):
     r""" identity operation

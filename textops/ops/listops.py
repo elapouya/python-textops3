@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import os
+import itertools
 
 class ListOpError(Exception):
     pass
@@ -32,6 +33,8 @@ class cat(TextOp):
         <generator object extend_type_gen at ...>
         >>> '/tmp/testfile.txt' | cat().tostr()
         'here is the file content'
+        >>> '/tmp/testfile.txt' >> cat()
+        ['here is the file content']
         >>> '/tmp/testfile.txt' | cat().upper().tostr()
         'HERE IS THE FILE CONTENT'
         >>> context = {'path':'/tmp/'}
@@ -103,6 +106,8 @@ class run(TextOp):
         f1
         f2
         f3
+        >>> print cmd >> run()
+        ['f1', 'f2', 'f3']
         >>> print ['ls', '/tmp/textops_tests_run'] | run().tostr()
         f1
         f2
@@ -156,6 +161,8 @@ class mrun(TextOp):
         f1
         f2
         f3
+        >>> print cmds >> mrun()
+        ['f1', 'f2', 'f3']
         >>> cmds = ['ls {path}', 'echo "Cool !"']
         >>> print cmds | mrun({'path':'/tmp/textops_tests_run'}).tostr()
         f1
@@ -197,6 +204,8 @@ class grep(TextOp):
         >>> input | grep('error')  #doctest: +ELLIPSIS
         <generator object extend_type_gen at ...>
         >>> input | grep('error').tolist()
+        ['error1', 'error2']
+        >>> input >> grep('error')
         ['error1', 'error2']
         >>> input | grep('ERROR').tolist()
         []
@@ -258,6 +267,8 @@ class grepi(grep):
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
         >>> input | grepi('ERROR').tolist()
         ['error1', 'error2']
+        >>> input >> grepi('ERROR')
+        ['error1', 'error2']
     """
     flags = re.IGNORECASE
 
@@ -276,6 +287,8 @@ class grepv(grep):
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
         >>> input | grepv('error').tolist()
+        ['warning1', 'info1', 'warning2', 'info2']
+        >>> input >> grepv('error')
         ['warning1', 'info1', 'warning2', 'info2']
         >>> input | grepv('ERROR').tolist()
         ['error1', 'error2', 'warning1', 'info1', 'warning2', 'info2']
@@ -297,6 +310,8 @@ class grepvi(grepv):
     Examples:
         >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
         >>> input | grepvi('ERROR').tolist()
+        ['warning1', 'info1', 'warning2', 'info2']
+        >>> input >> grepvi('ERROR')
         ['warning1', 'info1', 'warning2', 'info2']
     """
     flags = re.IGNORECASE
@@ -612,6 +627,8 @@ class head(TextOp):
         b
         >>> ['a','b','c'] | head(2).tolist()
         ['a', 'b']
+        >>> ['a','b','c'] >> head(2)
+        ['a', 'b']
         >>> [('a',1),('b',2),('c',3)] | head(2).tolist()
         [('a', 1), ('b', 2)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | head(2).tolist()
@@ -641,6 +658,8 @@ class tail(TextOp):
         b
         c
         >>> ['a','b','c'] | tail(2).tolist()
+        ['b', 'c']
+        >>> ['a','b','c'] >> tail(2)
         ['b', 'c']
         >>> [('a',1),('b',2),('c',3)] | tail(2).tolist()
         [('b', 2), ('c', 3)]
@@ -675,6 +694,8 @@ class sed(TextOp):
         'Bonjour Eric\nBonjour Guido'
         >>> [ 'Hello Eric','Hello Guido'] | sed('Hello','Bonjour').tolist()
         ['Bonjour Eric', 'Bonjour Guido']
+        >>> [ 'Hello Eric','Hello Guido'] >> sed('Hello','Bonjour')
+        ['Bonjour Eric', 'Bonjour Guido']
         >>> [ 'Hello Eric','Hello Guido'] | sed(r'$',' !').tolist()
         ['Hello Eric !', 'Hello Guido !']
         >>> import re
@@ -706,6 +727,8 @@ class sedi(sed):
     Examples:
         >>> [ 'Hello Eric','Hello Guido'] | sedi('hello','Good bye').tolist()
         ['Good bye Eric', 'Good bye Guido']
+        >>> [ 'Hello Eric','Hello Guido'] >> sedi('hello','Good bye')
+        ['Good bye Eric', 'Good bye Guido']
     """
     flags = re.IGNORECASE
 
@@ -736,6 +759,8 @@ class between(TextOp):
         >>> 'a\nb\nc\nd\ne\nf' | between('b','e',True,True).tostr()
         'b\nc\nd\ne'
         >>> ['a','b','c','d','e','f'] | between('b','e').tolist()
+        ['c', 'd']
+        >>> ['a','b','c','d','e','f'] >> between('b','e')
         ['c', 'd']
         >>> ['a','b','c','d','e','f'] | between('b','e',True,True).tolist()
         ['b', 'c', 'd', 'e']
@@ -841,6 +866,8 @@ class betweeni(between):
         []
         >>> ['a','b','c','d','e','f'] | betweeni('B','E').tolist()
         ['c', 'd']
+        >>> ['a','b','c','d','e','f'] >> betweeni('B','E')
+        ['c', 'd']
     """
     flags = re.IGNORECASE
 
@@ -862,6 +889,8 @@ class betweenb(between):
 
     Examples:
         >>> ['a','b','c','d','e','f'] | betweenb('b','e').tolist()
+        ['b', 'c', 'd', 'e']
+        >>> ['a','b','c','d','e','f'] >> betweenb('b','e')
         ['b', 'c', 'd', 'e']
     """
     boundaries = True
@@ -886,6 +915,8 @@ class betweenbi(betweenb):
         >>> ['a','b','c','d','e','f'] | betweenb('B','E').tolist()
         []
         >>> ['a','b','c','d','e','f'] | betweenbi('B','E').tolist()
+        ['b', 'c', 'd', 'e']
+        >>> ['a','b','c','d','e','f'] >> betweenbi('B','E')
         ['b', 'c', 'd', 'e']
     """
     flags = re.IGNORECASE
@@ -944,6 +975,8 @@ class inrange(linetester):
         ... 2015-09-14 ccc
         ... 2015-11-05 ddd'''
         >>> logs | inrange('2015-08-12','2015-11-05').tolist()
+        ['2015-08-23 bbbb', '2015-09-14 ccc']
+        >>> logs >> inrange('2015-08-12','2015-11-05')
         ['2015-08-23 bbbb', '2015-09-14 ccc']
         >>> logs = [ ('aaaa','2015-08-11'),
         ... ('bbbb','2015-08-23'),
@@ -1074,6 +1107,8 @@ class lessequal(linetester):
         ... 2015-11-05 ddd'''
         >>> logs | lessequal('2015-09-14').tolist()
         ['2015-08-11 aaaa', '2015-08-23 bbbb']
+        >>> logs >> lessequal('2015-09-14')
+        ['2015-08-11 aaaa', '2015-08-23 bbbb']
         >>> logs | lessequal('2015-09-14 ccc').tolist()
         ['2015-08-11 aaaa', '2015-08-23 bbbb', '2015-09-14 ccc']
         """
@@ -1101,6 +1136,8 @@ class greaterthan(linetester):
         ... 2015-11-05 ddd'''
         >>> logs | greaterthan('2015-09-14 ccc').tolist()
         ['2015-11-05 ddd']
+        >>> logs >> greaterthan('2015-09-14 ccc')
+        ['2015-11-05 ddd']
         """
     @classmethod
     def testline(cls, to_test, value, *args,**kwargs):
@@ -1125,6 +1162,8 @@ class greaterequal(linetester):
         ... 2015-09-14 ccc
         ... 2015-11-05 ddd'''
         >>> logs | greaterequal('2015-09-14 ccc').tolist()
+        ['2015-09-14 ccc', '2015-11-05 ddd']
+        >>> logs >> greaterequal('2015-09-14 ccc')
         ['2015-09-14 ccc', '2015-11-05 ddd']
         """
     @classmethod
@@ -1153,6 +1192,8 @@ class before(between):
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
         >>> input_text | before('3',col_or_key='k').tolist()
         [{'k': 1}, {'k': 2}]
+        >>> input_text >> before('3',col_or_key='k')
+        [{'k': 1}, {'k': 2}]
     """
     @classmethod
     def op(cls, text, pattern, get_end=False, col_or_key=None,*args,**kwargs):
@@ -1177,6 +1218,8 @@ class beforei(before):
         >>> ['a','b','c','d','e','f'] | beforei('C').tolist()
         ['a', 'b']
         >>> ['a','b','c','d','e','f'] | beforei('C',True).tolist()
+        ['a', 'b', 'c']
+        >>> ['a','b','c','d','e','f'] >> beforei('C',True)
         ['a', 'b', 'c']
     """
     flags = re.IGNORECASE
@@ -1203,6 +1246,8 @@ class after(between):
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
         >>> input_text | after('3',col_or_key='k').tolist()
         [{'k': 4}, {'k': 5}, {'k': 6}]
+        >>> input_text >> after('3',col_or_key='k')
+        [{'k': 4}, {'k': 5}, {'k': 6}]
     """
     @classmethod
     def op(cls, text, pattern, get_begin=False,*args,**kwargs):
@@ -1228,6 +1273,8 @@ class afteri(after):
         ['d', 'e', 'f']
         >>> ['a','b','c','d','e','f'] | afteri('C',True).tolist()
         ['c', 'd', 'e', 'f']
+        >>> ['a','b','c','d','e','f'] >> afteri('C',True)
+        ['c', 'd', 'e', 'f']
     """
     flags = re.IGNORECASE
 
@@ -1244,6 +1291,8 @@ class mapfn(TextOp):
 
     Examples:
         >>> ['a','b','c'] | mapfn(lambda l:l*2).tolist()
+        ['aa', 'bb', 'cc']
+        >>> ['a','b','c'] >> mapfn(lambda l:l*2)
         ['aa', 'bb', 'cc']
     """
     @classmethod
@@ -1264,9 +1313,10 @@ class iffn(TextOp):
         any: lines filtered by the filter_fn function
 
     Examples:
-        # return odd lines :
-        import re
+        >>> import re
         >>> 'line1\nline2\nline3\nline4' | iffn(lambda l:int(re.sub(r'\D','',l)) % 2).tolist()
+        ['line1', 'line3']
+        >>> 'line1\nline2\nline3\nline4' >> iffn(lambda l:int(re.sub(r'\D','',l)) % 2)
         ['line1', 'line3']
     """
     @classmethod
@@ -1291,9 +1341,10 @@ class mapif(TextOp):
         any: lines filtered by the filter_fn function and modified by map_fn function
 
     Examples:
-        # return odd lines :
         >>> import re
         >>> 'a1\nb2\nc3\nd4' | mapif(lambda l:l*2,lambda l:int(re.sub(r'\D','',l)) % 2).tolist()
+        ['a1a1', 'c3c3']
+        >>> 'a1\nb2\nc3\nd4' >> mapif(lambda l:l*2,lambda l:int(re.sub(r'\D','',l)) % 2)
         ['a1a1', 'c3c3']
     """
     @classmethod
@@ -1311,15 +1362,17 @@ class doreduce(TextOp):
 
     Args:
         reduce_fn(callable): a function or a callable to reduce every line.
-        initializer: initial accumulative value (Default : None)
+        initializer(object): initial accumulative value (Default : None)
 
     Returns:
         any: reduced value
 
     Examples:
         >>> import re
-        >>> 'a1\nb2\nc3\nd4' | doreduce(lambda x,y:x+re.sub(r'\d','',y),'').tolist()
-        ['abcd']
+        >>> 'a1\nb2\nc3\nd4' | doreduce(lambda x,y:x+re.sub(r'\d','',y),'')
+        'abcd'
+        >>> 'a1\nb2\nc3\nd4' >> doreduce(lambda x,y:x+re.sub(r'\d','',y),'')
+        'abcd'
     """
     @classmethod
     def op(cls, text, reduce_fn, initializer=None, *args, **kwargs):
@@ -1328,13 +1381,18 @@ class doreduce(TextOp):
 class merge_dicts(TextOp):
     r"""Merge a list of dicts into one single dict
 
-    Uses python reduce() function.
-
     Returns:
         dict: merged dicts
 
     Examples:
-
+        >>> pattern=r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"'
+        >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
+        >>> s | cutkv(pattern,key_name='item')                                                      # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [{'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}},...
+        {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}}]
+        >>> s | cutkv(pattern,key_name='item').merge_dicts()                                        # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'},...
+        'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}}
     """
     @classmethod
     def op(cls,text,*args,**kwargs):
@@ -1345,25 +1403,140 @@ class merge_dicts(TextOp):
         return out
 
 class span(TextOp):
+    r"""Ensure that a list of lists has exactly the specified number of column
+
+    This is useful in for-loop with multiple assignment
+
+    Args:
+        nbcols(int): number columns to return
+        fill_str(str): the value to return for not exsiting columns
+
+    Returns:
+        list: A list with exactly ``nbcols`` columns
+
+    Examples:
+        >>> s='a\nb c\nd e f g h\ni j k\n\n'
+        >>> s | cut()
+        [['a'], ['b', 'c'], ['d', 'e', 'f', 'g', 'h'], ['i', 'j', 'k'], []]
+        >>> s | cut().span(3,'-').tolist()
+        [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
+        >>> s >> cut().span(3,'-')
+        [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
+        >>> for x,y,z in s | cut().span(3,'-'):
+        ...    print x,y,z
+        a - -
+        b c -
+        d e f
+        i j k
+        - - -
+    """
     @classmethod
     def op(cls, text, nbcols, fill_str='', *args,**kwargs):
         fill_list = [fill_str] * nbcols
         for sublist in cls._tolist(text):
             yield (sublist+fill_list)[:nbcols]
 
-class slice(TextOp):
+class doslice(TextOp):
+    r"""Get lines/items from ``begin`` line to ``end`` line with some ``step``
+
+    Args:
+        begin(int): first line number to get.
+            must be None or an integer: 0 <= x <= maxint
+        end(int): end line number (get lines up to end - 1).
+            must be None or an integer: 0 <= x <= maxint
+        step(int): get every ``step`` line (Default : 1)
+
+    Returns:
+        generator: A slice of the original text
+
+    Examples:
+        >>> s='a\nb\nc\nd\ne\nf'
+        >>> s | doslice(1,4).tolist()
+        ['b', 'c', 'd']
+        >>> s >> doslice(1,4)
+        ['b', 'c', 'd']
+        >>> s >> doslice(2)
+        ['c', 'd', 'e', 'f']
+        >>> s >> doslice(0,4,2)
+        ['a', 'c']
+        >>> s >> doslice(None,None,2)
+        ['a', 'c', 'e']
+    """
     @classmethod
-    def op(cls, text, begin=0, end=sys.maxsize, step = 1, fill_str=None, *args,**kwargs):
+    def op(cls, text, begin=0, end=sys.maxsize, step = 1, *args,**kwargs):
+        for line in itertools.islice(cls._tolist(text), begin, end, step):
+            yield line
+
+class subslice(TextOp):
+    r"""Get a slice of columns for list of lists
+
+    Args:
+        begin(int): first columns number to get.
+            must be None or an integer: 0 <= x <= maxint
+        end(int): end columns number (get columns up to end - 1).
+            must be None or an integer: 0 <= x <= maxint
+        step(int): get every ``step`` columns (Default : 1)
+
+    Returns:
+        generator: A slice of the original text
+
+    Examples:
+        >>> s='a\nb c\nd e f g h\ni j k\n\n'
+        >>> s | cut().span(3,'-').tolist()
+        [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
+        >>> s | cut().span(3,'-').subslice(1,3).tolist()
+        [['-', '-'], ['c', '-'], ['e', 'f'], ['j', 'k'], ['-', '-']]
+        >>> s >> cut().span(3,'-').subslice(1,3)
+        [['-', '-'], ['c', '-'], ['e', 'f'], ['j', 'k'], ['-', '-']]
+    """
+    @classmethod
+    def op(cls, text, begin=0, end=sys.maxsize, step = 1, *args,**kwargs):
         for sublist in cls._tolist(text):
             yield sublist[begin:end:step]
 
 class subitem(TextOp):
+    r"""Get a specified column for list of lists
+
+    Args:
+        n(int): column number to get.
+
+    Returns:
+        generator: A list
+
+    Examples:
+        >>> s='a\nb c\nd e f g h\ni j k\n\n'
+        >>> s | cut().span(3,'-').tolist()
+        [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
+        >>> s | cut().span(3,'-').subitem(1).tolist()
+        ['-', 'c', 'e', 'j', '-']
+        >>> s >> cut().span(3,'-').subitem(1)
+        ['-', 'c', 'e', 'j', '-']
+        >>> s >> cut().span(3,'-').subitem(-1)
+        ['-', '-', 'f', 'k', '-']
+    """
     @classmethod
     def op(cls, text, n, *args,**kwargs):
         for sublist in cls._tolist(text):
             yield sublist[n]
 
 class subitems(TextOp):
+    r"""Get the specified columns for list of lists
+
+    Args:
+        ntab(list of int): columns numbers to get.
+
+    Returns:
+        generator: A list of lists
+
+    Examples:
+        >>> s='a\nb c\nd e f g h\ni j k\n\n'
+        >>> s | cut().span(3,'-').tolist()
+        [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
+        >>> s | cut().span(3,'-').subitems([0,2]).tolist()
+        [['a', '-'], ['b', '-'], ['d', 'f'], ['i', 'k'], ['-', '-']]
+        >>> s >> cut().span(3,'-').subitems('0,2')
+        [['a', '-'], ['b', '-'], ['d', 'f'], ['i', 'k'], ['-', '-']]
+    """
     @classmethod
     def op(cls, text, ntab, *args,**kwargs):
         if isinstance(ntab,basestring):
@@ -1372,6 +1545,26 @@ class subitems(TextOp):
             yield [ sublist[n] for n in ntab ]
 
 class uniq(TextOp):
+    r"""Remove repetition of a same line that could anywhere in the text
+
+    If a line is many times in the same text, only the first will be taken.
+    Works also with list of lists or dicts.
+
+    Returns:
+        generator: Unified text line by line.
+
+    Examples:
+        >>> s='f\na\nb\na\nc\nc\ne\na\nc\nf'
+        >>> s >> uniq()
+        ['f', 'a', 'b', 'c', 'e']
+        >>> for line in s | uniq():
+        ...     print line
+        f
+        a
+        b
+        c
+        e
+    """
     @classmethod
     def op(cls, text, *args,**kwargs):
         s=[]

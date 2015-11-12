@@ -51,6 +51,12 @@ class TextOp(object):
     def __ror__(self,text):
         return self._process(text)
 
+    def __rrshift__(self,text):
+        result = self._process(text)
+        if isinstance(result, types.GeneratorType):
+            return ListExt(result)
+        return result
+
     def __str__(self):
         return self.se
 

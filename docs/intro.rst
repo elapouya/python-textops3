@@ -62,7 +62,29 @@ So one can do::
    [{'line': '2'}]
 
 **Note :**
-   ``.tolist()`` is used because textops.grep_ returns a generator
+   As many operations return a generator, they can be used directly in for-loops, but in this
+   documentation we added ``.tolist()`` to show the result as a list.
+
+Textops library also redefines '>>' operator that works like the '|' except that it converts
+generators results into lists::
+
+   >>> 'a\nb' | grep('a')                                # doctest: +ELLIPSIS
+   <generator object extend_type_gen at ...>
+   >>> 'a\nb' | grep('a').tolist()
+   ['a']
+   >>> 'a\nb' >> grep('a')
+   ['a']
+   >>> for line in 'a\nb' | grep('a'):
+   ...     print line
+   a
+   >>> 'abc' | length()
+   3
+   >>> 'abc' >> length()
+   3
+
+**Note :**
+   You should use the pipe ('|') when you are expecting a huge result or when using for-loops,
+   otherwise, the '>>' operator is easier to handle as you are not keeping generators.
 
 Here is an example of chained operations to find the first line with an error and put it in uppercase::
 

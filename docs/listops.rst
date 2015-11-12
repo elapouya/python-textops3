@@ -44,6 +44,10 @@ cat
 ---
    .. autoclass:: cat(context={})
 
+doreduce
+--------
+   .. autoclass:: doreduce(reduce_fn, initializer=None)
+
 first
 -----
    .. autoclass:: first( )
@@ -112,6 +116,10 @@ head
 ----
    .. autoclass:: head(lines)
 
+iffn
+----
+   .. autoclass:: iffn(filter_fn=None)
+
 inrange
 -------
    .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, col_or_key=None)
@@ -127,6 +135,14 @@ lessequal
 lessthan
 --------
    .. autoclass:: lessthan(value, col_or_key=None)
+
+mapfn
+-----
+   .. autoclass:: mapfn(map_fn)
+
+mapif
+-----
+   .. autoclass:: mapif(map_fn, filter_fn=None)
 
 mrun
 ----
