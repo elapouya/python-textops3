@@ -20,7 +20,7 @@ Quickstart
 ----------
 
 The usual way to use textops is something like below. IMPORTANT : Note that textops library redefines
-the python **bitwise OR** operator '|' in order to use it as a 'pipe' like in a Unix shell::
+the python **bitwise OR** operator ``|`` in order to use it as a 'pipe' like in a Unix shell::
 
    from textops import *
 
@@ -65,7 +65,7 @@ So one can do::
    As many operations return a generator, they can be used directly in for-loops, but in this
    documentation we added ``.tolist()`` to show the result as a list.
 
-Textops library also redefines '>>' operator that works like the '|' except that it converts
+Textops library also redefines ``>>`` operator that works like the '|' except that it converts
 generators results into lists::
 
    >>> 'a\nb' | grep('a')                                # doctest: +ELLIPSIS
@@ -83,8 +83,8 @@ generators results into lists::
    3
 
 **Note :**
-   You should use the pipe ('|') when you are expecting a huge result or when using for-loops,
-   otherwise, the '>>' operator is easier to handle as you are not keeping generators.
+   You should use the pipe ``|`` when you are expecting a huge result or when using for-loops,
+   otherwise, the ``>>`` operator is easier to handle as you are not keeping generators.
 
 Here is an example of chained operations to find the first line with an error and put it in uppercase::
 
