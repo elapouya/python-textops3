@@ -59,7 +59,7 @@ first
 
 formatdicts
 -----------
-   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '')
+   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '',defvalue='-')
 
 formatitems
 -----------

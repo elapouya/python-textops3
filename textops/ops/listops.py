@@ -6,7 +6,7 @@
 #
 """ This module gathers list/line operations """
 
-from textops import TextOp
+from textops import TextOp, dformat
 import re
 import subprocess
 import sys
@@ -502,6 +502,12 @@ class formatitems(TextOp):
     r"""Formats list of 2-sized tuples
 
     Useful to convert list of 2-sized tuples into a simple string
+    It converts the list of tuple into a list of strings by using the ``format_str``, then it
+    joins all the strings with ``join_str`` to get a unique simple string.
+
+    Args:
+        format_str(str): format string, default is '{0} : {1}\n'
+        join_str(str): string to join all strings into one unique string, default is ''
 
     Returns:
         str: formatted input
@@ -520,6 +526,12 @@ class formatlists(TextOp):
     r"""Formats list of lists
 
     Useful to convert list of lists into a simple string
+    It converts the list of lists into a list of strings by using the ``format_str``, then it
+    joins all the strings with ``join_str`` to get a unique simple string.
+
+    Args:
+        format_str(str): format string, default is '{0} : {1}\n'
+        join_str(str): string to join all strings into one unique string, default is ''
 
     Returns:
         str: formatted input
@@ -537,28 +549,35 @@ class formatlists(TextOp):
 class formatdicts(TextOp):
     r"""Formats list of dicts
 
-    Useful to convert list of dicts into a simple string
+    Useful to convert list of dicts into a simple string.
+    It converts the list of dicts into a list of strings by using the ``format_str``, then it
+    joins all the strings with ``join_str`` to get a unique simple string.
+
+    Args:
+        format_str(str): format string, default is '{key} : {val}\n'
+        join_str(str): string to join all strings into one unique string, default is ''
+        defvalue(str): The replacement string or function for unexisting keys when formating.
 
     Returns:
         str: formatted input
 
     Examples:
-        >>> input = [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}]
+        >>> input = [{'key':'a','val':1},{'key':'b','val':2},{'key':'c'}]
         >>> input | formatdicts()
-        'a : 1\nb : 2\nc : 3\n'
-        >>> input | formatdicts('{key} -> {val}\n')
-        'a -> 1\nb -> 2\nc -> 3\n'
+        'a : 1\nb : 2\nc : -\n'
+        >>> input | formatdicts('{key} -> {val}\n',defvalue='N/A')
+        'a -> 1\nb -> 2\nc -> N/A\n'
         >>> input = [{'name':'Eric','age':47,'level':'guru'},
         ... {'name':'Guido','age':59,'level':'god'}]
         >>> print input | formatdicts('{name}({age}) : {level}\n')   #doctest: +NORMALIZE_WHITESPACE
         Eric(47) : guru
         Guido(59) : god
-        >>> print input | formatdicts('{name}',', ')
+        >>> print input | formatdicts('{name}', ', ')
         Eric, Guido
     """
     @classmethod
-    def op(cls,items,format_str='{key} : {val}\n',join_str = '',*args,**kwargs):
-        return join_str.join([format_str.format(**dct) for dct in items ])
+    def op(cls,items,format_str='{key} : {val}\n',join_str = '',defvalue='-',*args,**kwargs):
+        return join_str.join([dformat(format_str,dct,defvalue) for dct in items ])
 
 class first(TextOp):
     r"""Return the first line/item from the input text

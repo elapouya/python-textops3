@@ -468,18 +468,26 @@ class DictExt(NoAttrDict):
     def amend(self,*args, **kwargs):
         return DictExt(self,*args, **kwargs)
     def render(self,format_string,defvalue='-'):
-        return DefaultFormatter(defvalue).vformat(format_string,(),dict(self))
+        return dformat(format_string,self,defvalue)
     def __getitem__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__format__(*args, **kwargs))
 
-class DefaultFormatter(string.Formatter):
+class DefaultDict(dict):
     def __init__(self,defvalue,*args,**kwargs):
         self.defvalue = defvalue
-        super(DefaultFormatter,self).__init__(*args,**kwargs)
-    def get_value(self, key, args, kwargs):
+        super(DefaultDict,self).__init__(*args,**kwargs)
+    def __getitem__(self,key):
         try:
-            return super(DefaultFormatter,self).get_value(key,args,kwargs)
-        except (KeyError, IndexError):
+            return super(DefaultDict,self).__getitem__(key)
+        except KeyError:
+            if callable(self.defvalue):
+                return self.defvalue(key)
             return self.defvalue
+
+string_formatter = string.Formatter()
+vformat = string_formatter.vformat
+
+def dformat(format_str,dct,defvalue='-'):
+    return vformat(format_str,(),DefaultDict(defvalue,dct))
