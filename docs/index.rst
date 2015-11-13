@@ -20,6 +20,7 @@ Welcome to python-textops documentation !
    strops
    listops
    wrapops
+   parse
    cast
 
 Indices and tables

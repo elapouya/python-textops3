@@ -6,6 +6,7 @@ modules = [ 'textops.ops.strops',
             'textops.ops.listops',
             'textops.ops.wrapops',
             'textops.ops.cast',
+            'textops.ops.parse',
             ]
 files = [ 'docs/intro.rst' ]
 

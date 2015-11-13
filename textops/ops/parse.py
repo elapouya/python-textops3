@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
-Created : 2015-08-24
-
-@author: Eric Lapouyade
-'''
+#
+# Created : 2015-08-24
+#
+# @author: Eric Lapouyade
+#
+""" This module gathers parsers to handle whole input text"""
 
 from textops import TextOp, NoAttr
 import textops
@@ -13,6 +14,8 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 import copy
 from datetime import datetime
+
+logger = textops.logger
 
 class ParsingError(Exception):
     pass
@@ -232,51 +235,167 @@ class parse_indented(TextOp):
         return out
 
 class state_pattern(TextOp):
-    """ states and patterns parser
+    r""" States and patterns parser
 
-    The states_patterns_desc to give looks like this :
+    The main advantage of this parser is that it reads the whole input text only once to collect all
+    data you want into a multi-level dictionary. It uses state names to ensure only a set of rules
+    are used against specific document sections.
+    
+    Args:
+        states_patterns_desc (tupple) : descrption of states and patterns : 
+            see below for explaination
+        reflags : re flags, ie re.I or re.M or re.I | re.M (Default : no flag)
+        autostrip : before being stored, groupdict keys and values are stripped (Default : True) 
+        
+    Returns:
+        dict : parsed data from text
 
-    ((<if state1>,<goto state1>,<pattern1>,<out data path1>,<out filter1>),
-    ...
-    (<if stateN>,<patternN>,<goto stateN>,<out data pathN>))
-    <if state> is a string telling on what state(s) the pattern must be searched, one can specify several states with comma separated string or a tupple.
-        if <if state> is empty, the pattern will be searched for all lines
+    |
+    | **The states_patterns_desc :**
+    
+    It looks like this::
+
+        ((<if state1>,<goto state1>,<pattern1>,<out data path1>,<out filter1>),
+        ...
+        (<if stateN>,<goto stateN>,<patternN>,<out data pathN>,<out filterN>))
+    
+    ``<if state>`` 
+        is a string telling on what state(s) the pattern must be searched, 
+        one can specify several states with comma separated string or a tupple. if ``<if state>`` 
+        is empty, the pattern will be searched for all lines. 
         Note : at the beginning, the state is 'top'
-    <goto state> is a string corresponding to the new state if the pattern matches. use an empty string to not change the current state
-    <pattern> is a string or a re.regex to match a line of text. one should use named groups for selecting data : (?P<key1>pattern)
-    <out data path> is a string with '.' separator or a tuple telling where to place the groupdict from pattern maching process,
-        The syntax is :
-        '%(contextgroupkey1)s.%(contextgroupkey2)s. ... .%(contextgroupkeyN)s'
-        or
-        ('%(contextgroupkey1)s','%(contextgroupkey2)s', ... ,'%(contextgroupkeyN)s')
-        Where contextgroup is the dictionnary of all merged groupdict from previous pattern maching process.
-        instead of %(contextgroupkeyN)s, one can use a simple string to put data in a not changing key.
-        It will put the groupdict (merged if alread present) into {'key1_value':{'key2_value':{'keyN_value' : groupdict }}}
-        instead of %(contextgroupkeyN)s, one can use the string '[]' :  the groupdict will be appended in a list
-        ie : {'key1_value':{'key2_value':[groupdict,...] }}}
-    <out filter> could be :
-        None : no filter is applied, the pattern groupdict is stored
-        a string : used as a format string with context group dict, the formatted string is stored
-        a callable : to calculate the value to be stored
+        
+    ``<goto state>``
+        is a string corresponding to the new state if the pattern matches. 
+        use an empty string to not change the current state. One can use any string, usually,
+        it corresponds to a specific section name of the document to parse where specific
+        rules has to be used.
+        
+    ``<pattern>`` 
+        is a string or a re.regex to match a line of text. 
+        one should use named groups for selecting data, ex: ``(?P<key1>pattern)``
+        
+    ``<out data path>``
+        is a string with a dot separator or a tuple telling where to place the groupdict 
+        from pattern maching process,    
+        The syntax is::
+        
+            '{contextkey1}.{contextkey2}. ... .{contextkeyN}'
+            or
+            ('{contextkey1}','{contextkey2}', ... ,'{contextkeyN}')
+            or
+            'key1.key2.keyN'
+            or
+            'key1.key2.keyN[]'
+            or
+            '{contextkey1}.{contextkey2}. ... .keyN[]'
+    
+        The contextdict is used to format strings with ``{contextkeyN}`` syntax.
+        instead of ``{contextkeyN}``, one can use a simple string to put data in a fixed path.
+        Once the path fully formatted, let's say to ``key1.key2.keyN``, the parser will store the
+        pattern matching groupdict into the result dictionnary at :
+        ``{'key1':{'key2':{'keyN' : re.MatchObject.groupdict() }}}``
+        One can use the string ``[]`` at the end of the path : the groupdict will be appended in a list
+        ie : ``{'key1':{'key2':{'keyN' : [re.MatchObject.groupdict(),...] }}}``
+        
+    ``<out filter>`` 
+        could be :
+            * None : no filter is applied, the pattern groupdict is stored
+            * a string : used as a format string with context group dict, the formatted string is stored
+            * a callable : to calculate the value to be stored
+                                
+    **How the parser works :**
+    
+    You have a document where the syntax may change from one section to another one : You have just
+    to give a name to these kind of sections : it will be your state names.
+    The parser reads line by line the input text, for each line, it will look for the *first* matching 
+    rule from ``states_patterns_desc`` table, then will apply the rule.
+    One rule has got 2 parts : the matching parameters, and the action parameters.
+    
+    Matching parameters:
+        To match, a rule requires the parser to be at the specified state ``<if state>`` AND
+        the line to be parsed must match the pattern ``<pattern>``. When the parser is at the first
+        line, it has the default state ``top``. The pattern follow the
+        standard python ``re`` module syntax. It is important to note that you must capture text
+        you want to collect with the named group capture syntax, that is ``(?P<mydata>mypattern)``.
+        By this way, the parser will store text corresponding to ``mypattern`` to a contextdict at
+        the key ``mydata``.
+    
+    Action parameters:
+        Once the rule matches, the action is to store ``<out filter>`` into the final dictionary at 
+        a specified ``<out data path>``. 
+        
+    **Context dict :**
+    
+    The context dict is used within ``<out filter>`` and ``<out data path>``, it is a dictionary that
+    is *PERSISTENT* during the whole parsing process : 
+    It is empty at the parsing beginning and will accumulate all captured pattern. For exemple, if
+    a first rule pattern contains ``(?P<key1>.*),(?P<key2>.*)`` and matches the document line 
+    ``val1,val2``, the context dict will be ``{ 'key1' : 'val1', 'key2' : 'val2' }``. Then if a
+    second rule pattern contains ``(?P<key2>.*):(?P<key3>.*)`` and matches the document line 
+    ``val4:val5`` then the context dict will be *UPDATED* to 
+    ``{ 'key1' : 'val1', 'key2' : 'val4', 'key3' : 'val5' }``.
+    As you can see, the choice of the key names are *VERY IMPORTANT* in order to avoid collision 
+    across all the rules. 
+    
+    Examples:
 
+        >>> s = '''
+        ... first name: Eric
+        ... last name: Lapouyade'''
+        >>> s >> state_pattern( (('',None,'(?P<key>.*):(?P<val>.*)','{key}','{val}'),) )
+        {'first_name': 'Eric', 'last_name': 'Lapouyade'}
+        >>> s >> state_pattern( (('',None,'(?P<key>.*):(?P<val>.*)','{key}',None),) ) #doctest: +NORMALIZE_WHITESPACE
+        {'first_name': {'val': 'Eric', 'key': 'first name'}, 
+        'last_name': {'val': 'Lapouyade', 'key': 'last name'}}
+        >>> s >> state_pattern( (('',None,'(?P<key>.*):(?P<val>.*)','my.path.{key}','{val}'),) )
+        {'my': {'path': {'first_name': 'Eric', 'last_name': 'Lapouyade'}}}
+
+        >>> s = '''Eric
+        ... Guido'''
+        >>> s >> state_pattern( (('',None,'(?P<val>.*)','my.path.info[]','{val}'),) )
+        {'my': {'path': {'info': ['Eric', 'Guido']}}}
+
+        >>> s = '''
+        ... Section 1
+        ... ---------
+        ...   email = ericdupo@gmail.com
+        ...
+        ... Section 2
+        ... ---------
+        ...   first name: Eric
+        ...   last name: Dupont'''
+        >>> s >> state_pattern( (                                    #doctest: +NORMALIZE_WHITESPACE
+        ... ('','section1','^Section 1',None,None),
+        ... ('','section2','^Section 2',None,None),
+        ... ('section1', '', '(?P<key>.*)=(?P<val>.*)', 'section1.{key}', '{val}'),
+        ... ('section2', '', '(?P<key>.*):(?P<val>.*)', 'section2.{key}', '{val}')) )
+        {'section2': {'first_name': 'Eric', 'last_name': 'Dupont'}, 
+        'section1': {'email': 'ericdupo@gmail.com'}}
+        
+        >>> s = '''
+        ... Disk states
+        ... -----------
+        ... name: c1t0d0s0
+        ... state: good
+        ... fs: /  
+        ... name: c1t0d0s4
+        ... state: failed
+        ... fs: /home
+        ...  
+        ... '''
+        >>> s >> state_pattern( (                                    #doctest: +NORMALIZE_WHITESPACE
+        ... ('top','disk',r'^Disk states',None,None),
+        ... ('disk','top', r'^\s*$',None,None),
+        ... ('disk', '', r'^name:(?P<diskname>.*)',None, None),
+        ... ('disk', '', r'(?P<key>.*):(?P<val>.*)', 'disks.{diskname}.{key}', '{val}')) )
+        {'disks': {'c1t0d0s0': {'state': 'good', 'fs': '/'}, 
+        'c1t0d0s4': {'state': 'failed', 'fs': '/home'}}}
+     
     """
 
     @classmethod
     def op(cls,text, states_patterns_desc, reflags=0, autostrip=True,**kwargs):
-        """ Parse the text
-
-            Do not use this method directly, butter use this syntax :
-
-            >>> "mytext to parse" | states_patterns(<states_patterns_desc>)
-
-            Args:
-                text (str or list or gen) :  the text to parse
-                states_patterns_desc (tupple) : the patterns to find at some state values
-                reflags : re flags, ie re.I or re.M or re.I | re.M
-                autostrip : before being stored, groupdict keys and values are stripped
-            Returns:
-                dict : parsed data from text
-        """
         state = 'top'
         root_data = {}
         groups_context = {}
@@ -310,15 +429,19 @@ class state_pattern(TextOp):
 
         # parse the text
         for line in cls._tolist(text):
+            logger.debug('state:%10s, line = %s',state, line)
             for ifstate, gotostate, pattern, datapath, outfilter in states_patterns:
+                logger.debug('  ? %10s "%10s" r\'%s\' "%s" "%s"',ifstate, gotostate, pattern.pattern, datapath, outfilter)
                 if not ifstate or state in ifstate:
                     m=pattern.match(line)
                     if m:
+                        g = m.groupdict()
+                        if autostrip:
+                            g = dict([ (k,v.strip()) for k,v in m.groupdict().items() ])
+                        groups_context.update(g)
+                        logger.debug('  -> OK')
+                        logger.debug('    context = %s',groups_context)
                         if datapath is not None:
-                            g = m.groupdict()
-                            if autostrip:
-                                g = dict([ (k,v.strip()) for k,v in m.groupdict().items() ])
-                            groups_context.update(g)
                             data = root_data
                             for p in datapath:
                                 p = p.format(**groups_context)
