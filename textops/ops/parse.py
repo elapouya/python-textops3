@@ -293,23 +293,26 @@ class state_pattern(TextOp):
         The contextdict is used to format strings with ``{contextkeyN}`` syntax.
         instead of ``{contextkeyN}``, one can use a simple string to put data in a fixed path.
         Once the path fully formatted, let's say to ``key1.key2.keyN``, the parser will store the
-        pattern matching groupdict into the result dictionnary at :
-        ``{'key1':{'key2':{'keyN' : re.MatchObject.groupdict() }}}``
+        value into the result dictionnary at :
+        ``{'key1':{'key2':{'keyN' : thevalue }}}``
         One can use the string ``[]`` at the end of the path : the groupdict will be appended in a list
-        ie : ``{'key1':{'key2':{'keyN' : [re.MatchObject.groupdict(),...] }}}``
+        ie : ``{'key1':{'key2':{'keyN' : [thevalue,...] }}}``
         
     ``<out filter>`` 
-        could be :
-            * None : no filter is applied, the pattern groupdict is stored
-            * a string : used as a format string with context group dict, the formatted string is stored
-            * a callable : to calculate the value to be stored
+        is used to build the value to store, 
+        
+        it could be :
+        
+            * None : no filter is applied, the re.MatchObject.groupdict() is stored
+            * a string : used as a format string with context dict, the formatted string is stored
+            * a callable : to calculate the value to be stored, the context dict is given as param.
                                 
     **How the parser works :**
     
-    You have a document where the syntax may change from one section to another one : You have just
+    You have a document where the syntax may change from one section to an another : You have just
     to give a name to these kind of sections : it will be your state names.
-    The parser reads line by line the input text, for each line, it will look for the *first* matching 
-    rule from ``states_patterns_desc`` table, then will apply the rule.
+    The parser reads line by line the input text : For each line, it will look for the *first* 
+    matching rule from ``states_patterns_desc`` table, then will apply the rule.
     One rule has got 2 parts : the matching parameters, and the action parameters.
     
     Matching parameters:
