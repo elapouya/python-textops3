@@ -23,7 +23,7 @@ class ParsingError(Exception):
 class mgrep(TextOp):
     r"""Multiple grep
 
-    This works like textops.grep_ except that it can do several greps in a single command.
+    This works like :class:`textops.grep` except that it can do several greps in a single command.
     By this way, you can select many patterns in a big file.
 
     Args:
