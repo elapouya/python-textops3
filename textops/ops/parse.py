@@ -103,7 +103,7 @@ class mgrep(TextOp):
 class mgrepi(mgrep):
     r"""mgrep case insensitive
 
-    This works like textops.mgrep_, except it is case insensitive.
+    This works like :class:`textops.mgrep`, except it is case insensitive.
 
     Args:
         patterns_dict (dict): a dictionary where all patterns to search are in values.

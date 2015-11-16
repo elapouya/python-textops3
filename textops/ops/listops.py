@@ -135,7 +135,7 @@ class run(TextOp):
 class mrun(TextOp):
     r""" Run multiple commands from the input text and return execution output
 
-    | This works like textops.run_ except that each line of the input text will be used as a command.
+    | This works like :class:`textops.run` except that each line of the input text will be used as a command.
     | The input text must be a list of strings (list, generator, or newline separated), \
       not a list of lists. Commands will be executed inside a shell.
     | If a context dict is specified, commands are formatted with that context (str.format)
@@ -254,7 +254,7 @@ class grep(TextOp):
 class grepi(grep):
     r"""grep case insensitive
 
-    This works like textops.grep_, except it is case insensitive.
+    This works like :class:`textops.grep`, except it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -275,7 +275,7 @@ class grepi(grep):
 class grepv(grep):
     r"""grep with inverted matching
 
-    This works like textops.grep_, except it returns lines that does NOT match the specified pattern.
+    This works like :class:`textops.grep`, except it returns lines that does NOT match the specified pattern.
 
     Args:
         pattern (str): a regular expression string
@@ -298,7 +298,7 @@ class grepv(grep):
 class grepvi(grepv):
     r"""grep case insensitive with inverted matching
 
-    This works like textops.grepv_, except it is case insensitive.
+    This works like :class:`textops.grepv`, except it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -319,7 +319,7 @@ class grepvi(grepv):
 class grepc(TextOp):
     r"""Count lines having a specified pattern
 
-    This works like textops.grep_ except that instead of filtering the input text,
+    This works like :class:`textops.grep` except that instead of filtering the input text,
     it counts lines matching the pattern.
 
     Args:
@@ -381,7 +381,7 @@ class grepc(TextOp):
 class grepci(grepc):
     r"""Count lines having a specified pattern (case insensitive)
 
-    This works like textops.grepc_ except that the pattern is case insensitive
+    This works like :class:`textops.grepc` except that the pattern is case insensitive
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -400,7 +400,7 @@ class grepci(grepc):
 class grepcv(grepc):
     r"""Count lines NOT having a specified pattern
 
-    This works like textops.grepc_ except that it counts line that does NOT match the pattern.
+    This works like :class:`textops.grepc` except that it counts line that does NOT match the pattern.
 
     Args:
         pattern (str): a regular expression string (case sensitive)
@@ -421,7 +421,7 @@ class grepcv(grepc):
 class grepcvi(grepcv):
     r"""Count lines NOT having a specified pattern (case insensitive)
 
-    This works like textops.grepcv_ except that the pattern is case insensitive
+    This works like :class:`textops.grepcv` except that the pattern is case insensitive
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -441,7 +441,7 @@ class haspattern(grepc):
     r"""Tests if the input text matches the specified pattern
 
     This reads the input text line by line (or item by item for lists and generators), cast into
-    a string before testing. like textops.grepc_ it accepts testing on a specific column
+    a string before testing. like :class:`textops.grepc` it accepts testing on a specific column
     for a list of lists or testing on a specific key for list of dicts.
     It stops reading the input text as soon as the pattern is found : it is useful for big input text.
 
@@ -464,7 +464,7 @@ class haspattern(grepc):
 class haspatterni(haspattern):
     r"""Tests if the input text matches the specified pattern
 
-    Works like textops.haspattern_ except that it is case insensitive.
+    Works like :class:`textops.haspattern` except that it is case insensitive.
 
     Args:
         pattern (str): a regular expression string (case insensitive)
@@ -734,7 +734,7 @@ class sed(TextOp):
 class sedi(sed):
     r"""Replace pattern on-the-fly (case insensitive)
 
-    Works like textops.sed_ except that the string as the search pattern is case insensitive.
+    Works like :class:`textops.sed` except that the string as the search pattern is case insensitive.
 
     Args:
         pat(str): a string (case insensitive) or a regular expression for the pattern to search
@@ -868,7 +868,7 @@ class between(TextOp):
 class betweeni(between):
     r"""Extract lines between two patterns (case insensitive)
 
-    Works like textops.between_ except patterns are case insensitive
+    Works like :class:`textops.between` except patterns are case insensitive
 
     Args:
         begin(str or regex or list): the pattern(s) to reach before yielding lines from the input
@@ -893,7 +893,7 @@ class betweeni(between):
 class betweenb(between):
     r"""Extract lines between two patterns (includes boundaries)
 
-    Works like textops.between_ except it return boundaries by default that is
+    Works like :class:`textops.between` except it return boundaries by default that is
     get_begin = get_end = True.
 
     Args:
@@ -917,7 +917,7 @@ class betweenb(between):
 class betweenbi(betweenb):
     r"""Extract lines between two patterns (includes boundaries and case insensitive)
 
-    Works like textops.between_ except patterns are case insensitive and it yields boundaries too.
+    Works like :class:`textops.between` except patterns are case insensitive and it yields boundaries too.
     That is get_begin = get_end = True.
 
     Args:
@@ -1027,7 +1027,7 @@ class inrange(linetester):
 class outrange(linetester):
     r"""Extract lines NOT between a range of strings
 
-    Works like textops.inrange_ except it yields lines that are NOT in the range
+    Works like :class:`textops.inrange` except it yields lines that are NOT in the range
 
     Args:
         begin(str): range begin string
@@ -1109,7 +1109,7 @@ class lessthan(linetester):
 class lessequal(linetester):
     r"""Extract lines with value strictly less than specified string
 
-    It works like textops.lessthan_ except the test is "less or equal"
+    It works like :class:`textops.lessthan` except the test is "less or equal"
 
     Args:
         value(str): string to test with
@@ -1138,7 +1138,7 @@ class lessequal(linetester):
 class greaterthan(linetester):
     r"""Extract lines with value strictly less than specified string
 
-    It works like textops.lessthan_ except the test is "greater than"
+    It works like :class:`textops.lessthan` except the test is "greater than"
 
     Args:
         value(str): string to test with
@@ -1165,7 +1165,7 @@ class greaterthan(linetester):
 class greaterequal(linetester):
     r"""Extract lines with value strictly less than specified string
 
-    It works like textops.greaterthan_ except the test is "greater than or equal to"
+    It works like :class:`textops.greaterthan` except the test is "greater than or equal to"
 
     Args:
         value(str): string to test with
@@ -1192,7 +1192,7 @@ class greaterequal(linetester):
 class before(between):
     r"""Extract lines before a patterns
 
-    Works like textops.between_ except that it requires only the ending pattern : it will yields
+    Works like :class:`textops.between` except that it requires only the ending pattern : it will yields
     all lines from the input text beginning until the specified pattern has been reached.
 
     Args:
@@ -1221,7 +1221,7 @@ class before(between):
 class beforei(before):
     r"""Extract lines before a patterns (case insensitive)
 
-    Works like textops.before_ except that the pattern is case insensitive.
+    Works like :class:`textops.before` except that the pattern is case insensitive.
 
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
@@ -1246,7 +1246,7 @@ class beforei(before):
 class after(between):
     r"""Extract lines after a patterns
 
-    Works like textops.before_ except that it will yields all lines from the input AFTER the given
+    Works like :class:`textops.before` except that it will yields all lines from the input AFTER the given
     pattern has been found.
 
     Args:
@@ -1275,7 +1275,7 @@ class after(between):
 class afteri(after):
     r"""Extract lines after a patterns (case insensitive)
 
-    Works like textops.after_ except that the pattern is case insensitive.
+    Works like :class:`textops.after` except that the pattern is case insensitive.
 
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
