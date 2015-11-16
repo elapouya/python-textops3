@@ -17,6 +17,17 @@ from datetime import datetime
 
 logger = textops.logger
 
+def index_normalize(index_val):
+    index_val = index_val.lower().strip()
+    index_val = re.sub(r'^\W*','',index_val)
+    index_val = re.sub(r'\W*$','',index_val)
+    index_val = re.sub(r'\W+','_',index_val)
+    index_val = re.sub('_+','_',index_val)
+    return index_val
+
+def context_key_not_found(key):
+    return 'UNKNOWN_CONTEXT_KEY_%s' % key
+
 class ParsingError(Exception):
     pass
 
@@ -31,8 +42,8 @@ class mgrep(TextOp):
         col_or_key (int or str): test only one column or one key (optional)
 
     Returns:
-        dict: A dictionnay where the keys are the same as for ``patterns_dict``, the values will
-            contain the grep result for each corresponding patterns.
+        dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
+            contain the :class:`textops.grep` result for each corresponding patterns.
 
     Examples:
         >>> logs = '''
@@ -101,7 +112,7 @@ class mgrep(TextOp):
         return dct
 
 class mgrepi(mgrep):
-    r"""mgrep case insensitive
+    r"""same as mgrep but case insensitive
 
     This works like :class:`textops.mgrep`, except it is case insensitive.
 
@@ -110,8 +121,8 @@ class mgrepi(mgrep):
         col_or_key (int or str): test only one column or one key (optional)
 
     Returns:
-        dict: A dictionnay where the keys are the same as for ``patterns_dict``, the values will
-            contain the grep result for each corresponding patterns.
+        dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
+            contain the :class:`textops.grepi` result for each corresponding patterns.
 
     Examples:
         >>> 'error 1' >> mgrep({'errors':'ERROR'})
@@ -121,10 +132,87 @@ class mgrepi(mgrep):
     """
     flags = re.IGNORECASE
 
-class mgrepv(mgrep): reverse = True
-class mgrepvi(mgrepv): flags = re.IGNORECASE
+class mgrepv(mgrep): 
+    r"""Same as mgrep but exclusive
+
+    This works like :class:`textops.mgrep`, except it searches lines that DOES NOT match patterns.
+
+    Args:
+        patterns_dict (dict): a dictionary where all patterns to exclude are in values().
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
+            contain the :class:`textops.grepv` result for each corresponding patterns.
+
+    Examples:
+        >>> logs = '''error 1
+        ... warning 1
+        ... warning 2
+        ... error 2
+        ... '''
+        >>> t = logs >> mgrepv({
+        ... 'not_errors' : r'^err',
+        ... 'not_warnings' : r'^warn',
+        ... })
+        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        {'not_warnings': ['error 1', 'error 2'], 'not_errors': ['warning 1', 'warning 2']}
+    """
+    reverse = True
+
+class mgrepvi(mgrepv): 
+    r"""Same as mgrepv but case insensitive
+
+    This works like :class:`textops.mgrepv`, except it is case insensitive.
+
+    Args:
+        patterns_dict (dict): a dictionary where all patterns to exclude are in values().
+        col_or_key (int or str): test only one column or one key (optional)
+
+    Returns:
+        dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
+            contain the :class:`textops.grepvi` result for each corresponding patterns.
+
+    Examples:
+        >>> logs = '''error 1
+        ... WARNING 1
+        ... warning 2
+        ... ERROR 2
+        ... '''
+        >>> t = logs >> mgrepv({
+        ... 'not_errors' : r'^err',
+        ... 'not_warnings' : r'^warn',
+        ... })
+        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        {'not_warnings': ['error 1', 'WARNING 1', 'ERROR 2'], 
+        'not_errors': ['WARNING 1', 'warning 2', 'ERROR 2']}
+        >>> t = logs >> mgrepvi({
+        ... 'not_errors' : r'^err',
+        ... 'not_warnings' : r'^warn',
+        ... })
+        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        {'not_warnings': ['error 1', 'ERROR 2'], 'not_errors': ['WARNING 1', 'warning 2']}
+    """
+    flags = re.IGNORECASE
 
 class parseg(TextOp):
+    r"""Find all occurrences of one pattern, return MatchObject groupdict
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+
+    Returns:
+        list: A list of dictionaries (MatchObject groupdict)
+
+    Examples:
+        >>> s = '''name: Lapouyade
+        ... first name: Eric
+        ... country: France'''
+        >>> s | parseg(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        [{'key': 'name', 'val': 'Lapouyade'}, 
+        {'key': 'first name', 'val': 'Eric'}, 
+        {'key': 'country', 'val': 'France'}]
+    """
     ignore_case = False
     @classmethod
     def op(cls,text, pattern, *args,**kwargs):
@@ -137,9 +225,47 @@ class parseg(TextOp):
                 out.append(m.groupdict())
         return out
 
-class parsegi(parseg): ignore_case = True
+class parsegi(parseg): 
+    r"""Same as parseg but case insensitive
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+
+    Returns:
+        list: A list of dictionaries (MatchObject groupdict)
+
+    Examples:
+        >>> s = '''Error: System will reboot
+        ... Notice: textops rocks
+        ... Warning: Python must be used without moderation'''
+        >>> s | parsegi(r'(?P<level>error|warning):\s*(?P<msg>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        [{'msg': 'System will reboot', 'level': 'Error'}, 
+        {'msg': 'Python must be used without moderation', 'level': 'Warning'}]
+    """
+    ignore_case = True
 
 class parsek(TextOp):
+    r"""Find all occurrences of one pattern, return one Key
+    
+    One have to give a pattern with named capturing parenthesis, the function will return a list
+    of value corresponding to the specified key. It works a little like :class:`textops.parseg`
+    except that it returns from the groupdict, a value for a specified key ('key' be default)  
+
+    Args:
+        pattern (str): a regular expression string.
+        key_name (str): The key to get ('key' by default)
+        key_update (callable): function to convert the found value
+
+    Returns:
+        list: A list of values corrsponding to `MatchObject groupdict[key]`
+
+    Examples:
+        >>> s = '''Error: System will reboot
+        ... Notice: textops rocks
+        ... Warning: Python must be used without moderation'''
+        >>> s | parsek(r'(?P<level>Error|Warning):\s*(?P<msg>.*)','msg')
+        ['System will reboot', 'Python must be used without moderation']
+    """
     ignore_case = False
     @classmethod
     def op(cls,text, pattern, key_name = 'key', key_update = None, *args,**kwargs):
@@ -157,9 +283,60 @@ class parsek(TextOp):
                     out.append(key)
         return out
 
-class parseki(parsek): ignore_case = True
+class parseki(parsek):
+    r"""Same as parsek but case insensitive
+    
+    It works like :class:`textops.parsek` except the pattern is case insensitive.  
+
+    Args:
+        pattern (str): a regular expression string.
+        key_name (str): The key to get ('key' by default)
+        key_update (callable): function to convert the found value
+
+    Returns:
+        list: A list of values corrsponding to `MatchObject groupdict[key]`
+
+    Examples:
+        >>> s = '''Error: System will reboot
+        ... Notice: textops rocks
+        ... Warning: Python must be used without moderation'''
+        >>> s | parsek(r'(?P<level>error|warning):\s*(?P<msg>.*)','msg')
+        []
+        >>> s | parseki(r'(?P<level>error|warning):\s*(?P<msg>.*)','msg')
+        ['System will reboot', 'Python must be used without moderation']
+    """     
+    ignore_case = True
 
 class parsekv(TextOp):
+    r"""Find all occurrences of one pattern, returns a dict of groupdicts
+    
+    It works a little like :class:`textops.parseg` except that it returns a dict of dicts :
+    values are MatchObject groupdicts, keys are a value in the groupdict at a specified key
+    (By default : 'key'). Note that calculated keys are normalized (spaces are replaced by 
+    underscores)
+    
+    Args:
+        pattern (str): a regular expression string.
+        key_name (str): The key name to optain the value that will be the key of the groupdict 
+            ('key' by default)
+        key_update (callable): function to convert/normalize the calculated key
+
+    Returns:
+        dict: A dict of MatchObject groupdicts
+
+    Examples:
+        >>> s = '''name: Lapouyade
+        ... first name: Eric
+        ... country: France'''
+        >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        {'country': {'val': 'France', 'key': 'country'}, 
+        'first_name': {'val': 'Eric', 'key': 'first name'}, 
+        'name': {'val': 'Lapouyade', 'key': 'name'}}
+        >>> s | parsekv(r'(?P<item>.*):\s*(?P<val>.*)','item',str.upper)         #doctest: +NORMALIZE_WHITESPACE
+        {'FIRST NAME': {'item': 'first name', 'val': 'Eric'}, 
+        'NAME': {'item': 'name', 'val': 'Lapouyade'}, 
+        'COUNTRY': {'item': 'country', 'val': 'France'}}
+    """
     ignore_case = False
     @classmethod
     def op(cls,text, pattern, key_name = 'key', key_update = None, *args,**kwargs):
@@ -173,14 +350,35 @@ class parsekv(TextOp):
                 key = dct.get(key_name)
                 if key:
                     if key_update is None:
-                        key_norm = re.sub(r'\s+','_',key.strip())
+                        key_norm = index_normalize(key)
                     else:
                         key_norm = key_update(key)
                     out.update({ key_norm : dct })
         return out
 
-class parsekvi(parsekv): ignore_case = True
+class parsekvi(parsekv): 
+    r"""Find all occurrences of one pattern (case insensitive), returns a dict of groupdicts
+    
+    It works a little like :class:`textops.parsekv` except that the pattern is case insensitive.
+    
+    Args:
+        pattern (str): a regular expression string (case insensitive).
+        key_name (str): The key name to optain the value that will be the key of the groupdict 
+            ('key' by default)
+        key_update (callable): function to convert/normalize the calculated key
 
+    Returns:
+        dict: A dict of MatchObject groupdicts
+
+    Examples:
+        >>> s = '''name: Lapouyade
+        ... first name: Eric
+        ... country: France'''
+        >>> s | parsekvi(r'(?P<key>NAME):\s*(?P<val>.*)')
+        {'name': {'val': 'Lapouyade', 'key': 'name'}}
+    """
+    ignore_case = True
+    
 class find_pattern(TextOp):
     ignore_case = False
 
@@ -250,17 +448,6 @@ class find_first_pattern(find_patterns):
         return data.popitem()[1]
 
 class find_first_patterni(find_patterns): ignore_case=True
-
-def index_normalize(index_val):
-    index_val = index_val.lower().strip()
-    index_val = re.sub(r'^\W*','',index_val)
-    index_val = re.sub(r'\W*$','',index_val)
-    index_val = re.sub(r'\W+','_',index_val)
-    index_val = re.sub('_+','_',index_val)
-    return index_val
-
-def context_key_not_found(key):
-    return 'UNKNOWN_CONTEXT_KEY_%s' % key
 
 class parse_indented(TextOp):
     @classmethod
