@@ -458,16 +458,17 @@ class find_patterni(find_pattern):
 class find_patterns(TextOp):
     r"""Fast multiple pattern search
 
-    It works like :class:`textops.find_pattern` except that one can specify a dictionary of patterns.
-    Patterns must contains capture groups.
-    It returns a dictionary of results. Each result will be the re.MatchObject groupdict if there
+    It works like :class:`textops.find_pattern` except that one can specify a list or a dictionary
+    of patterns. Patterns must contains capture groups.
+    It returns a list or a dictionary of results depending on the patterns argument type.
+    Each result will be the re.MatchObject groupdict if there
     are more than one capture named group in the pattern otherwise directly the value corresponding
     to the unique captured group.
     It is recommended to use *named* capture group, if not, the groups will be automatically named
     'groupN' with N the capture group order in the pattern.
 
     Args:
-        patterns (dict): a dictionary of patterns.
+        patterns (list or dict): a list or a dictionary of patterns.
 
     Returns:
         dict: patterns search result
@@ -491,17 +492,27 @@ class find_patterns(TextOp):
         {'version': {'group1': '2', 'group0': '1', 'group2': '3'}, 'format': 'json'}
         >>> s | find_patterns({'version':r'^version:\s*(.*)'}) # lowercase 'version' : no match
         {}
+        >>> s = '''creation: 2015-10-14
+        ... update: 2015-11-16
+        ... access: 2015-11-17'''
+        >>> s | find_patterns([r'^update:\s*(.*)', r'^access:\s*(.*)', r'^creation:\s*(.*)'])
+        ['2015-11-16', '2015-11-17', '2015-10-14']
+        >>> s | find_patterns([r'^update:\s*(?P<year>.*)-(?P<month>.*)-(?P<day>.*)',
+        ... r'^access:\s*(.*)', r'^creation:\s*(.*)'])
+        [{'month': '11', 'day': '16', 'year': '2015'}, '2015-11-17', '2015-10-14']
     """
     stop_when_found = False
     ignore_case = False
 
     @classmethod
     def op(cls,text, patterns,*args,**kwargs):
-        out = {}
+        out = []
         text = cls._tostr(text)
         if isinstance(patterns, dict):
-            patterns = patterns.items()
-        for attr,pattern in patterns:
+            patterns_list = patterns.items()
+        else:
+            patterns_list = enumerate(patterns)
+        for attr,pattern in patterns_list:
             if isinstance(pattern,basestring):
                 pattern = re.compile(pattern, re.M | (re.I if cls.ignore_case else 0))
             if pattern:
@@ -519,11 +530,15 @@ class find_patterns(TextOp):
                             groupdict[grp] = val
                     groupdict = cls.pre_store(groupdict)
                     if len(groupdict) == 1:
-                        out.update({ attr : groupdict.popitem()[1] })
+                        out.append((attr, groupdict.popitem()[1]))
                     else:
-                        out.update({ attr : groupdict })
+                        out.append((attr, groupdict))
                     if cls.stop_when_found:
                         break
+        if isinstance(patterns, dict):
+            out = dict(out)
+        else:
+            out = [ i[1] for i in out ]
         return out
 
     @classmethod
@@ -552,18 +567,87 @@ class find_patternsi(find_patterns):
 
 
 class find_first_pattern(find_patterns):
+    r"""Fast multiple pattern search, returns on first match
+
+    It works like :class:`textops.find_patterns` except that it stops searching on first match.
+
+    Args:
+        patterns (list): a list of patterns.
+
+    Returns:
+        str or dict: matched value if only one capture group otherwise the full groupdict
+
+    Examples:
+        >>> s = '''creation: 2015-10-14
+        ... update: 2015-11-16
+        ... access: 2015-11-17'''
+        >>> s | find_first_pattern([r'^update:\s*(.*)', r'^access:\s*(.*)', r'^creation:\s*(.*)'])
+        '2015-11-16'
+        >>> s | find_first_pattern([r'^UPDATE:\s*(.*)'])
+        NoAttr
+        >>> s | find_first_pattern([r'^update:\s*(?P<year>.*)-(?P<month>.*)-(?P<day>.*)'])
+        {'year': '2015', 'day': '16', 'month': '11'}
+    """
     stop_when_found = True
 
     @classmethod
     def op(cls,text, patterns,*args,**kwargs):
-        data = find_patterns.op(text, dict([('pat%s' % k,v) for k,v in enumerate(patterns)]))
+        data = super(find_first_pattern,cls).op(text, patterns)
         if not data:
             return NoAttr
-        return data.popitem()[1]
+        return data[0]
 
-class find_first_patterni(find_patterns): ignore_case=True
+class find_first_patterni(find_first_pattern):
+    r"""Fast multiple pattern search, returns on first match
+
+    It works like :class:`textops.find_first_pattern` except that patterns are case insensitives.
+
+    Args:
+        patterns (list): a list of patterns.
+
+    Returns:
+        str or dict: matched value if only one capture group otherwise the full groupdict
+
+    Examples:
+        >>> s = '''creation: 2015-10-14
+        ... update: 2015-11-16
+        ... access: 2015-11-17'''
+        >>> s | find_first_patterni([r'^UPDATE:\s*(.*)'])
+        '2015-11-16'
+    """
+    ignore_case=True
 
 class parse_indented(TextOp):
+    r"""Parse key:value indented text
+
+    It looks for key:value patterns, store found values in a dictionary. Each time a new indent is
+    found, a sub-dictionary is created. The keys are normalized (only keep A-Za-z0-9_), the values
+    are stripped.
+
+    Args:
+        sep (str): key:value separator (Default : ':')
+
+    Returns:
+        dict: structured keys:values
+
+    Examples:
+        >>> s = '''
+        ... a:val1
+        ... b:
+        ...     c:val3
+        ...     d:
+        ...         e ... : val5
+        ...         f ... :val6
+        ...     g:val7
+        ... f: val8'''
+        >>> s | parse_indented()
+        {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
+        >>> s = '''
+        ... a --> val1
+        ... b --> val2'''
+        >>> s | parse_indented(r'-->')
+        {'a': 'val1', 'b': 'val2'}
+    """
     @classmethod
     def op(cls, text, sep=r':', *args,**kwargs):
         indent_level = 0
