@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
-Created : 2015-04-03
-
-@author: Eric Lapouyade
-'''
+#
+# Created : 2015-04-03
+# 
+# @author: Eric Lapouyade
+#
+"""This module defines base classes for python-textops"""
 
 import os
 import sys
@@ -20,6 +21,12 @@ pp = pprint.PrettyPrinter(indent=4)
 logger = textops.logger
 
 def activate_debug():
+    """Activate debug logging on console
+    
+    This function is useful when playing with python-textops through a python console.
+    It is not recommended to use this function in a real application : use standard logging 
+    functions instead.
+    """ 
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
@@ -29,6 +36,11 @@ class TextOpException(Exception):
     pass
 
 class TextOp(object):
+    """Base class for text operations
+    
+    All operations must be derived from this class. Subclasses must redefine an ``op()`` method 
+    that will be called when the operations will be triggered by an input text.
+    """
     def __init__(self,*args,**kwargs):
         self.ops = [[self.__class__.__name__, args, kwargs]]
         self.op = None
@@ -138,11 +150,41 @@ class TextOp(object):
 
     @property
     def g(self):
+        """Execute operations, return a generator when possible or a list otherwise
+        
+        This is to be used ONLY when the input text has be set as the first argument of the first
+        operation.
+        
+        Examples:
+            
+            >>> echo('hello')
+            echo('hello')
+            >>> echo('hello').g
+            ['hello']
+            >>> def mygen(): yield 'hello'
+            >>> cut(mygen(),'l')                                # doctest: +ELLIPSIS
+            cut(<generator object mygen at ...>,'l')
+            >>> cut(mygen(),'l').g                              # doctest: +ELLIPSIS
+            <generator object extend_type_gen at ...>
+            >>> def mygen(): yield None
+            >>> type(echo(None).g)                              # doctest: +ELLIPSIS
+            <type 'NoneType'>
+        """         
         text = self._process()
         return self.make_gen(text)
 
     @property
     def ge(self):
+        """Execute operations, return a generator when possible or a list otherwise, [] if None.
+        
+        This works like :attr:`g` except it returns an empty list if the execution 
+        result is None. 
+        
+        Examples:
+            
+            >>> echo(None).ge                                    # doctest: +ELLIPSIS
+            []
+        """         
         text = self._process()
         return self.make_gen(text,[])
 

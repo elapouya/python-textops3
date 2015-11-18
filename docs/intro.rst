@@ -249,6 +249,37 @@ You saw ``cat``, ``grep``, ``first``, ``head`` and ``upper``, but there are many
 
 Read The Fabulous Manual !
 
+Run tests
+---------
+
+Many doctests as been developped, you can run them this way::
+
+   cd tests
+   python ./runtests.py
+
+Build documentation
+-------------------
+
+An already compiled documentation should be available `here<http://python-textops.readthedocs.org>`.
+Nevertheless, one can build the documentation.
+
+For HTML:: 
+
+   cd docs
+   make html
+   cd _build/html
+   firefox ./index.html
+   
+For PDF, you may have to install some linux packages::
+
+   sudo apt-get install texlive-latex-recommended texlive-latex-extra
+   sudo apt-get install texlive-latex-base preview-latex-style lacheck tipa
+
+   cd docs
+   make latexpdf
+   cd _build/latex
+   evince python-textops.pdf   (evince is a PDF reader)
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

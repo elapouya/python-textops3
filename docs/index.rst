@@ -17,6 +17,7 @@ Welcome to python-textops documentation !
    :maxdepth: 1
 
    intro
+   base
    strops
    listops
    wrapops

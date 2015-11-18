@@ -2,7 +2,8 @@ import doctest
 from textops import *
 import os
 
-modules = [ 'textops.ops.strops',
+modules = [ 'textops.base',
+            'textops.ops.strops',
             'textops.ops.listops',
             'textops.ops.wrapops',
             'textops.ops.cast',
