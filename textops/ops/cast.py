@@ -6,7 +6,7 @@
 #
 """ This modules provides casting features, that is to force the output type """
 
-from textops import TextOp
+from textops import TextOp, pp
 import dateutil.parser
 from slugify import slugify
 
@@ -211,6 +211,44 @@ class toslug(TextOp):
         return slugify(text)
 
 class todict(TextOp):
+    r"""Converts list or 2 items-tuples into dict
+    
+    Returns:
+        dict: Converted result as a dict
+
+    Examples:
+        
+    >>> [ ('a',1), ('b',2), ('c',3) ] | echo().todict()
+    {'a': 1, 'c': 3, 'b': 2}
+    """         
     @classmethod
     def fn(cls, text,*args,**kwargs):
         return TextOp.make_dict(text)
+
+class pretty(TextOp):
+    r"""Pretty format the input text
+    
+    Returns:
+        str: Converted result as a pretty string ( uses :meth:`pprint.PrettyPrinter.pformat` )
+
+    Examples:
+        
+    >>> s = '''
+    ... a:val1
+    ... b:
+    ...     c:val3
+    ...     d:
+    ...         e ... : val5
+    ...         f ... :val6
+    ...     g:val7
+    ... f: val8'''
+    >>> print s | parse_indented()
+    {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
+    >>> print s | parse_indented().pretty()
+    {   'a': 'val1',
+        'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
+        'f': 'val8'}
+    """         
+    @classmethod
+    def fn(cls, text,*args,**kwargs):
+        return pp.pformat(text)

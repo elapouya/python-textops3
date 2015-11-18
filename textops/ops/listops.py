@@ -698,7 +698,7 @@ class tail(TextOp):
 class sed(TextOp):
     r"""Replace pattern on-the-fly
 
-    Works like the shell command 'sed'. It uses re.sub() to replace the pattern, this means that
+    Works like the shell command 'sed'. It uses :func:`re.sub` to replace the pattern, this means that
     you can include back-reference into the replacement string.
 
     Args:

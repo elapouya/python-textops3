@@ -17,6 +17,14 @@ TextOp
 ------
    .. autoclass:: TextOp
       :members:
+      
+add_textop
+----------
+   .. autofunction:: add_textop
+
+add_textop_iter
+---------------
+   .. autofunction:: add_textop_iter
 
 * :ref:`genindex`
 * :ref:`modindex`

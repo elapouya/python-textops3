@@ -150,7 +150,7 @@ class TextOp(object):
 
     @property
     def g(self):
-        """Execute operations, return a generator when possible or a list otherwise
+        r"""Execute operations, return a generator when possible or a list otherwise
         
         This is to be used ONLY when the input text has be set as the first argument of the first
         operation.
@@ -175,7 +175,8 @@ class TextOp(object):
 
     @property
     def ge(self):
-        """Execute operations, return a generator when possible or a list otherwise, [] if None.
+        r"""Execute operations, return a generator when possible or a list otherwise, 
+        ( [] if the result is None ).
         
         This works like :attr:`g` except it returns an empty list if the execution 
         result is None. 
@@ -196,15 +197,41 @@ class TextOp(object):
             return text.splitlines()
         elif isinstance(text, (types.GeneratorType, enumerate)):
             return ListExt(text)
+        elif isinstance(text, (int, float)):
+            return ListExt([text])
         return text
 
     @property
     def l(self):
+        r"""Execute operations, return a list
+        
+        This is to be used ONLY when the input text has be set as the first argument of the first
+        operation.
+        
+        Examples:
+            
+            >>> echo('hello')
+            echo('hello')
+            >>> echo('hello').l
+            ['hello']
+            >>> type(echo(None).g)
+            <type 'NoneType'>
+        """         
         text = self._process()
         return self.make_list(text)
 
     @property
     def le(self):
+        r"""Execute operations, returns a list ( [] if the result is None ).
+        
+        This works like :attr:`l` except it returns an empty list if the execution 
+        result is None. 
+        
+        Examples:
+            
+            >>> echo(None).le
+            []
+        """         
         text = self._process()
         return self.make_list(text,[])
 
@@ -218,21 +245,69 @@ class TextOp(object):
 
     @property
     def s(self):
+        r"""Execute operations, return a string (join = newline)
+        
+        This is to be used ONLY when the input text has be set as the first argument of the first
+        operation. If the result is a list or a generator, it is converted into a string by joinning
+        items with a newline.
+        
+        Examples:
+            
+            >>> echo('hello')
+            echo('hello')
+            >>> echo('hello').s
+            'hello'
+            >>> echo(['hello','world']).s
+            'hello\nworld'
+            >>> type(echo(None).s)                       
+            <type 'NoneType'>
+        """         
         text = self._process()
         return self.make_string(text)
 
     @property
     def se(self):
+        r"""Execute operations, returns a string ( '' if the result is None ).
+        
+        This works like :attr:`s` except it returns an empty string if the execution 
+        result is None. 
+        
+        Examples:
+            
+            >>> echo(None).se
+            ''
+        """         
         text = self._process()
         return self.make_string(text,return_if_none='')
 
     @property
     def j(self):
+        r"""Execute operations, return a string (join = '')
+        
+        This works like :attr:`s` except that joins will be done with an empty string 
+        
+        Examples:
+            
+            >>> echo(['hello','world']).j
+            'helloworld'
+            >>> type(echo(None).j)                       
+            <type 'NoneType'>
+        """         
         text = self._process()
         return self.make_string(text,join_str='')
 
     @property
     def je(self):
+        r"""Execute operations, returns a string ( '' if the result is None, join='').
+        
+        This works like :attr:`j` except it returns an empty string if the execution 
+        result is None. 
+        
+        Examples:
+            
+            >>> echo(None).je
+            ''
+        """         
         text = self._process()
         return self.make_string(text,join_str='',return_if_none='')
 
@@ -250,6 +325,17 @@ class TextOp(object):
 
     @property
     def i(self):
+        r"""Execute operations, returns an int.
+        
+        Examples:
+            
+            >>> echo('1789').i
+            1789
+            >>> echo('3.14').i
+            3
+            >>> echo('Tea for 2').i
+            0
+        """         
         text = self._process()
         return self.make_int(text)
 
@@ -267,29 +353,74 @@ class TextOp(object):
 
     @property
     def f(self):
+        r"""Execute operations, returns a float.
+        
+        Examples:
+            
+            >>> echo('1789').f
+            1789.0
+            >>> echo('3.14').f
+            3.14
+            >>> echo('Tea for 2').f
+            0.0
+        """         
         text = self._process()
         return self.make_float(text)
 
     @property
     def r(self):
+        r"""Execute operations, do not convert.
+        
+        Examples:
+            
+            >>> echo('1789').length().l
+            [4]
+            >>> echo('1789').length().s
+            '4'
+            >>> echo('1789').length().r
+            4
+        """         
         return self._process()
 
     @property
     def pp(self):
+        r"""Execute operations, return Prettyprint version of the result
+        
+        Examples:
+            
+        >>> s = '''
+        ... a:val1
+        ... b:
+        ...     c:val3
+        ...     d:
+        ...         e ... : val5
+        ...         f ... :val6
+        ...     g:val7
+        ... f: val8'''
+        >>> print parse_indented(s).r
+        {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
+        >>> print parse_indented(s).pp
+        {   'a': 'val1',
+            'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
+            'f': 'val8'}
+        """         
         text = self._process()
         return pp.pformat(text)
 
     @classmethod
     def op(cls,text,*args,**kwargs):
+        """ This method must be overriden in derived classes """
         return cls.fn(text,*args,**kwargs)
 
     @classmethod
     def _tolist(cls,text):
-        if isinstance(text, dict):
+        if isinstance(text, basestring):
+            return str.splitlines(text)
+        elif isinstance(text, dict):
             return text.iteritems()
-        if not isinstance(text, basestring):
-            return text
-        return str.splitlines(text)
+        elif isinstance(text, (int,float)):
+            return [text]
+        return text
 
     @classmethod
     def _tostr(cls,text):
@@ -323,6 +454,10 @@ def extend_type_gen(obj):
         yield extend_type(i)
 
 def set_debug(flag):
+    """ Change debug level
+    
+    It sets logger level to DEBUG if flag is True, otherwise to CRITICAL (no log at all) 
+    """
     logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
 class WrapOpIter(TextOp):
@@ -338,21 +473,76 @@ class WrapOpYield(TextOp):
         for line in cls.fn(cls._tolist(text), *args,**kwargs):
             yield line
 
-# decorators to declare custom function as a new textops op
-def add_textop(func):
-    if isinstance(func,type):
-        setattr(textops.ops,func.__name__,func)
+def add_textop(class_or_func):
+    """Decorator to declare custom function or custom class as a new textops op
+
+    the custom function/class will receive the whole raw input text at once.
+        
+    Examples:
+    
+        >>> @add_textop
+        ... def repeat(text, n, *args,**kwargs):
+        ...     return text * n
+        >>> 'hello' | repeat(3)
+        'hellohellohello'
+        
+        >>> @add_textop
+        ... class cool(TextOp):
+        ...     @classmethod
+        ...     def op(cls, text, *args,**kwargs):
+        ...         return text + ' is cool.'
+        >>> 'textops' | cool()
+        'textops is cool.'
+    """
+    if isinstance(class_or_func,type):
+        op = class_or_func
     else:
-        setattr(textops.ops,func.__name__,type(func.__name__,(TextOp,), {'fn':staticmethod(func)}))
-    return func
+        op = type(class_or_func.__name__,(TextOp,), {'fn':staticmethod(class_or_func)})
+
+    setattr(textops.ops,class_or_func.__name__,op)
+    return op
 
 def add_textop_iter(func):
-    setattr(textops.ops,func.__name__,type(func.__name__,(WrapOpIter,), {'fn':staticmethod(func)}))
-    return func
+    """Decorator to declare custom *ITER* function as a new textops op
+    
+    An *ITER* function is a function that will receive the input text as a *LIST* of lines. 
+    One have to iterate over this list and generate a result (it can be a list, a generator, 
+    a dict, a string, an int ...)  
+        
+    Examples:
+    
+        >>> @add_textop_iter
+        ... def odd(lines, *args,**kwargs):
+        ...     for i,line in enumerate(lines):
+        ...         if not i % 2:
+        ...             yield line
+        >>> s = '''line 1
+        ... line 2
+        ... line 3''' 
+        >>> s >> odd()
+        ['line 1', 'line 3']
+        >>> s | odd().tolist()
+        ['line 1', 'line 3']
+
+        >>> @add_textop_iter
+        ... def sumsize(lines, *args,**kwargs):
+        ...     sum = 0
+        ...     for line in lines:
+        ...         sum += int(re.search(r'\d+',line).group(0))
+        ...     return sum
+        >>> '''1492 file1
+        ... 1789 file2
+        ... 2015 file3''' | sumsize()
+        5296
+    """
+    op = type(func.__name__,(WrapOpIter,), {'fn':staticmethod(func)})
+    setattr(textops.ops,func.__name__,op)
+    return op
 
 def add_textop_yield(func):
-    setattr(textops.ops,func.__name__,type(func.__name__,(WrapOpYield,), {'fn':staticmethod(func)}))
-    return func
+    op = type(func.__name__,(WrapOpYield,), {'fn':staticmethod(func)})
+    setattr(textops.ops,func.__name__,op)
+    return op
 
 class DebugText(object):
     def __init__(self,text,nblines=20,more_msg='...'):

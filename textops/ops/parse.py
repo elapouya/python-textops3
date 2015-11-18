@@ -6,12 +6,10 @@
 #
 """ This module gathers parsers to handle whole input text"""
 
-from textops import TextOp, NoAttr, dformat
+from textops import TextOp, NoAttr, dformat, pp
 import textops
 import string
 import re
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
 import copy
 from datetime import datetime
 
@@ -401,7 +399,7 @@ class parsekvi(parsekv):
 class find_pattern(TextOp):
     r"""Fast pattern search
 
-    This operation can be use to find a pattern very fast : it uses re.search() on the whole input
+    This operation can be use to find a pattern very fast : it uses :func:`re.search` on the whole input
     text at once. The input text is not read line by line, this means it must fit into memory.
     It returns the first captured group (named or not named group).
 

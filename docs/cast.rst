@@ -9,9 +9,17 @@ cast
 .. automodule:: textops.ops.cast
 .. currentmodule:: textops
 
+pretty
+------
+   .. autoclass:: pretty( )
+
 todatetime
 ----------
    .. autoclass:: todatetime( )
+
+todict
+------
+   .. autoclass:: todict( )
 
 tofloat
 -------

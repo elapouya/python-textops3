@@ -182,7 +182,7 @@ class StrOp(TextOp):
 class cut(StrOp):
     r""" Extract columns from a string or a list of strings
 
-    This works like the unix shell command 'cut'. It uses str.split() function.
+    This works like the unix shell command 'cut'. It uses :meth:`str.split` function.
 
         * if the input is a simple string, cut() will return a list of strings
           representing the splitted input string.
@@ -255,7 +255,7 @@ class cut(StrOp):
 class cutre(cut):
     r""" Extract columns from a string or a list of strings with re.split()
 
-    This works like the unix shell command 'cut'. It uses re.split() function.
+    This works like the unix shell command 'cut'. It uses :func:`re.split` function.
 
         * if the input is a simple string, cutre() will return a list of strings
           representing the splitted input string.

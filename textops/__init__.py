@@ -26,6 +26,6 @@ logger.addHandler(NullHandler())
 
 from base import TextOp, WrapOpIter, WrapOpYield, add_textop, add_textop_iter, \
                  add_textop_yield, StrExt, UnicodeExt, ListExt, DictExt, NoAttrDict, NoAttr, \
-                 DefaultDict, string_formatter, vformat, dformat, activate_debug
+                 DefaultDict, string_formatter, vformat, dformat, activate_debug, pp
 import ops
 from ops import *

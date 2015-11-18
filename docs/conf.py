@@ -32,6 +32,7 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
     'sphinxcontrib.napoleon',
 ]
 
@@ -51,7 +52,7 @@ master_doc = 'index'
 project = u'python-textops'
 copyright = u'2015, Eric Lapouyade'
 
-   
+intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}   
 # pdf_documents :
 #   index - master document
 #   rst2pdf - name of the generated pdf
