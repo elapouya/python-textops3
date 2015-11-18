@@ -621,7 +621,7 @@ class parse_indented(TextOp):
     r"""Parse key:value indented text
 
     It looks for key:value patterns, store found values in a dictionary. Each time a new indent is
-    found, a sub-dictionary is created. The keys are normalized (only keep A-Za-z0-9_), the values
+    found, a sub-dictionary is created. The keys are normalized (only keep ``A-Za-z0-9_``), the values
     are stripped.
 
     Args:
@@ -700,9 +700,10 @@ class parse_indented(TextOp):
 class state_pattern(TextOp):
     r""" States and patterns parser
 
-    The main advantage of this parser is that it reads the whole input text only once to collect all
-    data you want into a multi-level dictionary. It uses state names to ensure only a set of rules
-    are used against specific document sections.
+    This is a *state machine* parser : 
+    The main advantage is that it reads line-by-line the whole input text only once to collect all
+    data you want into a multi-level dictionary. It uses patterns to select rules to be applied.
+    It uses states to ensure only a set of rules are used against specific document sections. 
 
     Args:
         states_patterns_desc (tupple) : descrption of states and patterns :
