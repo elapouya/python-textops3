@@ -122,17 +122,29 @@ class TextOp(object):
                 except TypeError:
                     logger.error('*** bad parameters for %s()' % opcls.__name__)
                     raise
+            elif hasattr(text,op):
+                text = getattr(text,op)(*args, **kwargs)
             else:
-                if isinstance(text,basestring):
-                    text = object.__getattribute__(text,op)(*args, **kwargs)
-                else:
+                extext = extend_type(text)
+                if hasattr(extext,op):
+                    text = getattr(extext,op)(*args, **kwargs)
+                elif isinstance(text, (types.GeneratorType,enumerate,list)):
                     text = self._apply_op_gen(text,op,*args, **kwargs)
+                else:
+                    raise TextOpException('Unknown OP "%s"' % op)
 
         return extend_type(text)
 
     def _apply_op_gen(self, text, op, *args, **kwargs):
         for line in text:
-            yield object.__getattribute__(line,op)(*args, **kwargs)
+            if hasattr(line,op):
+                yield getattr(line,op)(*args, **kwargs)
+            else:
+                extext = extend_type(text)
+                if hasattr(extext,op):
+                    yield getattr(extext,op)(*args, **kwargs)
+                else:
+                    raise TextOpException('Unknown OP "%s"' % op)
 
     def __repr__(self):
         rops = []
@@ -776,8 +788,34 @@ class DictExt(NoAttrDict):
         return ListExt([self])
 
     def amend(self,*args, **kwargs):
+        """ Modify on-the-fly a dictionary
+
+        The method will generate a new extended dictionary and update it with given params
+
+        Examples:
+
+        >>> s = '''soft:textops
+        ... count:32591'''
+        >>> s | parse_indented()
+        {'count': '32591', 'soft': 'textops'}
+        >>> s | parse_indented().amend(date='2015-11-19')
+        {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
+        """
         return DictExt(self,*args, **kwargs)
     def render(self,format_string,defvalue='-'):
+        """ Render a DictExt as a string
+
+        The method :func:`dformat` to format the dictionary
+
+        Examples:
+
+        >>> s = '''soft:textops
+        ... count:32591'''
+        >>> s | parse_indented()
+        {'count': '32591', 'soft': 'textops'}
+        >>> s | parse_indented().amend(date='2015-11-19')
+        {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
+        """
         return dformat(format_string,self,defvalue)
     def __getitem__(self,*args, **kwargs):
         return extend_type(super(DictExt, self).__getitem__(*args, **kwargs))
