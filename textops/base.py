@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Created : 2015-04-03
-# 
+#
 # @author: Eric Lapouyade
 #
 """This module defines base classes for python-textops"""
@@ -22,11 +22,11 @@ logger = textops.logger
 
 def activate_debug():
     """Activate debug logging on console
-    
+
     This function is useful when playing with python-textops through a python console.
-    It is not recommended to use this function in a real application : use standard logging 
+    It is not recommended to use this function in a real application : use standard logging
     functions instead.
-    """ 
+    """
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
@@ -37,8 +37,8 @@ class TextOpException(Exception):
 
 class TextOp(object):
     """Base class for text operations
-    
-    All operations must be derived from this class. Subclasses must redefine an ``op()`` method 
+
+    All operations must be derived from this class. Subclasses must redefine an ``op()`` method
     that will be called when the operations will be triggered by an input text.
     """
     def __init__(self,*args,**kwargs):
@@ -151,12 +151,12 @@ class TextOp(object):
     @property
     def g(self):
         r"""Execute operations, return a generator when possible or a list otherwise
-        
+
         This is to be used ONLY when the input text has be set as the first argument of the first
         operation.
-        
+
         Examples:
-            
+
             >>> echo('hello')
             echo('hello')
             >>> echo('hello').g
@@ -169,23 +169,23 @@ class TextOp(object):
             >>> def mygen(): yield None
             >>> type(echo(None).g)                              # doctest: +ELLIPSIS
             <type 'NoneType'>
-        """         
+        """
         text = self._process()
         return self.make_gen(text)
 
     @property
     def ge(self):
-        r"""Execute operations, return a generator when possible or a list otherwise, 
+        r"""Execute operations, return a generator when possible or a list otherwise,
         ( [] if the result is None ).
-        
-        This works like :attr:`g` except it returns an empty list if the execution 
-        result is None. 
-        
+
+        This works like :attr:`g` except it returns an empty list if the execution
+        result is None.
+
         Examples:
-            
+
             >>> echo(None).ge                                    # doctest: +ELLIPSIS
             []
-        """         
+        """
         text = self._process()
         return self.make_gen(text,[])
 
@@ -204,34 +204,34 @@ class TextOp(object):
     @property
     def l(self):
         r"""Execute operations, return a list
-        
+
         This is to be used ONLY when the input text has be set as the first argument of the first
         operation.
-        
+
         Examples:
-            
+
             >>> echo('hello')
             echo('hello')
             >>> echo('hello').l
             ['hello']
             >>> type(echo(None).g)
             <type 'NoneType'>
-        """         
+        """
         text = self._process()
         return self.make_list(text)
 
     @property
     def le(self):
         r"""Execute operations, returns a list ( [] if the result is None ).
-        
-        This works like :attr:`l` except it returns an empty list if the execution 
-        result is None. 
-        
+
+        This works like :attr:`l` except it returns an empty list if the execution
+        result is None.
+
         Examples:
-            
+
             >>> echo(None).le
             []
-        """         
+        """
         text = self._process()
         return self.make_list(text,[])
 
@@ -246,68 +246,68 @@ class TextOp(object):
     @property
     def s(self):
         r"""Execute operations, return a string (join = newline)
-        
+
         This is to be used ONLY when the input text has be set as the first argument of the first
         operation. If the result is a list or a generator, it is converted into a string by joinning
         items with a newline.
-        
+
         Examples:
-            
+
             >>> echo('hello')
             echo('hello')
             >>> echo('hello').s
             'hello'
             >>> echo(['hello','world']).s
             'hello\nworld'
-            >>> type(echo(None).s)                       
+            >>> type(echo(None).s)
             <type 'NoneType'>
-        """         
+        """
         text = self._process()
         return self.make_string(text)
 
     @property
     def se(self):
         r"""Execute operations, returns a string ( '' if the result is None ).
-        
-        This works like :attr:`s` except it returns an empty string if the execution 
-        result is None. 
-        
+
+        This works like :attr:`s` except it returns an empty string if the execution
+        result is None.
+
         Examples:
-            
+
             >>> echo(None).se
             ''
-        """         
+        """
         text = self._process()
         return self.make_string(text,return_if_none='')
 
     @property
     def j(self):
         r"""Execute operations, return a string (join = '')
-        
-        This works like :attr:`s` except that joins will be done with an empty string 
-        
+
+        This works like :attr:`s` except that joins will be done with an empty string
+
         Examples:
-            
+
             >>> echo(['hello','world']).j
             'helloworld'
-            >>> type(echo(None).j)                       
+            >>> type(echo(None).j)
             <type 'NoneType'>
-        """         
+        """
         text = self._process()
         return self.make_string(text,join_str='')
 
     @property
     def je(self):
         r"""Execute operations, returns a string ( '' if the result is None, join='').
-        
-        This works like :attr:`j` except it returns an empty string if the execution 
-        result is None. 
-        
+
+        This works like :attr:`j` except it returns an empty string if the execution
+        result is None.
+
         Examples:
-            
+
             >>> echo(None).je
             ''
-        """         
+        """
         text = self._process()
         return self.make_string(text,join_str='',return_if_none='')
 
@@ -326,16 +326,16 @@ class TextOp(object):
     @property
     def i(self):
         r"""Execute operations, returns an int.
-        
+
         Examples:
-            
+
             >>> echo('1789').i
             1789
             >>> echo('3.14').i
             3
             >>> echo('Tea for 2').i
             0
-        """         
+        """
         text = self._process()
         return self.make_int(text)
 
@@ -354,40 +354,40 @@ class TextOp(object):
     @property
     def f(self):
         r"""Execute operations, returns a float.
-        
+
         Examples:
-            
+
             >>> echo('1789').f
             1789.0
             >>> echo('3.14').f
             3.14
             >>> echo('Tea for 2').f
             0.0
-        """         
+        """
         text = self._process()
         return self.make_float(text)
 
     @property
     def r(self):
         r"""Execute operations, do not convert.
-        
+
         Examples:
-            
+
             >>> echo('1789').length().l
             [4]
             >>> echo('1789').length().s
             '4'
             >>> echo('1789').length().r
             4
-        """         
+        """
         return self._process()
 
     @property
     def pp(self):
         r"""Execute operations, return Prettyprint version of the result
-        
+
         Examples:
-            
+
         >>> s = '''
         ... a:val1
         ... b:
@@ -403,7 +403,7 @@ class TextOp(object):
         {   'a': 'val1',
             'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
             'f': 'val8'}
-        """         
+        """
         text = self._process()
         return pp.pformat(text)
 
@@ -455,8 +455,8 @@ def extend_type_gen(obj):
 
 def set_debug(flag):
     """ Change debug level
-    
-    It sets logger level to DEBUG if flag is True, otherwise to CRITICAL (no log at all) 
+
+    It sets logger level to DEBUG if flag is True, otherwise to CRITICAL (no log at all)
     """
     logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
@@ -466,26 +466,19 @@ class WrapOpIter(TextOp):
     def op(cls, text,*args,**kwargs):
         return cls.fn(cls._tolist(text), *args,**kwargs)
 
-class WrapOpYield(TextOp):
-    # fn=<to be defined in child class>
-    @classmethod
-    def op(cls, text,*args,**kwargs):
-        for line in cls.fn(cls._tolist(text), *args,**kwargs):
-            yield line
-
 def add_textop(class_or_func):
     """Decorator to declare custom function or custom class as a new textops op
 
     the custom function/class will receive the whole raw input text at once.
-        
+
     Examples:
-    
+
         >>> @add_textop
         ... def repeat(text, n, *args,**kwargs):
         ...     return text * n
         >>> 'hello' | repeat(3)
         'hellohellohello'
-        
+
         >>> @add_textop
         ... class cool(TextOp):
         ...     @classmethod
@@ -504,13 +497,13 @@ def add_textop(class_or_func):
 
 def add_textop_iter(func):
     """Decorator to declare custom *ITER* function as a new textops op
-    
-    An *ITER* function is a function that will receive the input text as a *LIST* of lines. 
-    One have to iterate over this list and generate a result (it can be a list, a generator, 
-    a dict, a string, an int ...)  
-        
+
+    An *ITER* function is a function that will receive the input text as a *LIST* of lines.
+    One have to iterate over this list and generate a result (it can be a list, a generator,
+    a dict, a string, an int ...)
+
     Examples:
-    
+
         >>> @add_textop_iter
         ... def odd(lines, *args,**kwargs):
         ...     for i,line in enumerate(lines):
@@ -518,7 +511,7 @@ def add_textop_iter(func):
         ...             yield line
         >>> s = '''line 1
         ... line 2
-        ... line 3''' 
+        ... line 3'''
         >>> s >> odd()
         ['line 1', 'line 3']
         >>> s | odd().tolist()
@@ -536,11 +529,6 @@ def add_textop_iter(func):
         5296
     """
     op = type(func.__name__,(WrapOpIter,), {'fn':staticmethod(func)})
-    setattr(textops.ops,func.__name__,op)
-    return op
-
-def add_textop_yield(func):
-    op = type(func.__name__,(WrapOpYield,), {'fn':staticmethod(func)})
     setattr(textops.ops,func.__name__,op)
     return op
 
@@ -604,10 +592,23 @@ def get_attribute_or_textop(obj,name):
     return wrapper
 
 class UnicodeExt(unicode):
+    """Extend Unicode class to gain access to textops as attributes
+
+    Examples:
+
+        >>> u'normal unicode'.cut()
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'unicode' object has no attribute 'cut'
+
+        >>> UnicodeExt('extended unicode').cut()
+        [u'extended', u'unicode']
+    """
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
     @property
     def as_list(self):
+        """ Convert to ListExt object """
         return ListExt([self])
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(UnicodeExt, self).__getslice__(*args, **kwargs))
@@ -627,10 +628,23 @@ class UnicodeExt(unicode):
         return extend_type(super(UnicodeExt, self).__format__(*args, **kwargs))
 
 class StrExt(str):
+    """Extend str class to gain access to textops as attributes
+
+    Examples:
+
+        >>> 'normal string'.cut()
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'str' object has no attribute 'cut'
+
+        >>> StrExt('extended string').cut()
+        ['extended', 'string']
+    """
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
     @property
     def as_list(self):
+        """ Convert to ListExt object """
         return ListExt([self])
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(StrExt, self).__getslice__(*args, **kwargs))
@@ -650,10 +664,25 @@ class StrExt(str):
         return extend_type(super(StrExt, self).__format__(*args, **kwargs))
 
 class ListExt(list):
+    """Extend list class to gain access to textops as attributes
+
+    In addition, all list items (dict, list, str, unicode) are extended on-the-fly when accessed
+
+    Examples:
+
+        >>> ['normal','list'].grep('t')
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'list' object has no attribute 'grep'
+
+        >>> ListExt(['extended','list']).grep('t')
+        ['extended', 'list']
+    """
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
     @property
     def as_list(self):
+        """ Convert to ListExt object """
         return self
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
@@ -690,13 +719,62 @@ class ListExtIterator(object):
             raise StopIteration
 
 class DictExt(NoAttrDict):
+    """Extend dict class with new features
+
+    New features are :
+
+        * Access to textops with attribute notation
+        * All dict values (dict, list, str, unicode) are extended on-the-fly when accessed
+        * Access to values with attribute notation
+        * Add a value in the dict with attribute notation (one level at a time)
+        * Returns NoAttr object when a key is not in the Dict
+        * add modification on-the-fly :meth:`amend` and rendering to string :meth:`render`
+
+    Examples:
+
+        >>> {'a':1,'b':2}.items().grep('a')
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'list' object has no attribute 'grep'
+
+        >>> DictExt({'a':1,'b':2}).items().grep('a')
+        [['a', 1]]
+
+        >>> d = DictExt({ 'this' : { 'is' : { 'a' : {'very deep' : { 'dict' : 'yes it is'}}}}})
+        >>> print d.this['is'].a['very deep'].dict
+        yes it is
+        >>> d.not_a_valid_key
+        NoAttr
+        >>> d['not_a_valid_key']
+        NoAttr
+
+        >>> d = DictExt()
+        >>> d.a = DictExt()
+        >>> d.a.b = 'this is my logging data'
+        >>> print d
+        {'a': {'b': 'this is my logging data'}}
+
+        >>> d = { 'mykey' : 'myval' }
+        >>> d['mykey']
+        'myval'
+        >>> type(d['mykey'])
+        <type 'str'>
+        >>> d = DictExt(d)
+        >>> d['mykey']
+        'myval'
+        >>> type(d['mykey'])
+        <class 'textops.base.StrExt'>
+    """
     def __getattribute__(self, name):
         if dict.has_key(self,name):
             return self[name]
         return get_attribute_or_textop(self,name)
+
     @property
     def as_list(self):
+        """ Convert to ListExt object """
         return ListExt([self])
+
     def amend(self,*args, **kwargs):
         return DictExt(self,*args, **kwargs)
     def render(self,format_string,defvalue='-'):

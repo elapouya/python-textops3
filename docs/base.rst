@@ -13,11 +13,6 @@ activate_debug
 --------------
    .. autofunction:: activate_debug()
 
-TextOp
-------
-   .. autoclass:: TextOp
-      :members:
-      
 add_textop
 ----------
    .. autofunction:: add_textop
@@ -25,6 +20,31 @@ add_textop
 add_textop_iter
 ---------------
    .. autofunction:: add_textop_iter
+
+DictExt
+-------
+   .. autoclass:: DictExt
+      :members:
+
+ListExt
+-------
+   .. autoclass:: ListExt
+      :members:
+
+StrExt
+------
+   .. autoclass:: StrExt
+      :members:
+
+TextOp
+------
+   .. autoclass:: TextOp
+      :members:
+
+UnicodeExt
+----------
+   .. autoclass:: UnicodeExt
+      :members:
 
 * :ref:`genindex`
 * :ref:`modindex`

@@ -7,9 +7,9 @@
 
 """ This module gathers text operations that are wrapped from standard python functions """
 
-from textops import TextOp, WrapOpIter, WrapOpYield
+from textops import TextOp, WrapOpIter
 
-class dosort(WrapOpYield):
+class dosort(WrapOpIter):
     r"""Sort input text
 
     Return a new sorted list from the input text. The sorting is done on a by-line/list item basis.
@@ -40,9 +40,9 @@ class dosort(WrapOpYield):
         >>> 'a\nB\nc' >> dosort(cmp=lambda x,y:cmp(x.lower(),y.lower()))
         ['a', 'B', 'c']
         >>> [('a',3),('c',1),('b',2)] >> dosort()
-        [['a', 3], ['b', 2], ['c', 1]]
+        [('a', 3), ('b', 2), ('c', 1)]
         >>> [('a',3),('c',1),('b',2)] >> dosort(key=lambda x:x[1])
-        [['c', 1], ['b', 2], ['a', 3]]
+        [('c', 1), ('b', 2), ('a', 3)]
         >>> [{'k':3},{'k':1},{'k':2}] >> dosort(key=lambda x:x['k'])
         [{'k': 1}, {'k': 2}, {'k': 3}]
     """
