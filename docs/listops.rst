@@ -173,6 +173,10 @@ sedi
 ----
    .. autoclass:: sedi(pat,repl)
 
+skip
+----
+   .. autoclass:: skip(lines)
+
 span
 ----
    .. autoclass:: span(nbcols, fill_str='')

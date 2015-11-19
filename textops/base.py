@@ -805,16 +805,19 @@ class DictExt(NoAttrDict):
     def render(self,format_string,defvalue='-'):
         """ Render a DictExt as a string
 
-        The method :func:`dformat` to format the dictionary
+        It uses the fonction :func:`dformat` to format the dictionary
+
+        Args:
+            format_string (str): Same format string as for :meth:`str.format`
+            defvalue (str or callable): the default value to display when the data is not in the dict
 
         Examples:
 
-        >>> s = '''soft:textops
-        ... count:32591'''
-        >>> s | parse_indented()
-        {'count': '32591', 'soft': 'textops'}
-        >>> s | parse_indented().amend(date='2015-11-19')
-        {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
+        >>> d = DictExt({'count': '32591', 'date': '2015-11-19', 'soft': 'textops'})
+        >>> d.render('On {date}, "{soft}" has been downloaded {count} times')
+        'On 2015-11-19, "textops" has been downloaded 32591 times'
+        >>> d.render('On {date}, "{not_in_dict}" has been downloaded {count} times','?')
+        'On 2015-11-19, "?" has been downloaded 32591 times'
         """
         return dformat(format_string,self,defvalue)
     def __getitem__(self,*args, **kwargs):
@@ -838,4 +841,24 @@ string_formatter = string.Formatter()
 vformat = string_formatter.vformat
 
 def dformat(format_str,dct,defvalue='-'):
+    """ Formats a dictionary, manages unkown keys
+
+    It works like :meth:`string.Formatter.vformat` except that it accepts only a dict
+    for values and a defvalue for not matching keys. Defvalue can be a callable that will
+    receive the requested key as argument and return a string
+
+    Args:
+        format_string (str): Same format string as for :meth:`str.format`
+        defvalue (str or callable): the default value to display when the data is not in the dict
+
+    Examples:
+
+    >>> d = {'count': '32591', 'soft': 'textops'}
+    >>> dformat('{soft} : {count} dowloads',d)
+    'textops : 32591 dowloads'
+    >>> dformat('{software} : {count} dowloads',d,'N/A')
+    'N/A : 32591 dowloads'
+    >>> dformat('{software} : {count} dowloads',d,lambda k:'unknown_tag_%s' % k)
+    'unknown_tag_software : 32591 dowloads'
+    """
     return vformat(format_str,(),DefaultDict(defvalue,dct))

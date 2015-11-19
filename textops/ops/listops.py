@@ -660,6 +660,39 @@ class head(TextOp):
                 break
             yield line
 
+class skip(TextOp):
+    r"""Skip n lines
+
+    It will return the input text except the n first lines
+
+    Args:
+        lines(int): The number of lines/items to skip.
+
+    Yields:
+        str, lists or dicts: skip 'lines' lines from the input text
+
+    Examples:
+        >>> 'a\nb\nc' | skip(1).tostr()
+        'b\nc'
+        >>> for l in 'a\nb\nc' | skip(1):
+        ...   print l
+        b
+        c
+        >>> ['a','b','c'] | skip(1).tolist()
+        ['b', 'c']
+        >>> ['a','b','c'] >> skip(1)
+        ['b', 'c']
+        >>> [('a',1),('b',2),('c',3)] | skip(1).tolist()
+        [('b', 2), ('c', 3)]
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | skip(1).tolist()
+        [{'val': 2, 'key': 'b'}, {'val': 3, 'key': 'c'}]
+    """
+    @classmethod
+    def op(cls,text,lines,*args,**kwargs):
+        for i,line in enumerate(cls._tolist(text)):
+            if i >= lines:
+                yield line
+
 class tail(TextOp):
     r"""Return last lines from the input text
 
