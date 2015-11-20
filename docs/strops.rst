@@ -6,7 +6,7 @@
 ======
 strops
 ======
-.. automodule:: textops.ops.listops
+.. automodule:: textops.ops.strops
 .. currentmodule:: textops
 
 cut
