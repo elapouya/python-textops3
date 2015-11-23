@@ -472,11 +472,23 @@ def set_debug(flag):
     """
     logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
+class TextOpSwap(TextOp):
+    # fn=<to be defined in child class>
+    @classmethod
+    def op(cls, text, param, *args,**kwargs):
+        return cls.fn(param, text, *args,**kwargs)
+
 class WrapOpIter(TextOp):
     # fn=<to be defined in child class>
     @classmethod
     def op(cls, text,*args,**kwargs):
         return cls.fn(cls._tolist(text), *args,**kwargs)
+
+class WrapOpIterSwap(TextOp):
+    # fn=<to be defined in child class>
+    @classmethod
+    def op(cls, text, param, *args,**kwargs):
+        return cls.fn(param, cls._tolist(text), *args,**kwargs)
 
 def add_textop(class_or_func):
     """Decorator to declare custom function or custom class as a new textops op

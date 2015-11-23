@@ -11,35 +11,35 @@ listops
 
 after
 -----
-   .. autoclass:: after(pattern, get_begin=False, col_or_key=None)
+   .. autoclass:: after(pattern, get_begin=False, key=None)
 
 afteri
 ------
-   .. autoclass:: afteri(pattern, get_begin=False, col_or_key=None)
+   .. autoclass:: afteri(pattern, get_begin=False, key=None)
 
 before
 ------
-   .. autoclass:: before(pattern, get_end=False, col_or_key=None)
+   .. autoclass:: before(pattern, get_end=False, key=None)
 
 beforei
 -------
-   .. autoclass:: beforei(pattern, get_end=False, col_or_key=None)
+   .. autoclass:: beforei(pattern, get_end=False, key=None)
 
 between
 -------
-   .. autoclass:: between(begin, end, get_begin=False, get_end=False, col_or_key=None)
+   .. autoclass:: between(begin, end, get_begin=False, get_end=False, key=None)
 
 betweeni
 --------
-   .. autoclass:: betweeni(begin, end, get_begin=False, get_end=False, col_or_key=None)
+   .. autoclass:: betweeni(begin, end, get_begin=False, get_end=False, key=None)
 
 betweenb
 --------
-   .. autoclass:: betweenb(begin, end, get_begin=False, get_end=False, col_or_key=None)
+   .. autoclass:: betweenb(begin, end, get_begin=False, get_end=False, key=None)
 
 betweenbi
 ---------
-   .. autoclass:: betweenbi(begin, end, get_begin=False, get_end=False, col_or_key=None)
+   .. autoclass:: betweenbi(begin, end, get_begin=False, get_end=False, key=None)
 
 cat
 ---
@@ -71,51 +71,51 @@ formatlists
 
 greaterequal
 ------------
-   .. autoclass:: greaterequal(value, col_or_key=None)
+   .. autoclass:: greaterequal(value, key=None)
 
 greaterthan
 -----------
-   .. autoclass:: greaterthan(value, col_or_key=None)
+   .. autoclass:: greaterthan(value, key=None)
 
 grep
 ----
-   .. autoclass:: grep(pattern, col_or_key=None)
+   .. autoclass:: grep(pattern, key=None)
 
 grepi
 -----
-   .. autoclass:: grepi(pattern, col_or_key=None)
+   .. autoclass:: grepi(pattern, key=None)
 
 grepv
 -----
-   .. autoclass:: grepv(pattern, col_or_key=None)
+   .. autoclass:: grepv(pattern, key=None)
 
 grepvi
 ------
-   .. autoclass:: grepvi(pattern, col_or_key=None)
+   .. autoclass:: grepvi(pattern, key=None)
 
 grepc
 -----
-   .. autoclass:: grepc(pattern, col_or_key=None)
+   .. autoclass:: grepc(pattern, key=None)
 
 grepci
 ------
-   .. autoclass:: grepci(pattern, col_or_key=None)
+   .. autoclass:: grepci(pattern, key=None)
 
 grepcv
 ------
-   .. autoclass:: grepcv(pattern, col_or_key=None)
+   .. autoclass:: grepcv(pattern, key=None)
 
 grepcvi
 -------
-   .. autoclass:: grepcvi(pattern, col_or_key=None)
+   .. autoclass:: grepcvi(pattern, key=None)
 
 haspattern
 ----------
-   .. autoclass:: haspattern(pattern, col_or_key=None)
+   .. autoclass:: haspattern(pattern, key=None)
 
 haspatterni
 -----------
-   .. autoclass:: haspatterni(pattern, col_or_key=None)
+   .. autoclass:: haspatterni(pattern, key=None)
 
 head
 ----
@@ -127,7 +127,7 @@ iffn
 
 inrange
 -------
-   .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, col_or_key=None)
+   .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, key=None)
 
 last
 ----
@@ -135,11 +135,11 @@ last
 
 lessequal
 ---------
-   .. autoclass:: lessequal(value, col_or_key=None)
+   .. autoclass:: lessequal(value, key=None)
 
 lessthan
 --------
-   .. autoclass:: lessthan(value, col_or_key=None)
+   .. autoclass:: lessthan(value, key=None)
 
 merge_dicts
 -----------
@@ -159,7 +159,11 @@ mrun
 
 outrange
 --------
-   .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, col_or_key=None)
+   .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, key=None)
+
+resplitblock
+------------
+   .. autoclass:: resplitblock(pattern, include_separator=0, skip_first=False)
 
 run
 ---
@@ -180,6 +184,10 @@ skip
 span
 ----
    .. autoclass:: span(nbcols, fill_str='')
+
+splitblock
+----------
+   .. autoclass:: splitblock(pattern, include_separator=0, skip_first=False)
 
 subslice
 --------

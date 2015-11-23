@@ -6,7 +6,7 @@
 #
 """ This module gathers list/line operations """
 
-from textops import TextOp, dformat
+from textops import TextOp, dformat, StrExt
 import textops
 import re
 import subprocess
@@ -195,7 +195,7 @@ class grep(TextOp):
 
     Args:
         pattern (str): a regular expression string (case sensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str, list or dict: the filtered input text
@@ -234,7 +234,7 @@ class grep(TextOp):
     reverse = False
     pattern = ''
     @classmethod
-    def op(cls,text,pattern=None,col_or_key = None, *args,**kwargs):
+    def op(cls,text,pattern=None,key = None, *args,**kwargs):
         if pattern is None:
             pattern = cls.pattern
         regex = re.compile(pattern,cls.flags)
@@ -243,11 +243,11 @@ class grep(TextOp):
                 if isinstance(line,basestring):
                     if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
-                elif col_or_key is None:
+                elif key is None:
                     if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 else:
-                    if bool(regex.search(str(line[col_or_key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(str(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
@@ -259,7 +259,7 @@ class grepi(grep):
 
     Args:
         pattern (str): a regular expression string (case insensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str, list or dict: the filtered input text
@@ -280,7 +280,7 @@ class grepv(grep):
 
     Args:
         pattern (str): a regular expression string
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str, list or dict: the filtered input text
@@ -303,7 +303,7 @@ class grepvi(grepv):
 
     Args:
         pattern (str): a regular expression string (case insensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str, list or dict: the filtered input text
@@ -325,7 +325,7 @@ class grepc(TextOp):
 
     Args:
         pattern (str): a regular expression string (case sensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         int: the matched lines count
@@ -349,7 +349,7 @@ class grepc(TextOp):
     pattern = ''
     exit_on_found = False
     @classmethod
-    def op(cls,text,pattern=None,col_or_key = None,*args,**kwargs):
+    def op(cls,text,pattern=None,key = None,*args,**kwargs):
         if text is None:
             return 0
         if pattern is None:
@@ -363,13 +363,13 @@ class grepc(TextOp):
                         count += 1
                         if cls.exit_on_found:
                             break
-                elif col_or_key is None:
+                elif key is None:
                     if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
                 else:
-                    if bool(regex.search(str(line[col_or_key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(str(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
@@ -386,7 +386,7 @@ class grepci(grepc):
 
     Args:
         pattern (str): a regular expression string (case insensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         int: the matched lines count
@@ -405,7 +405,7 @@ class grepcv(grepc):
 
     Args:
         pattern (str): a regular expression string (case sensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         int: the NOT matched lines count
@@ -426,7 +426,7 @@ class grepcvi(grepcv):
 
     Args:
         pattern (str): a regular expression string (case insensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         int: the NOT matched lines count
@@ -448,7 +448,7 @@ class haspattern(grepc):
 
     Args:
         pattern (str): a regular expression string (case sensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         bool: True if the pattern is found.
@@ -469,7 +469,7 @@ class haspatterni(haspattern):
 
     Args:
         pattern (str): a regular expression string (case insensitive)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         bool: True if the pattern is found.
@@ -801,7 +801,7 @@ class between(TextOp):
         end(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the begin pattern (Default : False)
         get_end(bool): if True : include the line matching the end pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines between two patterns
@@ -824,16 +824,16 @@ class between(TextOp):
         >>> input_text | between('b','e').tolist()
         [{'c': 3}, {'d': 4}]
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
-        >>> input_text | between('2','5',col_or_key='k').tolist()
+        >>> input_text | between('2','5',key='k').tolist()
         [{'k': 3}, {'k': 4}]
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
-        >>> input_text | between('2','5',col_or_key='v').tolist()
+        >>> input_text | between('2','5',key='v').tolist()
         []
         >>> input_text = [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)]
-        >>> input_text | between('b','e',col_or_key=0).tolist()
+        >>> input_text | between('b','e',key=0).tolist()
         [('c', 3), ('d', 4)]
         >>> input_text = [('a',1),('b',2),('c',3),('d',4),('e',5),('f',6)]
-        >>> input_text | between('b','e',col_or_key=1).tolist()
+        >>> input_text | between('b','e',key=1).tolist()
         []
         >>> s='''Chapter 1
         ... ------------
@@ -864,7 +864,7 @@ class between(TextOp):
         return [ re.compile(pat,cls.flags) if isinstance(pat, basestring) else pat for pat in lst ]
 
     @classmethod
-    def op(cls, text, begin, end, get_begin=None, get_end=None, col_or_key=None, *args,**kwargs):
+    def op(cls, text, begin, end, get_begin=None, get_end=None, key=None, *args,**kwargs):
         if get_begin is None:
             get_begin = cls.boundaries
         if get_end is None:
@@ -876,7 +876,7 @@ class between(TextOp):
 
         for line in cls._tolist(text):
             try:
-                to_test = line if col_or_key is None else line[col_or_key]
+                to_test = line if key is None else line[key]
                 to_test = to_test if isinstance(to_test, basestring) else str(to_test)
                 if state == 0 and begin:
                     if begin[0].search(to_test):
@@ -909,7 +909,7 @@ class betweeni(between):
         end(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the begin pattern (Default : False)
         get_end(bool): if True : include the line matching the end pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines between two patterns
@@ -935,7 +935,7 @@ class betweenb(between):
         end(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the begin pattern (Default : False)
         get_end(bool): if True : include the line matching the end pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines between two patterns
@@ -959,7 +959,7 @@ class betweenbi(betweenb):
         end(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the begin pattern (Default : False)
         get_end(bool): if True : include the line matching the end pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines between two patterns
@@ -986,11 +986,18 @@ class linetester(TextOp):
 
     @classmethod
     def op(cls, text, *args,**kwargs):
-        col_or_key = kwargs.get('col_or_key')
+        key = kwargs.get('key')
         cast_to = cls.cast_to(*args,**kwargs)
+        if key is None:
+            getkey = lambda l:l
+        else:
+            if callable(key):
+                getkey = lambda l:key(StrExt(l))
+            else:
+                getkey = lambda l:l[key]
         for line in cls._tolist(text):
             try:
-                to_test = line if col_or_key is None else line[col_or_key]
+                to_test = getkey(line)
                 to_test = cast_to(to_test)
                 if cls.testline(to_test, *args,**kwargs):
                     yield line
@@ -1016,8 +1023,14 @@ class inrange(linetester):
             Default : True
         get_end(bool): if True : include lines having the same value as the range end,
             Default : False
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values inside the specified range
@@ -1031,18 +1044,30 @@ class inrange(linetester):
         ['2015-08-23 bbbb', '2015-09-14 ccc']
         >>> logs >> inrange('2015-08-12','2015-11-05')
         ['2015-08-23 bbbb', '2015-09-14 ccc']
+        
+        >>> logs = '''aaaa 2015-08-11
+        ... bbbb 2015-08-23
+        ... cccc 2015-09-14
+        ... dddd 2015-11-05'''
+        >>> logs >> inrange('2015-08-12','2015-11-05')
+        []
+        >>> logs >> inrange('2015-08-12','2015-11-05',key=lambda l:l.cut(col=1))
+        ['bbbb 2015-08-23', 'cccc 2015-09-14']
+        
         >>> logs = [ ('aaaa','2015-08-11'),
         ... ('bbbb','2015-08-23'),
         ... ('ccc','2015-09-14'),
         ... ('ddd','2015-11-05') ]
-        >>> logs | inrange('2015-08-12','2015-11-05',col_or_key=1).tolist()
+        >>> logs | inrange('2015-08-12','2015-11-05',key=1).tolist()
         [('bbbb', '2015-08-23'), ('ccc', '2015-09-14')]
+        
         >>> logs = [ {'data':'aaaa','date':'2015-08-11'},
         ... {'data':'bbbb','date':'2015-08-23'},
         ... {'data':'ccc','date':'2015-09-14'},
         ... {'data':'ddd','date':'2015-11-05'} ]
-        >>> logs | inrange('2015-08-12','2015-11-05',col_or_key='date').tolist()
+        >>> logs | inrange('2015-08-12','2015-11-05',key='date').tolist()
         [{'date': '2015-08-23', 'data': 'bbbb'}, {'date': '2015-09-14', 'data': 'ccc'}]
+        
         >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
         >>> ints | inrange(1,3).tolist()
         ['1', '2', '01', '02']
@@ -1070,8 +1095,14 @@ class outrange(linetester):
             Default : False
         get_end(bool): if True : include lines having the same value as the range end,
             Default : False
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values outside the specified range
@@ -1105,8 +1136,14 @@ class lessthan(linetester):
 
     Args:
         value(str): string to test with
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values strictly less than the specified reference value
@@ -1122,13 +1159,13 @@ class lessthan(linetester):
         ... ('bbbb','2015-08-23'),
         ... ('ccc','2015-09-14'),
         ... ('ddd','2015-11-05') ]
-        >>> logs | lessthan('2015-11-05',col_or_key=1).tolist()
+        >>> logs | lessthan('2015-11-05',key=1).tolist()
         [('aaaa', '2015-08-11'), ('bbbb', '2015-08-23'), ('ccc', '2015-09-14')]
         >>> logs = [ {'data':'aaaa','date':'2015-08-11'},
         ... {'data':'bbbb','date':'2015-08-23'},
         ... {'data':'ccc','date':'2015-09-14'},
         ... {'data':'ddd','date':'2015-11-05'} ]
-        >>> logs | lessthan('2015-09-14',col_or_key='date').tolist()
+        >>> logs | lessthan('2015-09-14',key='date').tolist()
         [{'date': '2015-08-11', 'data': 'aaaa'}, {'date': '2015-08-23', 'data': 'bbbb'}]
         >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
         >>> ints | lessthan(3).tolist()
@@ -1147,8 +1184,14 @@ class lessequal(linetester):
 
     Args:
         value(str): string to test with
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values less than or equal to the specified value
@@ -1176,8 +1219,14 @@ class greaterthan(linetester):
 
     Args:
         value(str): string to test with
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values greater than the specified value
@@ -1203,8 +1252,14 @@ class greaterequal(linetester):
 
     Args:
         value(str): string to test with
-        col_or_key (int or str): test only one column or one key (optional).
-            it *MUST BE PASSED BY NAME* if you want to use this argument.
+        key (int or str or callable): Specify what should really be compared:
+
+            * None :  the whole current line,
+            * an int : test only the specified column (for list or lists),
+            * a string : test only the dict value for the specified key (for list of dicts),
+            * a callable : it will receive the line being tested and return the string to really compare.
+            
+            Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
         str or list or dict: lines having values greater than or equal to the specified value
@@ -1232,7 +1287,7 @@ class before(between):
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_end(bool): if True : include the line matching the end pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines before the specified pattern
@@ -1243,14 +1298,14 @@ class before(between):
         >>> ['a','b','c','d','e','f'] | before('c',True).tolist()
         ['a', 'b', 'c']
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
-        >>> input_text | before('3',col_or_key='k').tolist()
+        >>> input_text | before('3',key='k').tolist()
         [{'k': 1}, {'k': 2}]
-        >>> input_text >> before('3',col_or_key='k')
+        >>> input_text >> before('3',key='k')
         [{'k': 1}, {'k': 2}]
     """
     @classmethod
-    def op(cls, text, pattern, get_end=False, col_or_key=None,*args,**kwargs):
-        return super(before,cls).op(text,None,pattern,get_end=get_end,col_or_key=col_or_key)
+    def op(cls, text, pattern, get_end=False, key=None,*args,**kwargs):
+        return super(before,cls).op(text,None,pattern,get_end=get_end,key=key)
 
 class beforei(before):
     r"""Extract lines before a patterns (case insensitive)
@@ -1260,7 +1315,7 @@ class beforei(before):
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_end(bool): if True : include the line matching the pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines before the specified pattern
@@ -1286,7 +1341,7 @@ class after(between):
     Args:
         pattern(str or regex or list): start yielding lines after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines after the specified pattern
@@ -1297,9 +1352,9 @@ class after(between):
         >>> ['a','b','c','d','e','f'] | after('c',True).tolist()
         ['c', 'd', 'e', 'f']
         >>> input_text = [{'k':1},{'k':2},{'k':3},{'k':4},{'k':5},{'k':6}]
-        >>> input_text | after('3',col_or_key='k').tolist()
+        >>> input_text | after('3',key='k').tolist()
         [{'k': 4}, {'k': 5}, {'k': 6}]
-        >>> input_text >> after('3',col_or_key='k')
+        >>> input_text >> after('3',key='k')
         [{'k': 4}, {'k': 5}, {'k': 6}]
     """
     @classmethod
@@ -1314,7 +1369,7 @@ class afteri(after):
     Args:
         pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
         get_begin(bool): if True : include the line matching the pattern (Default : False)
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Yields:
         str or list or dict: lines before the specified pattern
@@ -1637,18 +1692,22 @@ class splitblock(TextOp):
 
     This operation split a text that has several blocks seperated by a same pattern.
     The separator pattern must fit into one line, by this way, this operation is not limited with
-    the input text size, nevertheless one block must fit in memory.  
+    the input text size, nevertheless one block must fit in memory (ie : input text can include
+    an unlimited number of blocks that must fit into memory one-by-one)
     
     Args:
         pattern (str): The pattern to find
-        include_separator (int):
+        include_separator (int): Tells whether blocks must include searched pattern
          
-            * 0 or SPLIT_SEP_NONE :no,
-            * 1 or SPLIT_SEP_BEGIN :at beginning, 
-            * 2 or SPLIT_SEP_END: at ending
+            * 0 or SPLIT_SEP_NONE : no,
+            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning, 
+            * 2 or SPLIT_SEP_END : yes, at block ending
              
-        Default: 0
-            
+            Default: 0
+
+        skip_first (bool): If True, the result will not contain the block before the first pattern 
+            found. Default : False.
+
     Returns:
         generator: splitted input text
 
@@ -1668,6 +1727,9 @@ class splitblock(TextOp):
         ... '''
         >>> s >> splitblock(r'^======+$')
         [['', 'this', 'is', 'section 1'], ['this', 'is', 'section 2'], ['this', 'is', 'section 3']]
+        >>> s >> splitblock(r'^======+$',skip_first=True)
+        [['this', 'is', 'section 2'], ['this', 'is', 'section 3']]
+        
         >>> s='''Section: 1
         ... info 1.1
         ... info 1.2
@@ -1680,6 +1742,10 @@ class splitblock(TextOp):
         >>> s >> splitblock(r'^Section:',SPLIT_SEP_BEGIN)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         [[], ['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'], 
         ['Section: 3', 'info 3.1', 'info 3.2']]
+        >>> s >> splitblock(r'^Section:',SPLIT_SEP_BEGIN,True)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'], 
+        ['Section: 3', 'info 3.1', 'info 3.2']]
+        
         >>> s='''info 1.1
         ... Last info 1.2
         ... info 2.1
@@ -1693,22 +1759,140 @@ class splitblock(TextOp):
     flags = 0
 
     @classmethod
-    def op(cls, text, pattern, include_separator=0, *args,**kwargs):
+    def op(cls, text, pattern, include_separator=0, skip_first=False, *args,**kwargs):
         if isinstance(pattern, basestring):
             pattern = re.compile(pattern,cls.flags)
         blk=[]
         for line in cls._tolist(text):
             if pattern.match(line):
                 if include_separator == textops.SPLIT_SEP_BEGIN: 
-                    yield blk
+                    if not skip_first:
+                        yield blk
                     blk = [line]
                 elif include_separator == textops.SPLIT_SEP_END: 
                     yield blk + [line]
                     blk = []
                 else:
-                    yield blk
+                    if not skip_first:
+                        yield blk
                     blk = []
+                skip_first = False
             else:
                 blk.append(line)
         if blk:
             yield blk
+            
+class resplitblock(TextOp):
+    r"""split a text into blocks using :func:`re.finditer`
+
+    This work like :class:`textops.splitblock` except that is uses :mod:`re` : it is faster and
+    gives the possibility to search multiple lines patterns. BUT, the whole input text must
+    fit into memory. List of strings are also converted into a single string with newlines during
+    the process. 
+    
+    Args:
+        pattern (str): The pattern to find
+        include_separator (int): Tells whether blocks must include searched pattern
+         
+            * 0 or SPLIT_SEP_NONE : no,
+            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning, 
+            * 2 or SPLIT_SEP_END : yes, at block ending
+             
+            Default: 0
+            
+        skip_first (bool): If True, the result will not contain the block before the first pattern 
+            found. Default : False.
+            
+    Returns:
+        generator: splitted input text
+
+    Examples:
+        >>> s='''
+        ... this
+        ... is
+        ... section 1
+        ... =================
+        ... this
+        ... is
+        ... section 2
+        ... =================
+        ... this
+        ... is
+        ... section 3
+        ... '''
+        >>> s >> resplitblock(r'^======+$')
+        ['\nthis\nis\nsection 1\n', '\nthis\nis\nsection 2\n', '\nthis\nis\nsection 3\n']
+        >>> s >> resplitblock(r'^======+$',skip_first=True)
+        ['\nthis\nis\nsection 2\n', '\nthis\nis\nsection 3\n']
+        
+        >>> s='''Section: 1
+        ... info 1.1
+        ... info 1.2
+        ... Section: 2
+        ... info 2.1
+        ... info 2.2
+        ... Section: 3
+        ... info 3.1
+        ... info 3.2'''
+        >>> s >> resplitblock(r'^Section:',SPLIT_SEP_BEGIN)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ['', 'Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n', 
+        'Section: 3\ninfo 3.1\ninfo 3.2']
+        >>> s >> resplitblock(r'^Section:',SPLIT_SEP_BEGIN,True)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ['Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n', 
+        'Section: 3\ninfo 3.1\ninfo 3.2']
+        
+        >>> s='''info 1.1
+        ... Last info 1.2
+        ... info 2.1
+        ... Last info 2.2
+        ... info 3.1
+        ... Last info 3.2'''
+        >>> s >> resplitblock(r'^Last info[^\n\r]*[\n\r]?',SPLIT_SEP_END)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ['info 1.1\nLast info 1.2\n', 'info 2.1\nLast info 2.2\n', 'info 3.1\nLast info 3.2']
+        
+        >>> s='''
+        ... =========
+        ... Section 1
+        ... =========
+        ... info 1.1
+        ... info 1.2
+        ... =========
+        ... Section 2
+        ... =========
+        ... info 2.1
+        ... info 2.2
+        ... '''        
+        >>> s >> resplitblock('^===+\n[^\n]+\n===+\n')
+        ['\n', 'info 1.1\ninfo 1.2\n', 'info 2.1\ninfo 2.2\n']
+        >>> s >> resplitblock('^===+\n[^\n]+\n===+\n',SPLIT_SEP_BEGIN)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ['\n', '=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n', 
+        '=========\nSection 2\n=========\ninfo 2.1\ninfo 2.2\n']
+        >>> s >> resplitblock('^===+\n[^\n]+\n===+\n',SPLIT_SEP_BEGIN, True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ['=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n', 
+        '=========\nSection 2\n=========\ninfo 2.1\ninfo 2.2\n']
+    """
+    flags = re.M
+
+    @classmethod
+    def op(cls, text, pattern, include_separator=0, skip_first=False, *args,**kwargs):
+        if isinstance(pattern, basestring):
+            pattern = re.compile(pattern,kwargs.get('flags',cls.flags))            
+        text = cls._tostr(text)
+        blks = []
+        pos = 0
+        for m in pattern.finditer(text):
+            if include_separator == textops.SPLIT_SEP_BEGIN: 
+                if not skip_first:
+                    blks.append(text[pos:m.start()])
+                pos = m.start()
+            elif include_separator == textops.SPLIT_SEP_END: 
+                blks.append(text[pos:m.end()])
+                pos = m.end()
+            else:
+                if not skip_first:
+                    blks.append(text[pos:m.start()])
+                pos = m.end()
+            skip_first = False
+        if pos < len(text):
+            blks.append(text[pos:])
+        return blks

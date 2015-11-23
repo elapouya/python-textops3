@@ -33,6 +33,10 @@ linenbr
 -------
    .. autoclass:: linenbr(start=0)
 
+resplit
+-------
+   .. autoclass:: resplit(pattern, maxsplit=0, flags=0)
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

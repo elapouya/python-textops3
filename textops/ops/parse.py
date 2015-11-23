@@ -56,7 +56,7 @@ class mgrep(TextOp):
 
     Args:
         patterns_dict (dict): a dictionary where all patterns to search are in values.
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
@@ -107,7 +107,7 @@ class mgrep(TextOp):
     flags = 0
     reverse = False
     @classmethod
-    def op(cls,text,patterns_dict,col_or_key = None, *args,**kwargs):
+    def op(cls,text,patterns_dict,key = None, *args,**kwargs):
         for k,pattern in patterns_dict.items():
             if isinstance(pattern,basestring):
                 patterns_dict[k] = re.compile(pattern,cls.flags)
@@ -118,11 +118,11 @@ class mgrep(TextOp):
                     if isinstance(line,basestring):
                         if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
-                    elif col_or_key is None:
+                    elif key is None:
                         if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                     else:
-                        if bool(regex.search(line[col_or_key])) != cls.reverse:  # kind of XOR with cls.reverse
+                        if bool(regex.search(line[key])) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                 except (ValueError, TypeError, IndexError, KeyError):
                     pass
@@ -135,7 +135,7 @@ class mgrepi(mgrep):
 
     Args:
         patterns_dict (dict): a dictionary where all patterns to search are in values.
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
@@ -156,7 +156,7 @@ class mgrepv(mgrep):
 
     Args:
         patterns_dict (dict): a dictionary where all patterns to exclude are in values().
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will
@@ -184,7 +184,7 @@ class mgrepvi(mgrepv):
 
     Args:
         patterns_dict (dict): a dictionary where all patterns to exclude are in values().
-        col_or_key (int or str): test only one column or one key (optional)
+        key (int or str): test only one column or one key (optional)
 
     Returns:
         dict: A dictionary where the keys are the same as for ``patterns_dict``, the values will

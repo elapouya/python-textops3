@@ -7,7 +7,8 @@
 
 """ This module gathers text operations that are wrapped from standard python functions """
 
-from textops import TextOp, WrapOpIter
+from textops import TextOp, TextOpSwap, WrapOpIter, WrapOpIterSwap
+import re
 
 class dosort(WrapOpIter):
     r"""Sort input text
@@ -166,3 +167,25 @@ class linenbr(WrapOpIter):
         [(1, 'a'), (2, 'b'), (3, 'c')]
     """
     fn=enumerate
+
+class resplit(TextOpSwap):
+    r"""split with regular expression
+
+    It uses :func:`re.split` to split the input text
+
+    Args:
+        pattern (str): Split string by the occurrences of pattern
+        maxsplit (int): If maxsplit is nonzero, at most maxsplit splits occur, 
+            and the remainder of the string is returned as the final element of the list
+
+    Returns:
+        list: The splitted text
+
+    Examples:
+        >>> 'Words, words, words.' >> resplit('\W+')
+        ['Words', 'words', 'words', '']
+        >>> 'Words, words, words.' >> resplit('\W+',1)
+        ['Words', 'words, words.']
+    """
+    fn = staticmethod(re.split)
+    

@@ -39,19 +39,19 @@ index_normalize
 
 mgrep
 -----
-   .. autoclass:: mgrep(patterns_dict, col_or_key=None)
+   .. autoclass:: mgrep(patterns_dict, key=None)
 
 mgrepi
 ------
-   .. autoclass:: mgrepi(patterns_dict, col_or_key=None)
+   .. autoclass:: mgrepi(patterns_dict, key=None)
 
 mgrepv
 ------
-   .. autoclass:: mgrepv(patterns_dict, col_or_key=None)
+   .. autoclass:: mgrepv(patterns_dict, key=None)
 
 mgrepvi
 -------
-   .. autoclass:: mgrepvi(patterns_dict, col_or_key=None)
+   .. autoclass:: mgrepvi(patterns_dict, key=None)
 
 parse_indented
 --------------
