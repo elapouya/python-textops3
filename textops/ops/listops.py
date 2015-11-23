@@ -7,6 +7,7 @@
 """ This module gathers list/line operations """
 
 from textops import TextOp, dformat
+import textops
 import re
 import subprocess
 import sys
@@ -1630,3 +1631,84 @@ class uniq(TextOp):
             if line not in s:
                 s.append(line)
                 yield line
+
+class splitblock(TextOp):
+    r"""split a text into blocks
+
+    This operation split a text that has several blocks seperated by a same pattern.
+    The separator pattern must fit into one line, by this way, this operation is not limited with
+    the input text size, nevertheless one block must fit in memory.  
+    
+    Args:
+        pattern (str): The pattern to find
+        include_separator (int):
+         
+            * 0 or SPLIT_SEP_NONE :no,
+            * 1 or SPLIT_SEP_BEGIN :at beginning, 
+            * 2 or SPLIT_SEP_END: at ending
+             
+        Default: 0
+            
+    Returns:
+        generator: splitted input text
+
+    Examples:
+        >>> s='''
+        ... this
+        ... is
+        ... section 1
+        ... =================
+        ... this
+        ... is
+        ... section 2
+        ... =================
+        ... this
+        ... is
+        ... section 3
+        ... '''
+        >>> s >> splitblock(r'^======+$')
+        [['', 'this', 'is', 'section 1'], ['this', 'is', 'section 2'], ['this', 'is', 'section 3']]
+        >>> s='''Section: 1
+        ... info 1.1
+        ... info 1.2
+        ... Section: 2
+        ... info 2.1
+        ... info 2.2
+        ... Section: 3
+        ... info 3.1
+        ... info 3.2'''
+        >>> s >> splitblock(r'^Section:',SPLIT_SEP_BEGIN)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [[], ['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'], 
+        ['Section: 3', 'info 3.1', 'info 3.2']]
+        >>> s='''info 1.1
+        ... Last info 1.2
+        ... info 2.1
+        ... Last info 2.2
+        ... info 3.1
+        ... Last info 3.2'''
+        >>> s >> splitblock(r'^Last info',SPLIT_SEP_END)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [['info 1.1', 'Last info 1.2'], ['info 2.1', 'Last info 2.2'], 
+        ['info 3.1', 'Last info 3.2']]
+    """
+    flags = 0
+
+    @classmethod
+    def op(cls, text, pattern, include_separator=0, *args,**kwargs):
+        if isinstance(pattern, basestring):
+            pattern = re.compile(pattern,cls.flags)
+        blk=[]
+        for line in cls._tolist(text):
+            if pattern.match(line):
+                if include_separator == textops.SPLIT_SEP_BEGIN: 
+                    yield blk
+                    blk = [line]
+                elif include_separator == textops.SPLIT_SEP_END: 
+                    yield blk + [line]
+                    blk = []
+                else:
+                    yield blk
+                    blk = []
+            else:
+                blk.append(line)
+        if blk:
+            yield blk
