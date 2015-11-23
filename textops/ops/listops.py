@@ -1785,7 +1785,7 @@ class splitblock(TextOp):
 class resplitblock(TextOp):
     r"""split a text into blocks using :func:`re.finditer`
 
-    This work like :class:`textops.splitblock` except that is uses :mod:`re` : it is faster and
+    This works like :class:`textops.splitblock` except that is uses :mod:`re` : it is faster and
     gives the possibility to search multiple lines patterns. BUT, the whole input text must
     fit into memory. List of strings are also converted into a single string with newlines during
     the process. 
