@@ -7,7 +7,7 @@
 
 """ This module gathers text operations that are wrapped from standard python functions """
 
-from textops import TextOp, TextOpSwap, WrapOpIter, WrapOpIterSwap
+from textops import TextOp, WrapOp, WrapOpStr, WrapOpIter
 import re
 
 class dosort(WrapOpIter):
@@ -168,24 +168,26 @@ class linenbr(WrapOpIter):
     """
     fn=enumerate
 
-class resplit(TextOpSwap):
-    r"""split with regular expression
+class resub(WrapOpStr):
+    r"""Substitute a regular expression within a string or a list of strings
 
-    It uses :func:`re.split` to split the input text
+    It uses :func:`re.sub` to replace the input text.
 
     Args:
         pattern (str): Split string by the occurrences of pattern
-        maxsplit (int): If maxsplit is nonzero, at most maxsplit splits occur, 
-            and the remainder of the string is returned as the final element of the list
+        repl (str): Replacement string. 
+        count (int): the maximum number of pattern occurrences to be replaced
+        flags (int): regular expression flags (re.I etc...). Only available in Python 2.7+    
 
     Returns:
-        list: The splitted text
+        str or list: The replaced text
 
     Examples:
-        >>> 'Words, words, words.' >> resplit('\W+')
-        ['Words', 'words', 'words', '']
-        >>> 'Words, words, words.' >> resplit('\W+',1)
-        ['Words', 'words, words.']
+        >>> 'Words, words, words.' | resub('[Ww]ords','Mots')
+        'Mots, Mots, Mots.'
+        >>> ['Words1 words2', 'words', 'words.' ] >> resub('[Ww]ords','Mots',1)
+        ['Mots1 words2', 'Mots', 'Mots.']
     """
-    fn = staticmethod(re.split)
+    input_argn = 2
+    fn = staticmethod(re.sub)
     

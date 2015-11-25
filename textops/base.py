@@ -472,23 +472,41 @@ def set_debug(flag):
     """
     logger.setLevel(flag and logging.DEBUG or logging.CRITICAL)
 
-class TextOpSwap(TextOp):
+class WrapOp(TextOp):
+    input_argn = 0
     # fn=<to be defined in child class>
     @classmethod
-    def op(cls, text, param, *args,**kwargs):
-        return cls.fn(param, text, *args,**kwargs)
+    def op(cls, text, *args,**kwargs):
+        args = list(args)
+        args.insert(cls.input_argn,text)
+        return cls.fn(*args,**kwargs)
+
+class WrapOpStr(TextOp):
+    input_argn = 0
+    # fn=<to be defined in child class>
+    @classmethod
+    def op(cls, text, *args,**kwargs):
+        args = list(args)
+        if isinstance(text, basestring):
+            args.insert(cls.input_argn,text)
+            return cls.fn(*args,**kwargs)
+        else:
+            return wrap_op_str_gen(text, cls.fn, cls.input_argn, args, kwargs)
+
+def wrap_op_str_gen(text, fn, argn, args, kwargs):
+    args.insert(argn,None)
+    for line in text:
+        args[argn] = line
+        yield fn(*args,**kwargs)        
 
 class WrapOpIter(TextOp):
+    input_argn = 0
     # fn=<to be defined in child class>
     @classmethod
     def op(cls, text,*args,**kwargs):
-        return cls.fn(cls._tolist(text), *args,**kwargs)
-
-class WrapOpIterSwap(TextOp):
-    # fn=<to be defined in child class>
-    @classmethod
-    def op(cls, text, param, *args,**kwargs):
-        return cls.fn(param, cls._tolist(text), *args,**kwargs)
+        args = list(args)
+        args.insert(cls.input_argn,cls._tolist(text))
+        return cls.fn(*args,**kwargs)
 
 def add_textop(class_or_func):
     """Decorator to declare custom function or custom class as a new textops op
@@ -747,12 +765,18 @@ class DictExt(NoAttrDict):
 
     New features are :
 
-        * Access to textops with attribute notation
+        * Access to textops operations with attribute notation
         * All dict values (dict, list, str, unicode) are extended on-the-fly when accessed
-        * Access to values with attribute notation
-        * Add a value in the dict with attribute notation (one level at a time)
+        * Access to dict values with attribute notation
+        * Add a key:value in the dict with attribute notation (one level at a time)
         * Returns NoAttr object when a key is not in the Dict
         * add modification on-the-fly :meth:`amend` and rendering to string :meth:`render`
+        
+    Note:
+        
+        ``NoAttr`` is a special object that returns always ``NoAttr`` when accessing to any attribute.
+        it behaves like ``False`` for testing, ``[]`` in foor-loops. The goal is to be able 
+        to use very long expression with dotted notation without being afraid to get an exception. 
 
     Examples:
 
@@ -771,6 +795,13 @@ class DictExt(NoAttrDict):
         NoAttr
         >>> d['not_a_valid_key']
         NoAttr
+        >>> d.not_a_valid_key.and_i.can.put.things.after.without.exception
+        NoAttr
+        >>> for obj in d.not_a_valid_key.objects:
+        ...     do_things(obj)
+        ... else:
+        ...     print 'no object'
+        no object
 
         >>> d = DictExt()
         >>> d.a = DictExt()
