@@ -260,8 +260,8 @@ Many doctests as been developped, you can run them this way::
 Build documentation
 -------------------
 
-An already compiled documentation should be available `here<http://python-textops.readthedocs.org>`.
-Nevertheless, one can build the documentation.
+An already compiled and up-to-date documentation should be available `here<http://python-textops.readthedocs.org>`.
+Nevertheless, one can build the documentation :
 
 For HTML:: 
 
