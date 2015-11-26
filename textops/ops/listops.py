@@ -981,13 +981,24 @@ class linetester(TextOp):
         raise AssertionError('Method testline must be defined in derivated class.')
 
     @classmethod
-    def cast_to(cls, *args, **kwargs):
-        return type(args[0])
+    def castfn(cls, *args, **kwargs):
+        first_param = args[0]
+        if isinstance(first_param,basestring):
+            return lambda l:cls.make_string(l)
+        elif isinstance(first_param,int):
+            return lambda l:cls.make_int(l)
+        elif isinstance(first_param,float):
+            return lambda l:cls.make_float(l)
+        elif isinstance(first_param,list):
+            return lambda l:cls.make_list(l)
+        else:
+            return lambda l:l
 
     @classmethod
     def op(cls, text, *args,**kwargs):
         key = kwargs.get('key')
-        cast_to = cls.cast_to(*args,**kwargs)
+        castfn = cls.castfn(*args,**kwargs)
+
         if key is None:
             getkey = lambda l:l
         else:
@@ -995,10 +1006,11 @@ class linetester(TextOp):
                 getkey = lambda l:key(StrExt(l))
             else:
                 getkey = lambda l:l[key]
+
         for line in cls._tolist(text):
             try:
                 to_test = getkey(line)
-                to_test = cast_to(to_test)
+                to_test = castfn(to_test)
                 if cls.testline(to_test, *args,**kwargs):
                     yield line
             except (ValueError, TypeError, IndexError, KeyError):
@@ -1029,7 +1041,7 @@ class inrange(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1044,7 +1056,7 @@ class inrange(linetester):
         ['2015-08-23 bbbb', '2015-09-14 ccc']
         >>> logs >> inrange('2015-08-12','2015-11-05')
         ['2015-08-23 bbbb', '2015-09-14 ccc']
-        
+
         >>> logs = '''aaaa 2015-08-11
         ... bbbb 2015-08-23
         ... cccc 2015-09-14
@@ -1053,21 +1065,21 @@ class inrange(linetester):
         []
         >>> logs >> inrange('2015-08-12','2015-11-05',key=lambda l:l.cut(col=1))
         ['bbbb 2015-08-23', 'cccc 2015-09-14']
-        
+
         >>> logs = [ ('aaaa','2015-08-11'),
         ... ('bbbb','2015-08-23'),
         ... ('ccc','2015-09-14'),
         ... ('ddd','2015-11-05') ]
         >>> logs | inrange('2015-08-12','2015-11-05',key=1).tolist()
         [('bbbb', '2015-08-23'), ('ccc', '2015-09-14')]
-        
+
         >>> logs = [ {'data':'aaaa','date':'2015-08-11'},
         ... {'data':'bbbb','date':'2015-08-23'},
         ... {'data':'ccc','date':'2015-09-14'},
         ... {'data':'ddd','date':'2015-11-05'} ]
         >>> logs | inrange('2015-08-12','2015-11-05',key='date').tolist()
         [{'date': '2015-08-23', 'data': 'bbbb'}, {'date': '2015-09-14', 'data': 'ccc'}]
-        
+
         >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
         >>> ints | inrange(1,3).tolist()
         ['1', '2', '01', '02']
@@ -1101,7 +1113,7 @@ class outrange(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1142,7 +1154,7 @@ class lessthan(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1190,7 +1202,7 @@ class lessequal(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1225,7 +1237,7 @@ class greaterthan(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1258,7 +1270,7 @@ class greaterequal(linetester):
             * an int : test only the specified column (for list or lists),
             * a string : test only the dict value for the specified key (for list of dicts),
             * a callable : it will receive the line being tested and return the string to really compare.
-            
+
             Note : ``key`` argument *MUST BE PASSED BY NAME*
 
     Yields:
@@ -1694,18 +1706,18 @@ class splitblock(TextOp):
     The separator pattern must fit into one line, by this way, this operation is not limited with
     the input text size, nevertheless one block must fit in memory (ie : input text can include
     an unlimited number of blocks that must fit into memory one-by-one)
-    
+
     Args:
         pattern (str): The pattern to find
         include_separator (int): Tells whether blocks must include searched pattern
-         
+
             * 0 or SPLIT_SEP_NONE : no,
-            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning, 
+            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning,
             * 2 or SPLIT_SEP_END : yes, at block ending
-             
+
             Default: 0
 
-        skip_first (bool): If True, the result will not contain the block before the first pattern 
+        skip_first (bool): If True, the result will not contain the block before the first pattern
             found. Default : False.
 
     Returns:
@@ -1729,7 +1741,7 @@ class splitblock(TextOp):
         [['', 'this', 'is', 'section 1'], ['this', 'is', 'section 2'], ['this', 'is', 'section 3']]
         >>> s >> splitblock(r'^======+$',skip_first=True)
         [['this', 'is', 'section 2'], ['this', 'is', 'section 3']]
-        
+
         >>> s='''Section: 1
         ... info 1.1
         ... info 1.2
@@ -1740,12 +1752,12 @@ class splitblock(TextOp):
         ... info 3.1
         ... info 3.2'''
         >>> s >> splitblock(r'^Section:',SPLIT_SEP_BEGIN)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [[], ['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'], 
+        [[], ['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'],
         ['Section: 3', 'info 3.1', 'info 3.2']]
         >>> s >> splitblock(r'^Section:',SPLIT_SEP_BEGIN,True)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'], 
+        [['Section: 1', 'info 1.1', 'info 1.2'], ['Section: 2', 'info 2.1', 'info 2.2'],
         ['Section: 3', 'info 3.1', 'info 3.2']]
-        
+
         >>> s='''info 1.1
         ... Last info 1.2
         ... info 2.1
@@ -1753,7 +1765,7 @@ class splitblock(TextOp):
         ... info 3.1
         ... Last info 3.2'''
         >>> s >> splitblock(r'^Last info',SPLIT_SEP_END)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [['info 1.1', 'Last info 1.2'], ['info 2.1', 'Last info 2.2'], 
+        [['info 1.1', 'Last info 1.2'], ['info 2.1', 'Last info 2.2'],
         ['info 3.1', 'Last info 3.2']]
     """
     flags = 0
@@ -1765,11 +1777,11 @@ class splitblock(TextOp):
         blk=[]
         for line in cls._tolist(text):
             if pattern.match(line):
-                if include_separator == textops.SPLIT_SEP_BEGIN: 
+                if include_separator == textops.SPLIT_SEP_BEGIN:
                     if not skip_first:
                         yield blk
                     blk = [line]
-                elif include_separator == textops.SPLIT_SEP_END: 
+                elif include_separator == textops.SPLIT_SEP_END:
                     yield blk + [line]
                     blk = []
                 else:
@@ -1781,28 +1793,28 @@ class splitblock(TextOp):
                 blk.append(line)
         if blk:
             yield blk
-            
+
 class resplitblock(TextOp):
     r"""split a text into blocks using :func:`re.finditer`
 
     This works like :class:`textops.splitblock` except that is uses :mod:`re` : it is faster and
     gives the possibility to search multiple lines patterns. BUT, the whole input text must
     fit into memory. List of strings are also converted into a single string with newlines during
-    the process. 
-    
+    the process.
+
     Args:
         pattern (str): The pattern to find
         include_separator (int): Tells whether blocks must include searched pattern
-         
+
             * 0 or SPLIT_SEP_NONE : no,
-            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning, 
+            * 1 or SPLIT_SEP_BEGIN : yes, at block beginning,
             * 2 or SPLIT_SEP_END : yes, at block ending
-             
+
             Default: 0
-            
-        skip_first (bool): If True, the result will not contain the block before the first pattern 
+
+        skip_first (bool): If True, the result will not contain the block before the first pattern
             found. Default : False.
-            
+
     Returns:
         generator: splitted input text
 
@@ -1824,7 +1836,7 @@ class resplitblock(TextOp):
         ['\nthis\nis\nsection 1\n', '\nthis\nis\nsection 2\n', '\nthis\nis\nsection 3\n']
         >>> s >> resplitblock(r'^======+$',skip_first=True)
         ['\nthis\nis\nsection 2\n', '\nthis\nis\nsection 3\n']
-        
+
         >>> s='''Section: 1
         ... info 1.1
         ... info 1.2
@@ -1835,12 +1847,12 @@ class resplitblock(TextOp):
         ... info 3.1
         ... info 3.2'''
         >>> s >> resplitblock(r'^Section:',SPLIT_SEP_BEGIN)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        ['', 'Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n', 
+        ['', 'Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n',
         'Section: 3\ninfo 3.1\ninfo 3.2']
         >>> s >> resplitblock(r'^Section:',SPLIT_SEP_BEGIN,True)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        ['Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n', 
+        ['Section: 1\ninfo 1.1\ninfo 1.2\n', 'Section: 2\ninfo 2.1\ninfo 2.2\n',
         'Section: 3\ninfo 3.1\ninfo 3.2']
-        
+
         >>> s='''info 1.1
         ... Last info 1.2
         ... info 2.1
@@ -1849,7 +1861,7 @@ class resplitblock(TextOp):
         ... Last info 3.2'''
         >>> s >> resplitblock(r'^Last info[^\n\r]*[\n\r]?',SPLIT_SEP_END)     # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         ['info 1.1\nLast info 1.2\n', 'info 2.1\nLast info 2.2\n', 'info 3.1\nLast info 3.2']
-        
+
         >>> s='''
         ... =========
         ... Section 1
@@ -1861,14 +1873,14 @@ class resplitblock(TextOp):
         ... =========
         ... info 2.1
         ... info 2.2
-        ... '''        
+        ... '''
         >>> s >> resplitblock('^===+\n[^\n]+\n===+\n')
         ['\n', 'info 1.1\ninfo 1.2\n', 'info 2.1\ninfo 2.2\n']
         >>> s >> resplitblock('^===+\n[^\n]+\n===+\n',SPLIT_SEP_BEGIN)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        ['\n', '=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n', 
+        ['\n', '=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n',
         '=========\nSection 2\n=========\ninfo 2.1\ninfo 2.2\n']
         >>> s >> resplitblock('^===+\n[^\n]+\n===+\n',SPLIT_SEP_BEGIN, True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        ['=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n', 
+        ['=========\nSection 1\n=========\ninfo 1.1\ninfo 1.2\n',
         '=========\nSection 2\n=========\ninfo 2.1\ninfo 2.2\n']
     """
     flags = re.M
@@ -1876,16 +1888,16 @@ class resplitblock(TextOp):
     @classmethod
     def op(cls, text, pattern, include_separator=0, skip_first=False, *args,**kwargs):
         if isinstance(pattern, basestring):
-            pattern = re.compile(pattern,kwargs.get('flags',cls.flags))            
+            pattern = re.compile(pattern,kwargs.get('flags',cls.flags))
         text = cls._tostr(text)
         blks = []
         pos = 0
         for m in pattern.finditer(text):
-            if include_separator == textops.SPLIT_SEP_BEGIN: 
+            if include_separator == textops.SPLIT_SEP_BEGIN:
                 if not skip_first:
                     blks.append(text[pos:m.start()])
                 pos = m.start()
-            elif include_separator == textops.SPLIT_SEP_END: 
+            elif include_separator == textops.SPLIT_SEP_END:
                 blks.append(text[pos:m.end()])
                 pos = m.end()
             else:

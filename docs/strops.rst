@@ -11,23 +11,39 @@ strops
 
 cut
 ---
-   .. autoclass:: cut(sep=None, col=None, not_present_value='')
+   .. autoclass:: cut(sep=None, col=None, default='')
 
 cutca
 -----
-   .. autoclass:: cutca(sep=None, col=None, not_present_value='')
+   .. autoclass:: cutca(sep, col=None, default='')
+
+cutm
+----
+   .. autoclass:: cutm(sep, col=None, default='')
+
+cutmi
+-----
+   .. autoclass:: cutmi(sep, col=None, default='')
 
 cutdct
 ------
-   .. autoclass:: cutdct(sep=None, col=None, not_present_value='')
+   .. autoclass:: cutdct(sep=None, col=None, default='')
 
 cutkv
 -----
-   .. autoclass:: cutkv(sep=None, col=None, not_present_value='', key_name = 'key')
+   .. autoclass:: cutkv(sep=None, col=None, default='', key_name = 'key')
 
 cutre
 -----
-   .. autoclass:: cutre(sep=None, col=None, not_present_value='')
+   .. autoclass:: cutre(sep=None, col=None, default='')
+
+cuts
+----
+   .. autoclass:: cuts(sep, col=None, default='')
+
+cutsi
+-----
+   .. autoclass:: cutsi(sep, col=None, default='')
 
 echo
 ----
