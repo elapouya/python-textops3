@@ -161,6 +161,18 @@ outrange
 --------
    .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, key=None)
 
+renderdicts
+-----------
+   .. autoclass:: renderdicts(format_str='{key} : {val}',defvalue='-')
+
+renderitems
+-----------
+   .. autoclass:: renderitems(format_str='{0} : {1}')
+
+renderlists
+-----------
+   .. autoclass:: renderlists(format_str='{0} : {1}')
+
 resplitblock
 ------------
    .. autoclass:: resplitblock(pattern, include_separator=0, skip_first=False)

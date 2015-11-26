@@ -580,6 +580,80 @@ class formatdicts(TextOp):
     def op(cls,items,format_str='{key} : {val}\n',join_str = '',defvalue='-',*args,**kwargs):
         return join_str.join([dformat(format_str,dct,defvalue) for dct in items ])
 
+class renderitems(TextOp):
+    r"""Renders list of 2-sized tuples
+
+    It works like :class:`formatitems` except it does NOT do the final join.
+
+    Args:
+        format_str(str): format string, default is '{0} : {1}'
+
+    Returns:
+        generator of strings: list of formatted string
+
+    Examples:
+        >>> [('key1','val1'),('key2','val2')] >> renderitems('{0} -> {1}')
+        ['key1 -> val1', 'key2 -> val2']
+        >>> [('key1','val1'),('key2','val2')] >> renderitems('{0}:{1}')
+        ['key1:val1', 'key2:val2']
+    """
+    @classmethod
+    def op(cls,items,format_str='{0} : {1}', *args,**kwargs):
+        for k,v in cls._tolist(items):
+            yield format_str.format(k,v)
+
+class renderlists(TextOp):
+    r"""Formats list of lists
+
+    It works like :class:`formatlists` except it does NOT do the final join.
+
+    Args:
+        format_str(str): format string, default is '{0} : {1}'
+
+    Returns:
+        generator of strings: list of formatted string
+
+    Examples:
+        >>> [['key1','val1','help1'],['key2','val2','help2']] >> renderlists('{2} : {0} -> {1}')
+        ['help1 : key1 -> val1', 'help2 : key2 -> val2']
+        >>> [['key1','val1','help1'],['key2','val2','help2']] >> renderlists('{0}:{1} ({2})')
+        ['key1:val1 (help1)', 'key2:val2 (help2)']
+    """
+    @classmethod
+    def op(cls,items,format_str='{0} : {1}', *args,**kwargs):
+        for lst in cls._tolist(items):
+            yield format_str.format(*lst)
+
+class renderdicts(TextOp):
+    r"""Formats list of dicts
+
+    It works like :class:`renderdicts` except it does NOT do the final join.
+
+    Args:
+        format_str(str): format string, default is '{key} : {val}\n'
+        defvalue(str): The replacement string or function for unexisting keys when formating.
+
+    Returns:
+        generator of strings: list of formatted string
+
+    Examples:
+        >>> input = [{'key':'a','val':1},{'key':'b','val':2},{'key':'c'}]
+        >>> input >> renderdicts()
+        ['a : 1', 'b : 2', 'c : -']
+        >>> input >> renderdicts('{key} -> {val}',defvalue='N/A')
+        ['a -> 1', 'b -> 2', 'c -> N/A']
+        >>> input = [{'name':'Eric','age':47,'level':'guru'},
+        ... {'name':'Guido','age':59,'level':'god'}]
+        >>> input >> renderdicts('{name}({age}) : {level}')   #doctest: +NORMALIZE_WHITESPACE
+        ['Eric(47) : guru', 'Guido(59) : god']
+        >>> input >> renderdicts('{name}')
+        ['Eric', 'Guido']
+    """
+    @classmethod
+    def op(cls,items,format_str='{key} : {val}',defvalue='-',*args,**kwargs):
+        for dct in cls._tolist(items):
+            yield dformat(format_str,dct,defvalue)
+
 class first(TextOp):
     r"""Return the first line/item from the input text
 
