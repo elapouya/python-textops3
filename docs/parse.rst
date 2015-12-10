@@ -57,6 +57,10 @@ parse_indented
 --------------
    .. autoclass:: parse_indented(sep=':')
 
+parse_smart
+-----------
+   .. autoclass:: parse_smart()
+
 parseg
 ------
    .. autoclass:: parseg(pattern)

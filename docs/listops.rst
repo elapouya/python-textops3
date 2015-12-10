@@ -133,6 +133,10 @@ last
 ----
    .. autoclass:: last( )
 
+less
+----
+   .. autoclass:: less(lines)
+
 lessequal
 ---------
    .. autoclass:: lessequal(value, key=None)
@@ -188,6 +192,10 @@ sed
 sedi
 ----
    .. autoclass:: sedi(pat,repl)
+
+skess
+-----
+   .. autoclass:: skess(begin,end)
 
 skip
 ----
