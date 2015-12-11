@@ -6,8 +6,9 @@
    python-textops documentation master file,
 
 
-Welcome to python-textops documentation !
-=========================================
+.. image:: images/textops_logo.png
+   :align: center
+
 
 | python-textops provides many text operations at string level, list level or whole text level.
 | These operations can be chained with a 'dotted' or 'piped' notation.
