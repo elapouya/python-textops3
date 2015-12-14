@@ -497,7 +497,7 @@ def wrap_op_str_gen(text, fn, argn, args, kwargs):
     args.insert(argn,None)
     for line in text:
         args[argn] = line
-        yield fn(*args,**kwargs)        
+        yield fn(*args,**kwargs)
 
 class WrapOpIter(TextOp):
     input_argn = 0
@@ -771,12 +771,12 @@ class DictExt(NoAttrDict):
         * Add a key:value in the dict with attribute notation (one level at a time)
         * Returns NoAttr object when a key is not in the Dict
         * add modification on-the-fly :meth:`amend` and rendering to string :meth:`render`
-        
+
     Note:
-        
+
         ``NoAttr`` is a special object that returns always ``NoAttr`` when accessing to any attribute.
-        it behaves like ``False`` for testing, ``[]`` in foor-loops. The goal is to be able 
-        to use very long expression with dotted notation without being afraid to get an exception. 
+        it behaves like ``False`` for testing, ``[]`` in foor-loops. The goal is to be able
+        to use very long expression with dotted notation without being afraid to get an exception.
 
     Examples:
 
@@ -880,6 +880,18 @@ class DefaultDict(dict):
                 return self.defvalue(key)
             return self.defvalue
 
+class DefaultList(list):
+    def __init__(self,defvalue,*args,**kwargs):
+        self.defvalue = defvalue
+        super(DefaultList,self).__init__(*args,**kwargs)
+    def __getitem__(self,key):
+        try:
+            return super(DefaultList,self).__getitem__(key)
+        except IndexError:
+            if callable(self.defvalue):
+                return self.defvalue(key)
+            return self.defvalue
+
 string_formatter = string.Formatter()
 vformat = string_formatter.vformat
 
@@ -892,6 +904,7 @@ def dformat(format_str,dct,defvalue='-'):
 
     Args:
         format_string (str): Same format string as for :meth:`str.format`
+        dct (dict) : the dict to format
         defvalue (str or callable): the default value to display when the data is not in the dict
 
     Examples:
@@ -905,3 +918,28 @@ def dformat(format_str,dct,defvalue='-'):
     'unknown_tag_software : 32591 dowloads'
     """
     return vformat(format_str,(),DefaultDict(defvalue,dct))
+
+def eformat(format_str,lst,dct,defvalue='-'):
+    """ Formats a list and a dictionary, manages unkown keys
+
+    It works like :meth:`string.Formatter.vformat` except that it accepts a defvalue for not matching keys.
+    Defvalue can be a callable that will receive the requested key as argument and return a string
+
+    Args:
+        format_string (str): Same format string as for :meth:`str.format`
+        lst (dict) : the list to format
+        dct (dict) : the dict to format
+        defvalue (str or callable): the default value to display when the data is not in the dict
+
+    Examples:
+
+    >>> d = {'count': '32591', 'soft': 'textops'}
+    >>> l = ['Eric','Guido']
+    >>> eformat('{0} => {soft} : {count} dowloads',l,d)
+    'Eric => textops : 32591 dowloads'
+    >>> eformat('{2} => {software} : {count} dowloads',l,d,'N/A')
+    'N/A => N/A : 32591 dowloads'
+    >>> eformat('{2} => {software} : {count} dowloads',l,d,lambda k:'unknown_tag_%s' % k)
+    'unknown_tag_2 => unknown_tag_software : 32591 dowloads'
+    """
+    return vformat(format_str,DefaultList(defvalue,lst),DefaultDict(defvalue,dct))

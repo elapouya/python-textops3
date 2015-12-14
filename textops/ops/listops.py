@@ -6,7 +6,7 @@
 #
 """ This module gathers list/line operations """
 
-from textops import TextOp, dformat, StrExt
+from textops import TextOp, dformat, eformat, StrExt
 import textops
 import re
 import subprocess
@@ -499,6 +499,40 @@ class rmblank(grepv):
     """
     pattern = r'^\s*$'
 
+class doformat(TextOp):
+    r"""Formats list of strings
+
+    Useful to convert list of string into a simple string
+    It converts each string of the list with the ``format_str`` ({0} will receive the string to format),
+    then it joins all the strings with ``join_str`` to get a unique simple string.
+
+    Args:
+        format_str(str): format string, default is '{0}\n'
+        join_str(str): string to join all strings into one unique string, default is ''
+        context(dict): additional context dictionary
+        defvalue(str or callable): default string to display when a key or an index is unreachable.
+
+    Returns:
+        str: formatted input
+
+    Examples:
+        >>> print ['Eric','Guido'] | doformat('First name : {0}','\n')
+        First name : Eric
+        First name : Guido
+        >>> ['Eric','Guido'] | doformat('{0} <{0}@github.com>',',')
+        'Eric <Eric@github.com>,Guido <Guido@github.com>'
+        >>> ctx = {'hostname' : 'pcubuntu'}
+        >>> print ['eth0','eth1'] | doformat('{hostname}/network/{0}','\n',context=ctx)
+        pcubuntu/network/eth0
+        pcubuntu/network/eth1
+        >>> print ['eth0','eth1'] | doformat('{nodename}/network/{4}','\n',ctx,'(unknown)')
+        (unknown)/network/(unknown)
+        (unknown)/network/(unknown)
+    """
+    @classmethod
+    def op(cls,items,format_str='{0}\n',join_str = '', context={}, defvalue='-', *args,**kwargs):
+        return join_str.join([eformat(format_str,(s,),context,defvalue) for s in items ])
+
 class formatitems(TextOp):
     r"""Formats list of 2-sized tuples
 
@@ -509,6 +543,8 @@ class formatitems(TextOp):
     Args:
         format_str(str): format string, default is '{0} : {1}\n'
         join_str(str): string to join all strings into one unique string, default is ''
+        context(dict): additional context dictionary
+        defvalue(str or callable): default string to display when a key or an index is unreachable.
 
     Returns:
         str: formatted input
@@ -518,10 +554,18 @@ class formatitems(TextOp):
         'key1 -> val1\nkey2 -> val2\n'
         >>> [('key1','val1'),('key2','val2')] | formatitems('{0}:{1}',', ')
         'key1:val1, key2:val2'
+        >>> ctx = {'hostname' : 'pcubuntu'}
+        >>> d = [['Dimm1','1024'],['Dimm2','512']]
+        >>> print d | formatlists('{hostname}/{0} : {1} MB','\n',ctx)
+        pcubuntu/Dimm1 : 1024 MB
+        pcubuntu/Dimm2 : 512 MB
+        >>> print d | formatlists('{nodename}/{0} : {4} MB','\n',ctx,'??')
+        ??/Dimm1 : ?? MB
+        ??/Dimm2 : ?? MB
     """
     @classmethod
-    def op(cls,items,format_str='{0} : {1}\n',join_str = '', *args,**kwargs):
-        return join_str.join([format_str.format(k,v) for k,v in items ])
+    def op(cls,items,format_str='{0} : {1}\n',join_str = '', context={}, defvalue='-', *args,**kwargs):
+        return join_str.join([eformat(format_str,l,context,defvalue) for l in items ])
 
 class formatlists(TextOp):
     r"""Formats list of lists
@@ -531,8 +575,10 @@ class formatlists(TextOp):
     joins all the strings with ``join_str`` to get a unique simple string.
 
     Args:
-        format_str(str): format string, default is '{0} : {1}\n'
+        format_str(str): format string
         join_str(str): string to join all strings into one unique string, default is ''
+        context(dict): additional context dictionary
+        defvalue(str or callable): default string to display when a key or an index is unreachable.
 
     Returns:
         str: formatted input
@@ -542,10 +588,18 @@ class formatlists(TextOp):
         'help1 : key1 -> val1\nhelp2 : key2 -> val2\n'
         >>> [['key1','val1','help1'],['key2','val2','help2']] | formatlists('{0}:{1} ({2})',', ')
         'key1:val1 (help1), key2:val2 (help2)'
+        >>> ctx = {'hostname' : 'pcubuntu'}
+        >>> d = [['Dimm1','1','GB'],['Dimm2','512','MB']]
+        >>> print d | formatlists('{hostname}/{0} : {1} {2}','\n',ctx)
+        pcubuntu/Dimm1 : 1 GB
+        pcubuntu/Dimm2 : 512 MB
+        >>> print d | formatlists('{nodename}/{0} : {1} {4}','\n',ctx,'??')
+        ??/Dimm1 : 1 ??
+        ??/Dimm2 : 512 ??
     """
     @classmethod
-    def op(cls,items,format_str='{0} : {1}\n',join_str = '', *args,**kwargs):
-        return join_str.join([format_str.format(*lst) for lst in items ])
+    def op(cls,items,format_str, join_str = '', context={}, defvalue='-', *args,**kwargs):
+        return join_str.join([eformat(format_str,l,context,defvalue) for l in items ])
 
 class formatdicts(TextOp):
     r"""Formats list of dicts
@@ -580,6 +634,28 @@ class formatdicts(TextOp):
     def op(cls,items,format_str='{key} : {val}\n',join_str = '',defvalue='-',*args,**kwargs):
         return join_str.join([dformat(format_str,dct,defvalue) for dct in items ])
 
+class dorender(TextOp):
+    r"""Formats list of strings
+
+    It works like :class:`doformat` except it does NOT do the final join.
+
+    Args:
+        format_str(str): format string, default is '{0}\n'
+
+    Yields:
+        str: formatted input
+
+    Examples:
+        >>> ['Eric','Guido'] >> dorender('First name : {0}')
+        ['First name : Eric', 'First name : Guido']
+        >>> ['Eric','Guido'] >> dorender('{0} <{0}@github.com>')
+        ['Eric <Eric@github.com>', 'Guido <Guido@github.com>']
+    """
+    @classmethod
+    def op(cls,items,format_str='{0}\n',join_str = '', *args,**kwargs):
+        for s in cls._tolist(items):
+            yield format_str.format(s)
+
 class renderitems(TextOp):
     r"""Renders list of 2-sized tuples
 
@@ -588,8 +664,8 @@ class renderitems(TextOp):
     Args:
         format_str(str): format string, default is '{0} : {1}'
 
-    Returns:
-        generator of strings: list of formatted string
+    Yields:
+        str: formatted string
 
     Examples:
         >>> [('key1','val1'),('key2','val2')] >> renderitems('{0} -> {1}')
@@ -610,8 +686,8 @@ class renderlists(TextOp):
     Args:
         format_str(str): format string, default is '{0} : {1}'
 
-    Returns:
-        generator of strings: list of formatted string
+    Yields:
+        str: formatted string
 
     Examples:
         >>> [['key1','val1','help1'],['key2','val2','help2']] >> renderlists('{2} : {0} -> {1}')
@@ -633,8 +709,8 @@ class renderdicts(TextOp):
         format_str(str): format string, default is '{key} : {val}\n'
         defvalue(str): The replacement string or function for unexisting keys when formating.
 
-    Returns:
-        generator of strings: list of formatted string
+    Yields:
+        str: formatted string
 
     Examples:
         >>> input = [{'key':'a','val':1},{'key':'b','val':2},{'key':'c'}]
