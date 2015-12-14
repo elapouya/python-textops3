@@ -61,7 +61,8 @@ So one can do::
    >>> [{'line':1},{'line':'2'},{'line':3}] | grep('2').tolist()
    [{'line': '2'}]
 
-**Note :**
+.. note::
+
    As many operations return a generator, they can be used directly in for-loops, but in this
    documentation we added ``.tolist()`` to show the result as a list.
 
@@ -82,7 +83,8 @@ generators results into lists::
    >>> 'abc' >> length()
    3
 
-**Note :**
+.. note::
+
    You should use the pipe ``|`` when you are expecting a huge result or when using for-loops,
    otherwise, the ``>>`` operator is easier to handle as you are not keeping generators.
 
@@ -91,7 +93,8 @@ Here is an example of chained operations to find the first line with an error an
    >>> from textops import *
    >>> myops = grepi('error').first().upper()
 
-**Note :**
+.. note::
+
    str standard methods (like 'upper') can be used directly in chained dotted notation.
 
 You can use unix shell 'pipe' symbol into python code to chain operations::
@@ -105,7 +108,8 @@ that is to import only textops module::
    >>> import textops as op
    >>> myops = op.grepi('error') | op.first() | op.strop.upper()
 
-**Note :**
+.. note::
+
    str methods must be prefixed with ``strop.`` in piped notations.
 
 Chained operations are not executed (lazy object) until an input text has been provided. You can
@@ -117,7 +121,8 @@ use chained operations like a function, or use the pipe symbol to "stream" input
    >>> print 'this is an error\nthis is a warning' | myops
    THIS IS AN ERROR
 
-**Note :**
+.. note::
+
    python generators are used as far as possible to be able to manage huge data set like big files.
    Prefer to use the dotted notation, it is more optimized.
 
@@ -145,7 +150,8 @@ you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
    >>> print s.grepi('error').first().upper()
    THIS IS AN ERROR
 
-**Note :**
+.. note::
+
    As soon as you are using textops Extended type, textops cannot use gnerators internally anymore :
    all data must fit into memory (it is usually the case, so it is not a real problem).
 
@@ -202,7 +208,8 @@ until used in a for-loop, converted into a string/list or forced by special attr
    >>> print list(logs)
    ['error 1', 'warning 1']
 
-**Note :**
+.. note::
+
    | ``.s`` : execute operations and get a string
    | ``.l`` : execute operations and get a list of strings
    | ``.g`` : execute operations and get a generator of strings

@@ -1,3 +1,9 @@
+0.1.8 (2015-12-10)
+------------------
+
+* Add less(), skess() list operations
+* Add parse_smart() parser
+
 0.1.7 (2015-11-26)
 ------------------
 

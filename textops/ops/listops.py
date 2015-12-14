@@ -879,6 +879,77 @@ class tail(TextOp):
         for line in buffer:
             yield line
 
+class less(TextOp):
+    r"""Return all lines from the input text except the n last lines
+
+    Args:
+        lines(int): The number of ending lines/items to remove.
+
+    Yields:
+        str, lists or dicts: all lines except the n last
+
+    Examples:
+        >>> 'a\nb\nc' | less(1).tostr()
+        'a\nb'
+        >>> for l in 'a\nb\nc' | less(1):
+        ...   print l
+        a
+        b
+        >>> ['a','b','c'] | less(1).tolist()
+        ['a', 'b']
+        >>> ['a','b','c'] >> less(1)
+        ['a', 'b']
+        >>> [('a',1),('b',2),('c',3)] | less(1).tolist()
+        [('a', 1), ('b', 2)]
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | less(1).tolist()
+        [{'val': 1, 'key': 'a'}, {'val': 2, 'key': 'b'}]
+    """
+    @classmethod
+    def op(cls,text,lines,*args,**kwargs):
+        buffer = []
+        for line in cls._tolist(text):
+            buffer.append(line)
+            if len(buffer) > lines:
+                yield buffer.pop(0)
+
+class skess(TextOp):
+    r"""skip x lines at the beginning and y at the end from the input text
+    
+    This will do a :class:`skip` and a :class:`less` in a single operation.
+
+    Args:
+        begin(int): The number of begining lines/items to remove.
+        end(int): The number of ending lines/items to remove.
+
+    Yields:
+        str, lists or dicts: all lines except the specified number at begin and end
+
+    Examples:
+        >>> 'a\nb\nc' | skess(1,1).tostr()
+        'b'
+        >>> for l in 'a\nb\nc' | skess(1,1):
+        ...   print l
+        b
+        >>> ['a','b','c'] | skess(1,1).tolist()
+        ['b']
+        >>> ['a','b','c'] >> skess(1,1)
+        ['b']
+        >>> [('a',1),('b',2),('c',3)] | skess(1,1).tolist()
+        [('b', 2)]
+        >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | skess(1,1).tolist()
+        [{'val': 2, 'key': 'b'}]
+    """
+    @classmethod
+    def op(cls,text,begin, end, *args,**kwargs):
+        buffer = []
+        for line in cls._tolist(text):
+            if begin > 0:
+                begin -= 1
+            else: 
+                buffer.append(line)
+                if len(buffer) > end:
+                    yield buffer.pop(0)
+
 class sed(TextOp):
     r"""Replace pattern on-the-fly
 

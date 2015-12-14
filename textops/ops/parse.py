@@ -695,6 +695,154 @@ class parse_indented(TextOp):
                     prev_k = k
         return out
 
+class parse_smart(TextOp):
+    r"""Try to automatically parse a text
+
+    It looks for key/value patterns, store found values in a dictionary.
+    It tries to respect indents by creating sub-dictionaries.
+    The keys are normalized (only keep ``A-Za-z0-9_``), the values are stripped.
+
+    Returns:
+        dict: structured keys:values
+
+    Examples:
+        >>> s = '''                          
+        ... Date/Time:       Wed Dec  2 09:51:17 NFT 2015
+        ... Sequence Number: 156637
+        ... Machine Id:      00F7B0114C00
+        ...    Node Id:         xvio6
+        ... Class:           H
+        ... Type:            PERM
+        ...    WPAR:            Global
+        ...    Resource Name:   hdisk21 
+        ...       Resource Class:  disk
+        ... Resource Type:   mpioapdisk
+        ... Location:        U78AA.001.WZSHM0M-P1-C6-T1-W201400A0B8292A18-L13000000000000
+        ... 
+        ... VPD:             
+        ...         Manufacturer................IBM     
+        ...         Machine Type and Model......1815      FAStT 
+        ...         ROS Level and ID............30393134
+        ...         Serial Number...............
+        ...         Device Specific.(Z0)........0000053245004032
+        ...         Device Specific.(Z1)........
+        ... 
+        ... Description
+        ... DISK OPERATION ERROR
+        ... 
+        ... Probable Causes
+        ... DASD DEVICE
+        ... '''        
+        >>> parsed = s >> parse_smart()
+        >>> print parsed.pretty()
+        {   'class': 'H',
+            'date_time': 'Wed Dec  2 09:51:17 NFT 2015',
+            'description': ['DISK OPERATION ERROR'],
+            'location': 'U78AA.001.WZSHM0M-P1-C6-T1-W201400A0B8292A18-L13000000000000',
+            'machine_id': {   'machine_id': '00F7B0114C00', 'node_id': 'xvio6'},
+            'probable_causes': ['DASD DEVICE'],
+            'resource_type': 'mpioapdisk',
+            'sequence_number': '156637',
+            'type': {   'resource_name': {   'resource_class': 'disk',
+                                             'resource_name': 'hdisk21'},
+                        'type': 'PERM',
+                        'wpar': 'Global'},
+            'vpd': {   'device_specific_z0': '0000053245004032',
+                       'device_specific_z1': '',
+                       'machine_type_and_model': '1815      FAStT',
+                       'manufacturer': 'IBM',
+                       'ros_level_and_id': '30393134',
+                       'serial_number': ''}}
+        >>> print parsed.vpd.device_specific_z0
+        0000053245004032
+    """
+    @classmethod
+    def op(cls, text, *args,**kwargs):
+        sep = r'[^a-zA-Z0-9_()\.-]{2,}|[:=]|\.{2,}|[_-]{3,}'
+        indent_level = 0
+        out = {}
+        indent_node = {indent_level:out}
+        dct = out
+        prev_k = None
+        block_step = 1
+        # parse the text
+        for line in cls._tolist(text):
+            if not line.strip():
+                block_step = 1
+            else:
+                m = re.match(r'^(\s*)(\S.*)', line)
+                if m:
+                    k,v = (re.split(sep,m.group(2),1) + [''])[:2]
+                    v = v.strip()
+                    indent = len(m.group(1))
+                    #print indent,indent_level,block_step,line,'****',prev_k,k
+                    if block_step==1: 
+                        if not v and re.search(r'\w+',k):
+                            block_step = 2
+                        else:
+                            block_step = 0
+                    elif block_step == 2:
+                        if indent == indent_level:
+                            block_k = prev_k 
+                            prev_k = index_normalize(k)
+                            dct[block_k] = [m.group(2)]
+                            block_step = 3
+                            continue
+                        else:
+                            block_step = 0
+                    elif block_step == 3:
+                        if indent == indent_level:
+                            dct[block_k].append(m.group(2))
+                            prev_k = index_normalize(k)
+                            continue
+                        else:
+                            block_step = 0
+
+                    #print '-> ',indent,indent_level,block_step
+                            
+                    if indent < indent_level:
+                        dct = indent_node.get(indent)
+                        while dct is None:
+                            indent -= 1
+                            dct = indent_node.get(indent)
+                        indent_level = indent
+                        for ik in indent_node.keys():
+                            if ik > indent:
+                                del indent_node[ik]
+                        if not v:
+                            block_step = 2
+                    elif indent > indent_level:
+                        if prev_k is not None:
+                            if prev_v:
+                                dct[prev_k] = {prev_k:prev_v}
+                            else:
+                                dct[prev_k] = {}
+                            dct = dct[prev_k]
+                        indent_node[indent] = dct
+                        indent_level = indent
+                                                
+                    k = index_normalize(k)
+                    if k in dct:
+                        prev_v = dct[k]
+                        if isinstance(prev_v,dict):
+                            dct[k]=[prev_v,{}]
+                            dct = dct[k][-1]
+                        elif isinstance(prev_v,basestring):
+                            dct[k]=[prev_v,v]
+                        else:
+                            if isinstance(prev_v[0],basestring):
+                                dct[k].append(v)
+                            else:
+                                dct[k].append({})
+                                dct = dct[k][-1]
+                        prev_k = None
+                    else:
+                        dct[k]=v
+                        prev_k = k
+                        prev_v = v
+        return out
+
+
 class state_pattern(TextOp):
     r""" States and patterns parser
 
