@@ -1,3 +1,9 @@
+0.1.9 (2015-12-15)
+------------------
+
+* Add eformat
+* Add context dict parameter for format and render operations
+
 0.1.8 (2015-12-10)
 ------------------
 
