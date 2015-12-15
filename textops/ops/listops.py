@@ -744,7 +744,7 @@ class renderlists(TextOp):
 class renderdicts(TextOp):
     r"""Formats list of dicts
 
-    It works like :class:`renderdicts` except it does NOT do the final join.
+    It works like :class:`formatdicts` except it does NOT do the final join.
 
     Args:
         format_str(str): format string, default is '{key} : {val}\n'
