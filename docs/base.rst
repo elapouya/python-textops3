@@ -25,6 +25,15 @@ dformat
 -------
    .. autofunction:: dformat
 
+eformat
+-------
+   .. autofunction:: eformat
+
+vformat
+-------
+
+   Same syntaxe as :meth:`string.Formatter.vformat`
+
 DictExt
 -------
    .. autoclass:: DictExt

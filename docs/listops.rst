@@ -45,9 +45,17 @@ cat
 ---
    .. autoclass:: cat(context={})
 
+doformat
+--------
+   .. autoclass:: doformat(format_str='{0}\\n',join_str = '', context={}, defvalue='-')
+
 doreduce
 --------
    .. autoclass:: doreduce(reduce_fn, initializer=None)
+
+dorender
+--------
+   .. autoclass:: dorender(format_str='{0}\\n', context={}, defvalue='-')
 
 doslice
 -------
@@ -59,15 +67,15 @@ first
 
 formatdicts
 -----------
-   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '',defvalue='-')
+   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '', context={}, defvalue='-')
 
 formatitems
 -----------
-   .. autoclass:: formatitems(format_str='{0} : {1}\\n',join_str = '')
+   .. autoclass:: formatitems(format_str='{0} : {1}\\n',join_str = '', context={}, defvalue='-')
 
 formatlists
 -----------
-   .. autoclass:: formatlists(format_str='{0} : {1}\\n',join_str = '')
+   .. autoclass:: formatlists(format_str,join_str = '', context={}, defvalue='-')
 
 greaterequal
 ------------
@@ -167,15 +175,15 @@ outrange
 
 renderdicts
 -----------
-   .. autoclass:: renderdicts(format_str='{key} : {val}',defvalue='-')
+   .. autoclass:: renderdicts(format_str='{key} : {val}', context={}, defvalue='-')
 
 renderitems
 -----------
-   .. autoclass:: renderitems(format_str='{0} : {1}')
+   .. autoclass:: renderitems(format_str='{0} : {1}', context={}, defvalue='-')
 
 renderlists
 -----------
-   .. autoclass:: renderlists(format_str='{0} : {1}')
+   .. autoclass:: renderlists(format_str, context={}, defvalue='-')
 
 resplitblock
 ------------

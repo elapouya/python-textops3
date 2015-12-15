@@ -505,6 +505,8 @@ class doformat(TextOp):
     Useful to convert list of string into a simple string
     It converts each string of the list with the ``format_str`` ({0} will receive the string to format),
     then it joins all the strings with ``join_str`` to get a unique simple string.
+    One can specify a context dictionary and a default value : they will be used into the
+    format string : see examples.
 
     Args:
         format_str(str): format string, default is '{0}\n'
@@ -539,6 +541,8 @@ class formatitems(TextOp):
     Useful to convert list of 2-sized tuples into a simple string
     It converts the list of tuple into a list of strings by using the ``format_str``, then it
     joins all the strings with ``join_str`` to get a unique simple string.
+    One can specify a context dictionary and a default value : they will be used into the
+    format string : see examples.
 
     Args:
         format_str(str): format string, default is '{0} : {1}\n'
@@ -573,6 +577,8 @@ class formatlists(TextOp):
     Useful to convert list of lists into a simple string
     It converts the list of lists into a list of strings by using the ``format_str``, then it
     joins all the strings with ``join_str`` to get a unique simple string.
+    One can specify a context dictionary and a default value : they will be used into the
+    format string : see examples.
 
     Args:
         format_str(str): format string
@@ -607,11 +613,14 @@ class formatdicts(TextOp):
     Useful to convert list of dicts into a simple string.
     It converts the list of dicts into a list of strings by using the ``format_str``, then it
     joins all the strings with ``join_str`` to get a unique simple string.
+    One can specify a context dictionary and a default value : they will be used into the
+    format string : see examples.
 
     Args:
         format_str(str): format string, default is '{key} : {val}\n'
         join_str(str): string to join all strings into one unique string, default is ''
-        defvalue(str): The replacement string or function for unexisting keys when formating.
+        context(dict): additional context dictionary
+        defvalue(str or callable): The replacement string or function for unexisting keys when formating.
 
     Returns:
         str: formatted input
@@ -622,6 +631,7 @@ class formatdicts(TextOp):
         'a : 1\nb : 2\nc : -\n'
         >>> input | formatdicts('{key} -> {val}\n',defvalue='N/A')
         'a -> 1\nb -> 2\nc -> N/A\n'
+
         >>> input = [{'name':'Eric','age':47,'level':'guru'},
         ... {'name':'Guido','age':59,'level':'god'}]
         >>> print input | formatdicts('{name}({age}) : {level}\n')   #doctest: +NORMALIZE_WHITESPACE
@@ -629,10 +639,18 @@ class formatdicts(TextOp):
         Guido(59) : god
         >>> print input | formatdicts('{name}', ', ')
         Eric, Guido
+        >>> ctx = {'today':'2015-12-15'}
+        >>> print input | formatdicts('[{today}] {name}({age}) : {level}','\n',context=ctx)
+        [2015-12-15] Eric(47) : guru
+        [2015-12-15] Guido(59) : god
+        >>> del input[0]['name']
+        >>> print input | formatdicts('[{today}] {name}({age}) : {level}','\n',ctx,'Unknown')
+        [2015-12-15] Unknown(47) : guru
+        [2015-12-15] Guido(59) : god
     """
     @classmethod
-    def op(cls,items,format_str='{key} : {val}\n',join_str = '',defvalue='-',*args,**kwargs):
-        return join_str.join([dformat(format_str,dct,defvalue) for dct in items ])
+    def op(cls,items,format_str='{key} : {val}\n',join_str = '', context={}, defvalue='-',*args,**kwargs):
+        return join_str.join([eformat(format_str,(),dict(context,**d),defvalue) for d in items ])
 
 class dorender(TextOp):
     r"""Formats list of strings
@@ -641,6 +659,8 @@ class dorender(TextOp):
 
     Args:
         format_str(str): format string, default is '{0}\n'
+        context(dict): additional context dictionary
+        defvalue(str or callable): The replacement string or function for unexisting keys when formating.
 
     Yields:
         str: formatted input
@@ -650,11 +670,16 @@ class dorender(TextOp):
         ['First name : Eric', 'First name : Guido']
         >>> ['Eric','Guido'] >> dorender('{0} <{0}@github.com>')
         ['Eric <Eric@github.com>', 'Guido <Guido@github.com>']
+        >>> ctx = {'mail_domain' : 'gmail.com'}
+        >>> ['Eric','Guido'] >> dorender('{0} <{0}@{mail_domain}>',context=ctx)
+        ['Eric <Eric@gmail.com>', 'Guido <Guido@gmail.com>']
+        >>> ['Eric','Guido'] >> dorender('{0} <{0}@{key_not_in_context}>',context=ctx, defvalue='N/A')
+        ['Eric <Eric@N/A>', 'Guido <Guido@N/A>']
     """
     @classmethod
-    def op(cls,items,format_str='{0}\n',join_str = '', *args,**kwargs):
+    def op(cls,items,format_str='{0}\n', context={}, defvalue='-', *args,**kwargs):
         for s in cls._tolist(items):
-            yield format_str.format(s)
+            yield eformat(format_str,(s,),context,defvalue)
 
 class renderitems(TextOp):
     r"""Renders list of 2-sized tuples
@@ -663,6 +688,8 @@ class renderitems(TextOp):
 
     Args:
         format_str(str): format string, default is '{0} : {1}'
+        context(dict): additional context dictionary
+        defvalue(str or callable): The replacement string or function for unexisting keys when formating.
 
     Yields:
         str: formatted string
@@ -672,11 +699,17 @@ class renderitems(TextOp):
         ['key1 -> val1', 'key2 -> val2']
         >>> [('key1','val1'),('key2','val2')] >> renderitems('{0}:{1}')
         ['key1:val1', 'key2:val2']
+        >>> ctx = {'today':'2015-12-15'}
+        >>> [('key1','val1'),('key2','val2')] >> renderitems('[{today}] {0}:{1}',ctx)
+        ['[2015-12-15] key1:val1', '[2015-12-15] key2:val2']
+        >>> [('key1','val1'),('key2','val2')] >> renderitems('[{to_day}] {0}:{1}',ctx,'unknown')
+        ['[unknown] key1:val1', '[unknown] key2:val2']
+
     """
     @classmethod
-    def op(cls,items,format_str='{0} : {1}', *args,**kwargs):
-        for k,v in cls._tolist(items):
-            yield format_str.format(k,v)
+    def op(cls,items,format_str='{0} : {1}', context={}, defvalue='-', *args,**kwargs):
+        for l in cls._tolist(items):
+            yield eformat(format_str,l,context,defvalue)
 
 class renderlists(TextOp):
     r"""Formats list of lists
@@ -685,20 +718,28 @@ class renderlists(TextOp):
 
     Args:
         format_str(str): format string, default is '{0} : {1}'
+        context(dict): additional context dictionary
+        defvalue(str or callable): The replacement string or function for unexisting keys when formating.
 
     Yields:
         str: formatted string
 
     Examples:
-        >>> [['key1','val1','help1'],['key2','val2','help2']] >> renderlists('{2} : {0} -> {1}')
+        >>> input = [['key1','val1','help1'],['key2','val2','help2']]
+        >>> input >> renderlists('{2} : {0} -> {1}')
         ['help1 : key1 -> val1', 'help2 : key2 -> val2']
-        >>> [['key1','val1','help1'],['key2','val2','help2']] >> renderlists('{0}:{1} ({2})')
+        >>> input >> renderlists('{0}:{1} ({2})')
         ['key1:val1 (help1)', 'key2:val2 (help2)']
+        >>> ctx = {'today':'2015-12-15'}
+        >>> input >> renderlists('[{today}] {0}:{1} ({2})',ctx)
+        ['[2015-12-15] key1:val1 (help1)', '[2015-12-15] key2:val2 (help2)']
+        >>> input >> renderlists('[{to_day}] {0}:{1} ({2})',ctx,'unknown')
+        ['[unknown] key1:val1 (help1)', '[unknown] key2:val2 (help2)']
     """
     @classmethod
-    def op(cls,items,format_str='{0} : {1}', *args,**kwargs):
-        for lst in cls._tolist(items):
-            yield format_str.format(*lst)
+    def op(cls,items,format_str, context={}, defvalue='-', *args,**kwargs):
+        for l in cls._tolist(items):
+            yield eformat(format_str,l,context,defvalue)
 
 class renderdicts(TextOp):
     r"""Formats list of dicts
@@ -707,7 +748,8 @@ class renderdicts(TextOp):
 
     Args:
         format_str(str): format string, default is '{key} : {val}\n'
-        defvalue(str): The replacement string or function for unexisting keys when formating.
+        context(dict): additional context dictionary
+        defvalue(str or callable): The replacement string or function for unexisting keys when formating.
 
     Yields:
         str: formatted string
@@ -718,17 +760,23 @@ class renderdicts(TextOp):
         ['a : 1', 'b : 2', 'c : -']
         >>> input >> renderdicts('{key} -> {val}',defvalue='N/A')
         ['a -> 1', 'b -> 2', 'c -> N/A']
+
         >>> input = [{'name':'Eric','age':47,'level':'guru'},
         ... {'name':'Guido','age':59,'level':'god'}]
         >>> input >> renderdicts('{name}({age}) : {level}')   #doctest: +NORMALIZE_WHITESPACE
         ['Eric(47) : guru', 'Guido(59) : god']
         >>> input >> renderdicts('{name}')
         ['Eric', 'Guido']
+        >>> ctx = {'today':'2015-12-15'}
+        >>> input >> renderdicts('[{today}] {name}({age}) : {level}', ctx)   #doctest: +NORMALIZE_WHITESPACE
+        ['[2015-12-15] Eric(47) : guru', '[2015-12-15] Guido(59) : god']
+        >>> input >> renderdicts('[{to_day}] {name}({age}) : {level}', ctx, 'unknown')
+        ['[unknown] Eric(47) : guru', '[unknown] Guido(59) : god']
     """
     @classmethod
-    def op(cls,items,format_str='{key} : {val}',defvalue='-',*args,**kwargs):
-        for dct in cls._tolist(items):
-            yield dformat(format_str,dct,defvalue)
+    def op(cls,items,format_str='{key} : {val}', context={}, defvalue='-',*args,**kwargs):
+        for d in cls._tolist(items):
+            yield eformat(format_str,(),dict(context,**d),defvalue)
 
 class first(TextOp):
     r"""Return the first line/item from the input text
@@ -914,7 +962,7 @@ class less(TextOp):
 
 class skess(TextOp):
     r"""skip x lines at the beginning and y at the end from the input text
-    
+
     This will do a :class:`skip` and a :class:`less` in a single operation.
 
     Args:
@@ -945,7 +993,7 @@ class skess(TextOp):
         for line in cls._tolist(text):
             if begin > 0:
                 begin -= 1
-            else: 
+            else:
                 buffer.append(line)
                 if len(buffer) > end:
                     yield buffer.pop(0)
