@@ -668,6 +668,8 @@ class UnicodeExt(unicode):
         return extend_type(super(UnicodeExt, self).__rmod__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
         return extend_type(super(UnicodeExt, self).__format__(*args, **kwargs))
+    def _ipython_display_(self):
+        print self.__repr__()
 
 class StrExt(str):
     """Extend str class to gain access to textops as attributes
@@ -704,6 +706,8 @@ class StrExt(str):
         return extend_type(super(StrExt, self).__rmod__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
         return extend_type(super(StrExt, self).__format__(*args, **kwargs))
+    def _ipython_display_(self):
+        print self.__repr__()
 
 class ListExt(list):
     """Extend list class to gain access to textops as attributes
@@ -744,6 +748,8 @@ class ListExt(list):
         return extend_type(super(ListExt, self).__format__(*args, **kwargs))
     def __iter__(self):
         return ListExtIterator(self)
+    def _ipython_display_(self):
+        print self.__repr__()
 
 class ListExtIterator(object):
     def __init__(self, obj):
