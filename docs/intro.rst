@@ -267,16 +267,16 @@ Many doctests as been developped, you can run them this way::
 Build documentation
 -------------------
 
-An already compiled and up-to-date documentation should be available `here<http://python-textops.readthedocs.org>`.
+An already compiled and up-to-date documentation should be available `here <http://python-textops.readthedocs.org>`_.
 Nevertheless, one can build the documentation :
 
-For HTML:: 
+For HTML::
 
    cd docs
    make html
    cd _build/html
    firefox ./index.html
-   
+
 For PDF, you may have to install some linux packages::
 
    sudo apt-get install texlive-latex-recommended texlive-latex-extra

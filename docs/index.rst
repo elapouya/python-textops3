@@ -10,9 +10,11 @@
    :align: center
 
 |
-| python-textops provides many text operations at string level, list level or whole text level.
+| `python-textops <http://python-textops.readthedocs.org>`_ provides many text operations at string level, list level or whole text level.
 | These operations can be chained with a 'dotted' or 'piped' notation.
 | Chained operations are stored into a single lazy object, they will be executed only when an input text will be provided.
+
+python-textops is used into some other projects like `python-nagios-helpers <http://python-nagios-helpers.readthedocs.org>`_
 
 .. toctree::
    :maxdepth: 1
