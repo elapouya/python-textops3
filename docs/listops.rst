@@ -189,6 +189,10 @@ resplitblock
 ------------
    .. autoclass:: resplitblock(pattern, include_separator=0, skip_first=False)
 
+rmblank
+-------
+   .. autoclass:: rmblank()
+
 run
 ---
    .. autoclass:: run(context={})
