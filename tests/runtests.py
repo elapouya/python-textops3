@@ -19,7 +19,7 @@ print '=' * 60
 for m in modules:
     print 'Testing %s ...' % m
     mod = __import__(m,fromlist=[''])
-    fcount, tcount = doctest.testmod(mod,globs=globals())
+    fcount, tcount = doctest.testmod(mod,globs=globals(),optionflags=doctest.REPORT_NDIFF)
     failed += fcount
     tested += tcount
 
@@ -27,7 +27,7 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 for f in files:
     print 'Testing %s ...' % f
     path = os.path.join(base_dir,f)
-    fcount, tcount = doctest.testfile(path,False,globs=globals())
+    fcount, tcount = doctest.testfile(path,False,globs=globals(),optionflags=doctest.REPORT_NDIFF)
     failed += fcount
     tested += tcount
 
