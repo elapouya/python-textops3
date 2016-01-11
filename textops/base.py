@@ -426,8 +426,10 @@ class TextOp(object):
 
     @classmethod
     def _tolist(cls,text):
-        if isinstance(text, basestring):
+        if isinstance(text, str):
             return str.splitlines(text)
+        elif isinstance(text, unicode):
+            return unicode.splitlines(text)
         elif isinstance(text, dict):
             return text.iteritems()
         elif isinstance(text, (int,float)):
