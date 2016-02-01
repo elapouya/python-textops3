@@ -231,7 +231,7 @@ subitem
 
 subitems
 --------
-   .. autoclass:: subitem(ntab)
+   .. autoclass:: subitems(ntab)
 
 tail
 ----
