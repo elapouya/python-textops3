@@ -81,6 +81,7 @@ class cat(TextOp):
         for path in cls._tolist(text):
             if context:
                 path = path.format(**context)
+            path = os.path.expanduser(path)
             if os.path.isfile(path) or os.path.islink(path):
                 with open(path) as fh:
                     for line in fh:
@@ -2177,3 +2178,45 @@ class resplitblock(TextOp):
         if pos < len(text):
             blks.append(text[pos:])
         return blks
+    
+class aggregate(TextOp):
+    r"""aggregate several lines into one depending on arguments
+
+    This is useful when some messages are splitted into several lines and one want to have them on
+    one single line back (to do some grep for instance).
+     
+    Args:
+        having (str or regex): The lines having the specified pattern are merged with the previous 
+            one. If the pattern include a group, only its matched string will be merged.
+        join_str (str): Join string when merging lines (Default: ', ')
+
+    Returns:
+        generator: aggregated input text
+
+    Examples:
+        >>> s='''
+        ... '''
+    """
+    flags = 0
+
+    @classmethod
+    def op(cls, text, having, join_str=', ', *args,**kwargs):
+        if isinstance(having, basestring):
+            having = re.compile(having,kwargs.get('flags',cls.flags))
+        
+        buffer=[]
+        for line in cls._tolist(text):
+            if not buffer:
+                buffer.append(line)
+            else:
+                m = having.match(line)
+                if m:
+                    for grp in m.groups(): 
+                        if grp is not None:
+                            line = grp
+                            break
+                    buffer.append(line)
+                else:
+                    yield join_str.join(buffer)
+                    buffer = [line]
+        yield join_str.join(buffer)
