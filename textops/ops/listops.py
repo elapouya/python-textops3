@@ -2178,45 +2178,97 @@ class resplitblock(TextOp):
         if pos < len(text):
             blks.append(text[pos:])
         return blks
-    
+
 class aggregate(TextOp):
     r"""aggregate several lines into one depending on arguments
 
     This is useful when some messages are splitted into several lines and one want to have them on
     one single line back (to do some grep for instance).
-     
+
     Args:
-        having (str or regex): The lines having the specified pattern are merged with the previous 
-            one. If the pattern include a group, only its matched string will be merged.
+        having (str or regex or callable): The lines having the specified pattern are merged
+            with the previous one. The pattern must include two named groups :
+            ``(?<key>pattern1)`` that must match the pattern which tells the line must be aggregated or not,
+            and ``(?<msg>pattern2)`` that specifies what part of the line have to be aggregated
+            (the whole line is not present).
+            One can also specify a callable that accepts as arguments : the buffer and the line being tested
+            and returns a ``key,msg`` tuple. ``key`` must contain the string that is the criteria to
+            have the line aggregated or be ``None`` if the line is not to be aggregated. ``msg``
+            must be the part of the line to be aggregated
+        same_key (bool): if False (Default) : lines are aggregated only if key is not None,
+            if True, lines are aggregated only if the key is not None AND with the same value as
+            the previous one. This is useful for log files with timestamp : a message block has usualy
+            the same timestamp on all the lines.
         join_str (str): Join string when merging lines (Default: ', ')
 
     Returns:
         generator: aggregated input text
 
     Examples:
-        >>> s='''
+        >>> s='''Message 1
+        ... Message 2 : This is a multiple line message :
+        ... > In this example,
+        ... > lines to be aggregated begin with '> '
+        ... > use '(?P<msg>pattern)' in regex to select what should be aggregated
+        ... > default join string is '|'
+        ... Message 3
+        ... Message 4
         ... '''
+        >>> print s | aggregate(r'(?P<key>> )(?P<msg>.*)').tostr()
+        Message 1
+        Message 2 : This is a multiple line message :|In this example,|lines to be aggregated begin with '> '|use '(?P<msg>pattern)' in regex to select what should be aggregated|default join string is '|'
+        Message 3
+        Message 4
+
+        >>> s='''2016-02-16 11:39:03 Message 1
+        ... 2016-02-16 11:40:10 Message 2 info 1
+        ... 2016-02-16 11:40:10 info 2
+        ... 2016-02-16 11:41:33 Message 3 info A
+        ... 2016-02-16 11:41:33 info B
+        ... 2016-02-16 11:41:33 info C
+        ... 2016-02-16 11:44:26 Message 4
+        ... '''
+        >>> print s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)').tostr()
+        Message 1|Message 2 info 1|info 2|Message 3 info A|info B|info C|Message 4
+        >>> print s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)',same_key=True).tostr()
+        2016-02-16 11:39:03 Message 1
+        2016-02-16 11:40:10 Message 2 info 1|info 2
+        2016-02-16 11:41:33 Message 3 info A|info B|info C
+        2016-02-16 11:44:26 Message 4
     """
     flags = 0
 
     @classmethod
-    def op(cls, text, having, join_str=', ', *args,**kwargs):
+    def op(cls, text, having, same_key=False, join_str='|', *args,**kwargs):
         if isinstance(having, basestring):
             having = re.compile(having,kwargs.get('flags',cls.flags))
-        
+
         buffer=[]
+        prev_key=None
         for line in cls._tolist(text):
-            if not buffer:
-                buffer.append(line)
+            key = None
+            if callable(having):
+                key,msg = having(buffer,line)
             else:
                 m = having.match(line)
                 if m:
-                    for grp in m.groups(): 
-                        if grp is not None:
-                            line = grp
-                            break
-                    buffer.append(line)
+                    grpdct = m.groupdict()
+                    key = grpdct.get('key')
+                    msg = grpdct.get('msg')
+            if key is not None:
+                if not same_key or key == prev_key:
+                    if msg is None:
+                        buffer.append(line)
+                    else:
+                        buffer.append(msg)
                 else:
-                    yield join_str.join(buffer)
+                    if buffer:
+                        yield join_str.join(buffer)
                     buffer = [line]
+                prev_key = key
+            else:
+                if buffer:
+                    yield join_str.join(buffer)
+                buffer = [line]
+                prev_key = None
         yield join_str.join(buffer)
