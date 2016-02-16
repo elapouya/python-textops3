@@ -17,6 +17,10 @@ afteri
 ------
    .. autoclass:: afteri(pattern, get_begin=False, key=None)
 
+aggregate
+---------
+   .. autoclass:: aggregate(having, same_key=False, join_str='|')
+
 before
 ------
    .. autoclass:: before(pattern, get_end=False, key=None)
