@@ -437,6 +437,18 @@ class TextOp(object):
         return text
 
     @classmethod
+    def _tosublist(cls,text):
+        if isinstance(text, str):
+            return [ [line] for line in str.splitlines(text) ]
+        elif isinstance(text, unicode):
+            return [ [line] for line in unicode.splitlines(text) ]
+        elif isinstance(text, (int,float,dict)):
+            return [[text]]
+        elif isinstance(text, list) and (not text or not isinstance(text[0],list)):
+            return [text]
+        return text
+
+    @classmethod
     def _tostr(cls,text):
         if not isinstance(text, basestring):
             return '\n'.join(text)

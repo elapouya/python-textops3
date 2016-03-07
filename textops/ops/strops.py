@@ -233,8 +233,8 @@ class cut(StrOp):
     flags = 0
 
     @classmethod
-    def split(cls, text, sep, *args,**kwargs):
-        return text.split(sep)
+    def split(cls, text, sep, maxsplit=-1,*args,**kwargs):
+        return text.split(sep,maxsplit)
 
     @classmethod
     def fn(cls, text, sep=None, col=None, default='', *args,**kwargs):
@@ -305,8 +305,8 @@ class cutre(cut):
     sep_is_regex = True
 
     @classmethod
-    def split(cls, text, sep, *args,**kwargs):
-        return sep.split(text)
+    def split(cls, text, sep, maxsplit=0, *args,**kwargs):
+        return sep.split(text,maxsplit)
 
 class cutca(cut):
     r""" Extract columns from a string or a list of strings through pattern capture

@@ -1795,7 +1795,8 @@ class merge_dicts(TextOp):
 class span(TextOp):
     r"""Ensure that a list of lists has exactly the specified number of column
 
-    This is useful in for-loop with multiple assignment
+    This is useful in for-loop with multiple assignment.
+    If only simple list or strings are given, they are converted into list of list.
 
     Args:
         nbcols(int): number columns to return
@@ -1819,11 +1820,16 @@ class span(TextOp):
         d e f
         i j k
         - - -
+        >>> 'a b' | cut()
+        ['a', 'b']
+        >>> 'a b' | cut().span(3,'-').tolist()
+        [['a', 'b', '-']]
+
     """
     @classmethod
     def op(cls, text, nbcols, fill_str='', *args,**kwargs):
         fill_list = [fill_str] * nbcols
-        for sublist in cls._tolist(text):
+        for sublist in cls._tosublist(text):
             yield (sublist+fill_list)[:nbcols]
 
 class doslice(TextOp):
