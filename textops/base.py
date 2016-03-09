@@ -631,7 +631,7 @@ def get_attribute_or_textop(obj,name):
             if isinstance(obj,DictExt):
                 return NoAttr
             def fn(*args,**kwargs):
-                return map(lambda s:getattr(str, name)(s,*args,**kwargs),obj)
+                return map(lambda s:getattr(str if isinstance(s,str) else unicode, name)(s,*args,**kwargs),obj)
 
     if not callable(fn):
         return fn

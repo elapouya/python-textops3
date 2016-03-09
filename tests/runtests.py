@@ -1,6 +1,7 @@
 import doctest
 from textops import *
 import os
+import json
 
 modules = [ 'textops.base',
             'textops.ops.strops',
@@ -8,6 +9,7 @@ modules = [ 'textops.base',
             'textops.ops.wrapops',
             'textops.ops.cast',
             'textops.ops.parse',
+            'textops.ops.recode',
             ]
 files = [ 'docs/intro.rst' ]
 
