@@ -25,6 +25,7 @@ python-textops is used into some other projects like `python-nagios-helpers <htt
    wrapops
    parse
    cast
+   recode
    base
 
 Indices and tables
