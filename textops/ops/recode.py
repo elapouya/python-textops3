@@ -13,6 +13,68 @@ import re
 
 MULTIPLELINESTRING_TAG = '{0:-^78}'.format('< Multiline string as list >')
 
+class list_to_multilinestring(TextOp):
+    r"""In a data structure, change all tagged list of strings into multiline strings
+
+    This is useful to undo data recoded by :class:`multilinestring_to_list`.
+
+    Returns:
+        Same data structure with tagged lists replaced by multiple line strings.
+
+    Examples:
+
+        >>> data=[
+        ...    [
+        ...        "-------------------------< Multiline string as list >-------------------------",
+        ...        "line1",
+        ...        "line2",
+        ...        "line3"
+        ...    ],
+        ...    {
+        ...        "key2": [
+        ...            "-------------------------< Multiline string as list >-------------------------",
+        ...            "lineA",
+        ...            "lineB",
+        ...            "lineC",
+        ...            "lineD"
+        ...        ],
+        ...        "key1": "one line"
+        ...    }
+        ... ]
+        >>> data | list_to_multilinestring()
+        ['line1\nline2\nline3', {'key2': 'lineA\nlineB\nlineC\nlineD', 'key1': 'one line'}]
+    """
+
+    @classmethod
+    def _l2m_recode(cls,val,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
+        return '\n'.join(val[1:])
+
+    @classmethod
+    def _l2m_walk(cls,obj,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
+        if isinstance(obj,list):
+            for key,val in enumerate(obj):
+                if val and isinstance(val,list) and val[0]==tag:
+                    obj[key] = cls._l2m_recode(val,*args,**kwargs)
+                else:
+                    cls._l2m_walk(val)
+        elif isinstance(obj,dict):
+            for key,val in obj.items():
+                if val and isinstance(val,list) and val[0]==tag:
+                    obj[key] = cls._l2m_recode(val,*args,**kwargs)
+                else:
+                    cls._l2m_walk(val)
+        elif isinstance(obj,basestring):
+            return cls._l2m_recode(obj,*args,**kwargs)
+
+    @classmethod
+    def op(cls,text,in_place=False,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
+        if text and isinstance(text,list) and text[0]==tag:
+            return cls._l2m_recode(text,*args,**kwargs)
+        if not in_place:
+            text = copy.deepcopy(text)
+        cls._l2m_walk(text,*args,**kwargs)
+        return text
+
 class multilinestring_to_list(TextOp):
     r"""In a data structure, change all multiline strings into a list of strings
 
@@ -82,67 +144,4 @@ class multilinestring_to_list(TextOp):
         if not in_place:
             text = copy.deepcopy(text)
         cls._m2l_walk(text,*args,**kwargs)
-        return text
-
-
-class list_to_multilinestring(TextOp):
-    r"""In a data structure, change all tagged list of strings into multiline strings
-
-    This is useful to undo data recoded by :class:`multilinestring_to_list`.
-
-    Returns:
-        Same data structure with tagged lists replaced by multiple line strings.
-
-    Examples:
-
-        >>> data=[
-        ...    [
-        ...        "-------------------------< Multiline string as list >-------------------------",
-        ...        "line1",
-        ...        "line2",
-        ...        "line3"
-        ...    ],
-        ...    {
-        ...        "key2": [
-        ...            "-------------------------< Multiline string as list >-------------------------",
-        ...            "lineA",
-        ...            "lineB",
-        ...            "lineC",
-        ...            "lineD"
-        ...        ],
-        ...        "key1": "one line"
-        ...    }
-        ... ]
-        >>> data | list_to_multilinestring()
-        ['line1\nline2\nline3', {'key2': 'lineA\nlineB\nlineC\nlineD', 'key1': 'one line'}]
-    """
-
-    @classmethod
-    def _l2m_recode(cls,val,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
-        return '\n'.join(val[1:])
-
-    @classmethod
-    def _l2m_walk(cls,obj,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
-        if isinstance(obj,list):
-            for key,val in enumerate(obj):
-                if val and isinstance(val,list) and val[0]==tag:
-                    obj[key] = cls._l2m_recode(val,*args,**kwargs)
-                else:
-                    cls._l2m_walk(val)
-        elif isinstance(obj,dict):
-            for key,val in obj.items():
-                if val and isinstance(val,list) and val[0]==tag:
-                    obj[key] = cls._l2m_recode(val,*args,**kwargs)
-                else:
-                    cls._l2m_walk(val)
-        elif isinstance(obj,basestring):
-            return cls._l2m_recode(obj,*args,**kwargs)
-
-    @classmethod
-    def op(cls,text,in_place=False,tag=MULTIPLELINESTRING_TAG, *args,**kwargs):
-        if text and isinstance(text,list) and text[0]==tag:
-            return cls._l2m_recode(text,*args,**kwargs)
-        if not in_place:
-            text = copy.deepcopy(text)
-        cls._l2m_walk(text,*args,**kwargs)
         return text

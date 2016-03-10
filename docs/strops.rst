@@ -45,6 +45,14 @@ cutsi
 -----
    .. autoclass:: cutsi(sep, col=None, default='')
 
+cutsa
+-----
+   .. autoclass:: cutsa(sep, col=None, default='')
+
+cutsai
+------
+   .. autoclass:: cutsai(sep, col=None, default='')
+
 echo
 ----
    .. autoclass:: echo( )

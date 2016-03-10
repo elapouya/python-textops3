@@ -354,7 +354,8 @@ class cutca(cut):
 class cutm(cut):
     r""" Extract exactly one column by using :func:`re.match`
 
-    This is a shortcut for ``cutca('mypattern',col=0)``
+    It returns the matched pattern. Beware : the pattern must match the beginning of the line.
+    One may use capture parenthesis to only return a part of the found pattern.
 
         * if the input is a simple string, :class:`textops.cutm` will return a strings
           representing the captured substring.
@@ -379,8 +380,12 @@ class cutm(cut):
     Examples:
 
         >>> s='-col1- =col2= _col3_'
-        >>> s | cutm(r'[^-]*-([^-]*)-')
-        'col1'
+        >>> s | cutm(r'[^=]*=[^=]*=')
+        '-col1- =col2='
+        >>> s | cutm(r'=[^=]*=')
+        ''
+        >>> s | cutm(r'[^=]*=([^=]*)=')
+        'col2'
         >>> s=['-col1- =col2= _col3_','-col11- =col22= _col33_']
         >>> s | cutm(r'[^-]*-([^-]*)-')
         ['col1', 'col11']
@@ -392,12 +397,17 @@ class cutm(cut):
     @classmethod
     def split(cls, text, sep, *args,**kwargs):
         m = sep.match(text)
-        return m.groups()[0] if m else None
+        if not m:
+            return None
+        g = m.groups()
+        if not g:
+            return m.group(0)
+        return g[0]
 
 class cutmi(cutm):
     r""" Extract exactly one column by using :func:`re.match` (case insensitive)
 
-    This works like :class:`textops.cutm` except it is caseinsensitive.
+    This works like :class:`textops.cutm` except it is case insensitive.
 
         * if the input is a simple string, :class:`textops.cutmi` will return a strings
           representing the captured substring.
@@ -425,7 +435,7 @@ class cutmi(cutm):
         >>> s | cutm(r'.*(COL\d+)',default='no found')
         'no found'
         >>> s='-col1- =col2= _col3_'
-        >>> s | cutmi(r'.*(COL\d+)',default='no found')
+        >>> s | cutmi(r'.*(COL\d+)',default='no found')  #as .* is the longest possible, only last column is extracted
         'col3'
     """
     flags = re.IGNORECASE
@@ -434,7 +444,7 @@ class cuts(cut):
     r""" Extract exactly one column by using :func:`re.search`
 
     This works like :class:`textops.cutm` except it searches the first occurence of the pattern in
-    the string.
+    the string. One may use capture parenthesis to only return a part of the found pattern.
 
         * if the input is a simple string, :class:`textops.cuts` will return a strings
           representing the captured substring.
@@ -459,6 +469,8 @@ class cuts(cut):
     Examples:
 
         >>> s='-col1- =col2= _col3_'
+        >>> s | cuts(r'_[^_]*_')
+        '_col3_'
         >>> s | cuts(r'_([^_]*)_')
         'col3'
         >>> s=['-col1- =col2= _col3_','-col11- =col22= _col33_']
@@ -470,18 +482,17 @@ class cuts(cut):
     @classmethod
     def split(cls, text, sep, *args,**kwargs):
         m = sep.search(text)
-        return m.groups()[0] if m else None
+        if not m:
+            return None
+        g = m.groups()
+        if not g:
+            return m.group(0)
+        return g[0]
 
 class cutsi(cuts):
-    r""" Extract exactly one column by using :func:`re.search`
+    r""" Extract exactly one column by using :func:`re.search` (case insensitive)
 
-    This works like :class:`textops.cutm` except it searches the first occurence of the pattern in
-    the string.
-
-        * if the input is a simple string, :class:`textops.cutsi` will return a strings
-          representing the captured substring.
-        * if the input is a list of strings or a string with newlines, :class:`textops.cutsi` will
-          return a list of captured substring.
+    This works like :class:`textops.cuts` except it is case insensitive.
 
     Args:
         sep (str or re.RegexObject): a regular expression string or object having capture parenthesis
@@ -506,6 +517,86 @@ class cutsi(cuts):
         >>> s='-col1- =col2= _col3_'
         >>> s | cutsi(r'_(COL[^_]*)_')
         'col3'
+    """
+    flags = re.IGNORECASE
+
+class cutsa(cut):
+    r""" Extract all columns having the specified pattern.
+
+    It uses :func:`re.finditer` to find all occurences of the pattern.
+
+        * if the input is a simple string, :class:`textops.cutfa` will return a list of found strings.
+        * if the input is a list of strings or a string with newlines, :class:`textops.cutfa` will
+          return a list of list of found string.
+
+    Args:
+        sep (str or re.RegexObject): a regular expression string or object having capture parenthesis
+        col (int or list of int or str) : specify one or many columns you want to get back,
+            You can specify :
+
+            * an int as a single column number (starting with 0)
+            * a list of int as the list of colmun
+            * a string containing a comma separated list of int
+            * None (default value) for all columns
+
+        default (str): A string to display when requesting a column that does not exist
+
+    Returns:
+        a list of strings or a list of list of strings
+
+    Examples:
+
+        >>> s='-col1- =col2= _col3_'
+        >>> s | cutsa(r'col\d+')
+        ['col1', 'col2', 'col3']
+        >>> s | cutsa(r'col(\d+)')
+        ['1', '2', '3']
+        >>> s=['-col1- =col2= _col3_','-col11- =col22= _col33_']
+        >>> s | cutsa(r'col\d+')
+        [['col1', 'col2', 'col3'], ['col11', 'col22', 'col33']]
+    """
+    sep_is_regex = True
+
+    @classmethod
+    def split(cls, text, sep, *args,**kwargs):
+        cols=[]
+        for m in sep.finditer(text):
+            g = m.groups()
+            cols.append(g[0] if g else m.group(0))
+        return cols
+
+class cutsai(cutsa):
+    r""" Extract all columns having the specified pattern. (case insensitive)
+
+    It works like :class:`textops.cutsa` but is case insensitive if the pattern is given as a string.
+
+    Args:
+        sep (str or re.RegexObject): a regular expression string or object having capture parenthesis
+        col (int or list of int or str) : specify one or many columns you want to get back,
+            You can specify :
+
+            * an int as a single column number (starting with 0)
+            * a list of int as the list of colmun
+            * a string containing a comma separated list of int
+            * None (default value) for all columns
+
+        default (str): A string to display when requesting a column that does not exist
+
+    Returns:
+        a list of strings or a list of list of strings
+
+    Examples:
+
+        >>> s='-col1- =col2= _col3_'
+        >>> s | cutsa(r'COL\d+')
+        []
+        >>> s | cutsai(r'COL\d+')
+        ['col1', 'col2', 'col3']
+        >>> s | cutsai(r'COL(\d+)')
+        ['1', '2', '3']
+        >>> s=['-col1- =col2= _col3_','-col11- =col22= _col33_']
+        >>> s | cutsai(r'COL\d+')
+        [['col1', 'col2', 'col3'], ['col11', 'col22', 'col33']]
     """
     flags = re.IGNORECASE
 
