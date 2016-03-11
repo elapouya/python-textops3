@@ -999,6 +999,125 @@ class skess(TextOp):
                 if len(buffer) > end:
                     yield buffer.pop(0)
 
+class findhighlight(TextOp):
+    r"""find one or more pattern in a text then higlight it
+
+    This returns lines with found pattern with surrounding lines. By default,
+    it surrounds found pattern with ``>>> <<<`` and its lines with ``->``. This can be
+    redefined for console (to add color escape sequence) or for the web (html tags).
+
+    Args:
+        pattern (str or regex): the pattern to search in the input text
+        line_prefix (str): the prefix string to add on every line except the lines where the pattern
+            has been found. You may use ``{line}`` to add the line number.
+        line_suffix (str): the suffix string to add on every line except the lines where the pattern
+            has been found. You may use ``{line}`` to add the line number.
+        hline_prefix (str): the prefix string to add on lines where the pattern
+            has been found. You may use ``{line}`` to add the line number.
+        hline_suffix (str): the suffix string to add on lines where the pattern
+            has been found. You may use ``{line}`` to add the line number.
+        found_prefix (str): The prefix to be  added at the found pattern start position.
+        found_suffix (str): The suffix to be added at the found pattern end position.
+        nlines (int): the number of lines to display before and after the line with the found pattern.
+            If ``0`` is specified (This is the Default) : all lines are displayed. 
+            If you want not the same number of lines before and after, 
+            do not specify this parameter and use ``blines`` and ``elines``
+        blines (int): number of lines to display before
+        elines (int): number of lines to display after
+        ellipsis (str): the string to display between groups of lines (Default : ``...``)
+        findall (bool): Find all pattern (Default) otherwise only find the first line with the pattern.
+        ignorecase (bool): if True, the given pattern is case insensitive) (Default : False)
+        line_nbr (bool): add line numbers in line_prefix and hline_prefix (Default : False)
+        
+    Yields:
+        str: lines with found pattern with surrounding lines
+
+    Examples:
+        >>> s='''
+        ... this is
+        ... a big
+        ... listing
+        ... with some ERROR
+        ... and I want to know
+        ... where are
+        ... located
+        ... this error in
+        ... the
+        ... whole
+        ... text'''
+        >>> print s | findhighlight('error',line_nbr=True,ignorecase=True).tostr() # doctest: +NORMALIZE_WHITESPACE
+           1    
+           2    this is
+           3    a big
+           4    listing
+           5 -> with some >>>ERROR<<<
+           6    and I want to know
+           7    where are
+           8    located
+           9 -> this >>>error<<< in
+          10    the
+          11    whole
+          12    text        
+        >>> print s | findhighlight('error',line_nbr=True,ignorecase=True,nlines=1).tostr() # doctest: +NORMALIZE_WHITESPACE
+           4    listing
+           5 -> with some >>>ERROR<<<
+           6    and I want to know
+        ...
+           8    located
+           9 -> this >>>error<<< in
+          10    the
+    """
+    @classmethod
+    def op(cls,text,pattern,line_prefix='   ',line_suffix='', hline_prefix='-> ',hline_suffix='',
+           found_prefix='>>>',found_suffix='<<<',nlines=0, blines=0, elines=0, ellipsis='...',
+           findall=True, ignorecase=False, line_nbr=False, *args,**kwargs):
+        buffer = []
+        blines = blines or nlines
+        elines = elines or nlines
+        if isinstance(pattern,basestring):
+            pattern = re.compile(pattern,re.I if ignorecase else 0)
+        elines_cptr = 0
+        last_found_line = 0
+        if line_nbr:
+            line_prefix='{line:4} '+line_prefix
+            hline_prefix='{line:4} '+hline_prefix
+        for line_nbr,line in enumerate(cls._tolist(text)):
+            hlprefix=hline_prefix.format(line=line_nbr+1)
+            hlsuffix=hline_suffix.format(line=line_nbr+1)
+            lprefix=line_prefix.format(line=line_nbr+1)
+            lsuffix=line_suffix.format(line=line_nbr+1)
+            m=pattern.search(line)
+            if m and (findall or last_found_line==0):
+                if blines:
+                    if last_found_line and ellipsis and line_nbr > last_found_line+blines+elines+1:
+                        yield ellipsis
+                    ellipsis_flag = True
+                    for l in buffer:
+                        yield l
+                    buffer=[]
+                while m:
+                    line = line[:m.end()] + found_suffix + line[m.end():] 
+                    line = line[:m.start()] + found_prefix + line[m.start():]
+                    m=pattern.search(line,m.end()+len(found_prefix+found_suffix))
+                line = hlprefix + line + hlsuffix
+                elines_cptr = elines+1
+                last_found_line = line_nbr
+            else:
+                line = lprefix + line + lsuffix
+
+            buffer.append(line)
+            while len(buffer)>=blines+1 or (elines_cptr>0 and len(buffer)):
+                if not elines or elines_cptr>0:
+                    yield buffer.pop(0)
+                else:
+                    buffer.pop(0)
+                elines_cptr-=1
+
+        for line in buffer:
+            if not elines or elines_cptr>0:
+                yield line
+            elines_cptr-=1    
+
 class sed(TextOp):
     r"""Replace pattern on-the-fly
 
