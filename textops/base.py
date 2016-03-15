@@ -859,12 +859,12 @@ class DictExt(NoAttrDict):
 
         Examples:
 
-        >>> s = '''soft:textops
-        ... count:32591'''
-        >>> s | parse_indented()
-        {'count': '32591', 'soft': 'textops'}
-        >>> s | parse_indented().amend(date='2015-11-19')
-        {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
+            >>> s = '''soft:textops
+            ... count:32591'''
+            >>> s | parse_indented()
+            {'count': '32591', 'soft': 'textops'}
+            >>> s | parse_indented().amend(date='2015-11-19')
+            {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
         """
         return DictExt(self,*args, **kwargs)
     def render(self,format_string,defvalue='-'):
@@ -878,11 +878,11 @@ class DictExt(NoAttrDict):
 
         Examples:
 
-        >>> d = DictExt({'count': '32591', 'date': '2015-11-19', 'soft': 'textops'})
-        >>> d.render('On {date}, "{soft}" has been downloaded {count} times')
-        'On 2015-11-19, "textops" has been downloaded 32591 times'
-        >>> d.render('On {date}, "{not_in_dict}" has been downloaded {count} times','?')
-        'On 2015-11-19, "?" has been downloaded 32591 times'
+            >>> d = DictExt({'count': '32591', 'date': '2015-11-19', 'soft': 'textops'})
+            >>> d.render('On {date}, "{soft}" has been downloaded {count} times')
+            'On 2015-11-19, "textops" has been downloaded 32591 times'
+            >>> d.render('On {date}, "{not_in_dict}" has been downloaded {count} times','?')
+            'On 2015-11-19, "?" has been downloaded 32591 times'
         """
         return dformat(format_string,self,defvalue)
     def __getitem__(self,*args, **kwargs):
@@ -914,6 +914,29 @@ class DefaultList(list):
                 return self.defvalue(key)
             return self.defvalue
 
+def dictmerge(*dict_args):
+    """Merge as many dicts you want
+
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+
+    Args:
+        *dict_args (dict): List of dicts
+
+    Returns:
+        dict: a new merged dict
+
+    Examples:
+
+        >>> dictmerge({'a':1,'b':2},{'b':3,'c':4})
+        ddd
+
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
 string_formatter = string.Formatter()
 vformat = string_formatter.vformat
 
@@ -931,13 +954,13 @@ def dformat(format_str,dct,defvalue='-'):
 
     Examples:
 
-    >>> d = {'count': '32591', 'soft': 'textops'}
-    >>> dformat('{soft} : {count} dowloads',d)
-    'textops : 32591 dowloads'
-    >>> dformat('{software} : {count} dowloads',d,'N/A')
-    'N/A : 32591 dowloads'
-    >>> dformat('{software} : {count} dowloads',d,lambda k:'unknown_tag_%s' % k)
-    'unknown_tag_software : 32591 dowloads'
+        >>> d = {'count': '32591', 'soft': 'textops'}
+        >>> dformat('{soft} : {count} dowloads',d)
+        'textops : 32591 dowloads'
+        >>> dformat('{software} : {count} dowloads',d,'N/A')
+        'N/A : 32591 dowloads'
+        >>> dformat('{software} : {count} dowloads',d,lambda k:'unknown_tag_%s' % k)
+        'unknown_tag_software : 32591 dowloads'
     """
     return vformat(format_str,(),DefaultDict(defvalue,dct))
 
@@ -955,13 +978,13 @@ def eformat(format_str,lst,dct,defvalue='-'):
 
     Examples:
 
-    >>> d = {'count': '32591', 'soft': 'textops'}
-    >>> l = ['Eric','Guido']
-    >>> eformat('{0} => {soft} : {count} dowloads',l,d)
-    'Eric => textops : 32591 dowloads'
-    >>> eformat('{2} => {software} : {count} dowloads',l,d,'N/A')
-    'N/A => N/A : 32591 dowloads'
-    >>> eformat('{2} => {software} : {count} dowloads',l,d,lambda k:'unknown_tag_%s' % k)
-    'unknown_tag_2 => unknown_tag_software : 32591 dowloads'
+        >>> d = {'count': '32591', 'soft': 'textops'}
+        >>> l = ['Eric','Guido']
+        >>> eformat('{0} => {soft} : {count} dowloads',l,d)
+        'Eric => textops : 32591 dowloads'
+        >>> eformat('{2} => {software} : {count} dowloads',l,d,'N/A')
+        'N/A => N/A : 32591 dowloads'
+        >>> eformat('{2} => {software} : {count} dowloads',l,d,lambda k:'unknown_tag_%s' % k)
+        'unknown_tag_2 => unknown_tag_software : 32591 dowloads'
     """
     return vformat(format_str,DefaultList(defvalue,lst),DefaultDict(defvalue,dct))

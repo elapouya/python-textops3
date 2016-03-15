@@ -21,6 +21,10 @@ add_textop_iter
 ---------------
    .. autofunction:: add_textop_iter
 
+dictmerge
+---------
+   .. autofunction:: dictmerge
+
 dformat
 -------
    .. autofunction:: dformat
