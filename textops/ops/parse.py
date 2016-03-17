@@ -6,7 +6,7 @@
 #
 """ This module gathers parsers to handle whole input text"""
 
-from textops import TextOp, NoAttr, dformat, pp
+from textops import TextOp, NoAttr, dformat, pp, stru
 import textops
 import string
 import re
@@ -116,13 +116,13 @@ class mgrep(TextOp):
             for k,regex in patterns_dict.items():
                 try:
                     if isinstance(line,basestring):
-                        if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                        if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                     elif key is None:
-                        if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                        if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                     else:
-                        if bool(regex.search(line[key])) != cls.reverse:  # kind of XOR with cls.reverse
+                        if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                 except (ValueError, TypeError, IndexError, KeyError):
                     pass
@@ -706,7 +706,7 @@ class parse_smart(TextOp):
         dict: structured keys:values
 
     Examples:
-        >>> s = '''                          
+        >>> s = '''
         ... Date/Time:       Wed Dec  2 09:51:17 NFT 2015
         ... Sequence Number: 156637
         ... Machine Id:      00F7B0114C00
@@ -714,25 +714,25 @@ class parse_smart(TextOp):
         ... Class:           H
         ... Type:            PERM
         ...    WPAR:            Global
-        ...    Resource Name:   hdisk21 
+        ...    Resource Name:   hdisk21
         ...       Resource Class:  disk
         ... Resource Type:   mpioapdisk
         ... Location:        U78AA.001.WZSHM0M-P1-C6-T1-W201400A0B8292A18-L13000000000000
-        ... 
-        ... VPD:             
-        ...         Manufacturer................IBM     
-        ...         Machine Type and Model......1815      FAStT 
+        ...
+        ... VPD:
+        ...         Manufacturer................IBM
+        ...         Machine Type and Model......1815      FAStT
         ...         ROS Level and ID............30393134
         ...         Serial Number...............
         ...         Device Specific.(Z0)........0000053245004032
         ...         Device Specific.(Z1)........
-        ... 
+        ...
         ... Description
         ... DISK OPERATION ERROR
-        ... 
+        ...
         ... Probable Causes
         ... DASD DEVICE
-        ... '''        
+        ... '''
         >>> parsed = s >> parse_smart()
         >>> print parsed.pretty()
         {   'class': 'H',
@@ -776,14 +776,14 @@ class parse_smart(TextOp):
                     v = v.strip()
                     indent = len(m.group(1))
                     #print indent,indent_level,block_step,line,'****',prev_k,k
-                    if block_step==1: 
+                    if block_step==1:
                         if not v and re.search(r'\w+',k):
                             block_step = 2
                         else:
                             block_step = 0
                     elif block_step == 2:
                         if indent == indent_level:
-                            block_k = prev_k 
+                            block_k = prev_k
                             prev_k = index_normalize(k)
                             dct[block_k] = [m.group(2)]
                             block_step = 3
@@ -799,7 +799,7 @@ class parse_smart(TextOp):
                             block_step = 0
 
                     #print '-> ',indent,indent_level,block_step
-                            
+
                     if indent < indent_level:
                         dct = indent_node.get(indent)
                         while dct is None:
@@ -820,7 +820,7 @@ class parse_smart(TextOp):
                             dct = dct[prev_k]
                         indent_node[indent] = dct
                         indent_level = indent
-                                                
+
                     k = index_normalize(k)
                     if k in dct:
                         prev_v = dct[k]
@@ -846,10 +846,10 @@ class parse_smart(TextOp):
 class state_pattern(TextOp):
     r""" States and patterns parser
 
-    This is a *state machine* parser : 
+    This is a *state machine* parser :
     The main advantage is that it reads line-by-line the whole input text only once to collect all
     data you want into a multi-level dictionary. It uses patterns to select rules to be applied.
-    It uses states to ensure only a set of rules are used against specific document sections. 
+    It uses states to ensure only a set of rules are used against specific document sections.
 
     Args:
         states_patterns_desc (tupple) : descrption of states and patterns :

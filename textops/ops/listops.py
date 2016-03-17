@@ -6,7 +6,7 @@
 #
 """ This module gathers list/line operations """
 
-from textops import TextOp, dformat, eformat, StrExt
+from textops import TextOp, dformat, eformat, StrExt, stru
 import textops
 import re
 import subprocess
@@ -242,13 +242,13 @@ class grep(TextOp):
         for line in cls._tolist(text):
             try:
                 if isinstance(line,basestring):
-                    if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 elif key is None:
-                    if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 else:
-                    if bool(regex.search(str(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
@@ -360,17 +360,17 @@ class grepc(TextOp):
         for line in cls._tolist(text):
             try:
                 if isinstance(line,basestring):
-                    if bool(regex.search(line)) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
                 elif key is None:
-                    if bool(regex.search(str(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
                 else:
-                    if bool(regex.search(str(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
@@ -499,6 +499,133 @@ class rmblank(grepv):
         ['a', 'b', 'c', 'd']
     """
     pattern = r'^\s*$'
+
+class lcount(TextOp):
+    r"""Count lines
+
+    Returns:
+        int: number of lines
+
+    Examples:
+        >>> input = 'error1\nerror2\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | lcount()
+        6
+    """
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        count = 0
+        for line in cls._tolist(text):
+            count+=1
+        return count
+
+class wcount(TextOp):
+    r"""Count words having a specified pattern
+
+    Args:
+        pattern (str): a regular expression string (case sensitive), if None, all words are counted.
+        key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the matched words count
+
+    Examples:
+        >>> input = 'error1\nerror2 error3\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | grepc('error')
+        2
+        >>> input | wcount('error')
+        3
+        >>> input | wcount(None)
+        7
+    """
+    flags = 0
+    reverse = False
+    pattern = ''
+    @classmethod
+    def op(cls,text,pattern=None,key = None,*args,**kwargs):
+        if text is None:
+            return 0
+        if pattern is None:
+            pattern = cls.pattern
+        regex = re.compile(pattern,cls.flags)
+        count = 0
+        for line in cls._tolist(text):
+            try:
+                if isinstance(line,basestring):
+                    words = re.split('\s+',line.strip())
+                elif isinstance(line,list):
+                    if key is None:
+                        words = line
+                    else:
+                        words = re.split('\s+',stru(line[key]).strip())
+                elif isinstance(line,dict):
+                    if key is None:
+                        words = line.values()
+                    else:
+                        words = re.split('\s+',stru(line[key]).strip())
+                else:
+                    words = re.split('\s+',stru(line).strip())
+
+                for word in words:
+                    if bool(regex.search(stru(word))) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+
+            except (ValueError, TypeError, IndexError, KeyError):
+                pass
+        return count
+
+
+class wcounti(wcount):
+    r"""Count words having a specified pattern (case insensitive)
+
+    Args:
+        pattern (str): a regular expression string (case insensitive), if None, all words are counted.
+        key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the matched words count
+
+    Examples:
+        >>> input = 'error1\nerror2 error3\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | wcount('ERROR')
+        0
+        >>> input | wcounti('ERROR')
+        3
+    """
+    flags = re.IGNORECASE
+
+class wcountv(wcount):
+    r"""Count words NOT having a specified pattern
+
+    Args:
+        pattern (str): a regular expression string (case sensitive)
+        key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the NOT matched words count
+
+    Examples:
+        >>> input = 'error1\nerror2 error3\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | wcountv('error')
+        4
+    """
+    reverse = True
+
+class wcountvi(wcountv):
+    r"""Count words NOT having a specified pattern (case insensitive)
+
+    Args:
+        pattern (str): a regular expression string (case insensitive)
+        key (int or str): test only one column or one key (optional)
+
+    Returns:
+        int: the NOT matched words count
+
+    Examples:
+        >>> input = 'error1\nerror2 error3\nwarning1\ninfo1\nwarning2\ninfo2'
+        >>> input | wcountvi('ERROR')
+        4
+    """
+    flags = re.IGNORECASE
 
 class doformat(TextOp):
     r"""Formats list of strings
@@ -1019,8 +1146,8 @@ class findhighlight(TextOp):
         found_prefix (str): The prefix to be  added at the found pattern start position.
         found_suffix (str): The suffix to be added at the found pattern end position.
         nlines (int): the number of lines to display before and after the line with the found pattern.
-            If ``0`` is specified (This is the Default) : all lines are displayed. 
-            If you want not the same number of lines before and after, 
+            If ``0`` is specified (This is the Default) : all lines are displayed.
+            If you want not the same number of lines before and after,
             do not specify this parameter and use ``blines`` and ``elines``
         blines (int): number of lines to display before
         elines (int): number of lines to display after
@@ -1028,7 +1155,7 @@ class findhighlight(TextOp):
         findall (bool): Find all pattern (Default) otherwise only find the first line with the pattern.
         ignorecase (bool): if True, the given pattern is case insensitive) (Default : False)
         line_nbr (bool): add line numbers in line_prefix and hline_prefix (Default : False)
-        
+
     Yields:
         str: lines with found pattern with surrounding lines
 
@@ -1046,7 +1173,7 @@ class findhighlight(TextOp):
         ... whole
         ... text'''
         >>> print s | findhighlight('error',line_nbr=True,ignorecase=True).tostr() # doctest: +NORMALIZE_WHITESPACE
-           1    
+           1
            2    this is
            3    a big
            4    listing
@@ -1057,7 +1184,7 @@ class findhighlight(TextOp):
            9 -> this >>>error<<< in
           10    the
           11    whole
-          12    text        
+          12    text
         >>> print s | findhighlight('error',line_nbr=True,ignorecase=True,nlines=1).tostr() # doctest: +NORMALIZE_WHITESPACE
            4    listing
            5 -> with some >>>ERROR<<<
@@ -1086,7 +1213,7 @@ class findhighlight(TextOp):
             hlsuffix=hline_suffix.format(line=line_nbr+1)
             lprefix=line_prefix.format(line=line_nbr+1)
             lsuffix=line_suffix.format(line=line_nbr+1)
-            m=pattern.search(line)
+            m=pattern.search(stru(line))
             if m and (findall or last_found_line==0):
                 if blines:
                     if last_found_line and ellipsis and line_nbr > last_found_line+blines+elines+1:
@@ -1096,9 +1223,9 @@ class findhighlight(TextOp):
                         yield l
                     buffer=[]
                 while m:
-                    line = line[:m.end()] + found_suffix + line[m.end():] 
+                    line = line[:m.end()] + found_suffix + line[m.end():]
                     line = line[:m.start()] + found_prefix + line[m.start():]
-                    m=pattern.search(line,m.end()+len(found_prefix+found_suffix))
+                    m=pattern.search(stru(line),m.end()+len(found_prefix+found_suffix))
                 line = hlprefix + line + hlsuffix
                 elines_cptr = elines+1
                 last_found_line = line_nbr
@@ -1116,7 +1243,7 @@ class findhighlight(TextOp):
         for line in buffer:
             if not elines or elines_cptr>0:
                 yield line
-            elines_cptr-=1    
+            elines_cptr-=1
 
 class sed(TextOp):
     r"""Replace pattern on-the-fly
@@ -1266,7 +1393,7 @@ class between(TextOp):
         for line in cls._tolist(text):
             try:
                 to_test = line if key is None else line[key]
-                to_test = to_test if isinstance(to_test, basestring) else str(to_test)
+                to_test = stru(to_test)
                 if state == 0 and begin:
                     if begin[0].search(to_test):
                         begin.pop(0)

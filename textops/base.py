@@ -479,6 +479,13 @@ def extend_type_gen(obj):
     for i in obj:
         yield extend_type(i)
 
+def stru(text):
+    if isinstance(text, unicode):
+        text = text.encode('utf-8','replace')
+    else:
+        text = str(text)
+    return text
+
 def set_debug(flag):
     """ Change debug level
 
@@ -929,7 +936,7 @@ def dictmerge(*dict_args):
     Examples:
 
         >>> dictmerge({'a':1,'b':2},{'b':3,'c':4})
-        ddd
+        {'a': 1, 'c': 4, 'b': 3}
 
     """
     result = {}

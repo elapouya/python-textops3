@@ -249,6 +249,23 @@ uniq
 ----
    .. autoclass:: uniq()
 
+wcount
+------
+   .. autoclass:: wcount(pattern, key=None)
+
+wcounti
+-------
+   .. autoclass:: wcounti(pattern, key=None)
+
+wcountv
+-------
+   .. autoclass:: wcountv(pattern, key=None)
+
+wcountvi
+--------
+   .. autoclass:: wcountvi(pattern, key=None)
+
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
