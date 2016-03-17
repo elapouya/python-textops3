@@ -149,6 +149,10 @@ last
 ----
    .. autoclass:: last( )
 
+lcount
+------
+   .. autoclass:: lcount()
+
 less
 ----
    .. autoclass:: less(lines)
