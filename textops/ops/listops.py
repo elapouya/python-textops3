@@ -1272,6 +1272,8 @@ class sed(TextOp):
         ['Good bye Eric', 'Good bye Guido']
         >>> [ 'Hello Eric','Hello Guido'] | sed('hello','Good bye').tolist()
         ['Hello Eric', 'Hello Guido']
+        >>> [ ['Hello','Eric'],['Hello','Guido'] ] | sed('Hello','Good bye').tolist()
+        [['Good bye', 'Eric'], ['Good bye', 'Guido']]
     """
     flags = 0
     @classmethod
@@ -1279,7 +1281,14 @@ class sed(TextOp):
         if isinstance(pat, basestring):
             pat = re.compile(pat,cls.flags)
         for line in cls._tolist(text):
-            yield pat.sub(repl,line)
+            if isinstance(line, basestring):
+                yield pat.sub(repl,line)
+            elif isinstance(line, list):
+                yield [ pat.sub(repl,stru(item)) for item in line ]
+            elif isinstance(line, dict):
+                yield dict([(k,pat.sub(repl,stru(v))) for k,v in line.items()])
+            else:
+                yield pat.sub(repl,stru(line))
 
 class sedi(sed):
     r"""Replace pattern on-the-fly (case insensitive)
@@ -1300,6 +1309,31 @@ class sedi(sed):
         ['Good bye Eric', 'Good bye Guido']
     """
     flags = re.IGNORECASE
+
+class dostrip(TextOp):
+    r"""Strip lines
+
+    Works like the python :func:`str.strip` except it is more flexible it that way it works on list of lists
+    or list of dicts.
+
+    Yields:
+        str: the stripped lines from the input text
+
+    Examples:
+        >>> ' Hello Eric \n Hello Guido ' | dostrip().tostr()
+        'Hello Eric\nHello Guido'
+    """
+    @classmethod
+    def op(cls,text,*args,**kwargs):
+        for line in cls._tolist(text):
+            if isinstance(line, basestring):
+                yield line.strip()
+            elif isinstance(line, list):
+                yield [ stru(item).strip() for item in line ]
+            elif isinstance(line, dict):
+                yield dict([(k,stru(v).strip()) for k,v in line.items()])
+            else:
+                yield stru(line).strip()
 
 class between(TextOp):
     r"""Extract lines between two patterns

@@ -252,7 +252,7 @@ class TextOp(object):
         if text in [None,NoAttr]:
             return return_if_none
         elif isinstance(text, (list,types.GeneratorType)):
-            return StrExt(join_str.join(text))
+            return StrExt(join_str.join([ stru(item) for item in text ]))
         return StrExt(text)
 
     @property

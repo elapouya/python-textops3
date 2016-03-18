@@ -65,6 +65,10 @@ doslice
 -------
    .. autoclass:: doslice(begin=0, end=sys.maxsize, step=1)
 
+dostrip
+-------
+   .. autoclass:: dostrip()
+
 findhighlight
 -------------
    .. autoclass:: findhighlight(pattern,line_prefix='   ',line_suffix='', hline_prefix='-> ',hline_suffix='', found_prefix='>>>',found_suffix='<<<',nlines=0, blines=0, elines=0, ellipsis='...', findall=True, ignorecase=False, line_nbr=False)
