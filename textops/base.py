@@ -755,8 +755,10 @@ class ListExt(list):
         return self
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
-    def __getitem__(self,*args, **kwargs):
-        return extend_type(super(ListExt, self).__getitem__(*args, **kwargs))
+    def __getitem__(self,key,*args, **kwargs):
+        if key < 0 or key >= len(self):
+            return NoAttr
+        return extend_type(super(ListExt, self).__getitem__(key,*args, **kwargs))
     def __add__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__add__(*args, **kwargs))
     def __mul__(self,*args, **kwargs):

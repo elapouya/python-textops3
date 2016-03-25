@@ -235,7 +235,7 @@ class grep(TextOp):
     reverse = False
     pattern = ''
     @classmethod
-    def op(cls,text,pattern=None,key = None, *args,**kwargs):
+    def op(cls,text,pattern=None,key = None, has_key = None, *args,**kwargs):
         if pattern is None:
             pattern = cls.pattern
         regex = re.compile(pattern,cls.flags)
@@ -243,6 +243,9 @@ class grep(TextOp):
             try:
                 if isinstance(line,basestring):
                     if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+                elif has_key is not None:
+                    if has_key in line != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 elif key is None:
                     if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
@@ -350,7 +353,7 @@ class grepc(TextOp):
     pattern = ''
     exit_on_found = False
     @classmethod
-    def op(cls,text,pattern=None,key = None,*args,**kwargs):
+    def op(cls,text,pattern=None,key = None, has_key = None,*args,**kwargs):
         if text is None:
             return 0
         if pattern is None:
@@ -361,6 +364,11 @@ class grepc(TextOp):
             try:
                 if isinstance(line,basestring):
                     if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+                        if cls.exit_on_found:
+                            break
+                elif has_key is not None:
+                    if has_key in line != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
