@@ -336,7 +336,11 @@ class parsekv(TextOp):
         pattern (str): a regular expression string.
         key_name (str): The key name to optain the value that will be the key of the groupdict
             ('key' by default)
-        key_update (callable): function to convert/normalize the calculated key
+        key_update (callable): function to convert/normalize the calculated key.
+            If ``None``, the keys is normalized.
+            If not ``None`` but not callable ,the key is unchanged.
+        val_name (str): instead of storing the groupdict, on can choose to select
+            the value at the key ``val_name`. (by default, None : means the whole groupdict)
 
     Returns:
         dict: A dict of MatchObject groupdicts
@@ -353,10 +357,19 @@ class parsekv(TextOp):
         {'FIRST NAME': {'item': 'first name', 'val': 'Eric'},
         'NAME': {'item': 'name', 'val': 'Lapouyade'},
         'COUNTRY': {'item': 'country', 'val': 'France'}}
+        >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)',key_update=0)         #doctest: +NORMALIZE_WHITESPACE
+        {'first name': {'val': 'Eric', 'key': 'first name'},
+        'name': {'val': 'Lapouyade', 'key': 'name'},
+        'country': {'val': 'France', 'key': 'country'}}
+        >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)',val_name='val')         #doctest: +NORMALIZE_WHITESPACE
+        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
     """
     ignore_case = False
+    val_name = None
     @classmethod
-    def op(cls,text, pattern, key_name = 'key', key_update = None, *args,**kwargs):
+    def op(cls,text, pattern, key_name = 'key', key_update = None, val_name = None, *args,**kwargs):
+        if val_name is None:
+            val_name = cls.val_name
         if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
         out = {}
@@ -368,9 +381,11 @@ class parsekv(TextOp):
                 if key:
                     if key_update is None:
                         key_norm = index_normalize(key)
-                    else:
+                    elif callable(key_update):
                         key_norm = key_update(key)
-                    out.update({ key_norm : dct })
+                    else:
+                        key_norm = key
+                    out.update({ key_norm : dct if val_name is None else dct[val_name]})
         return out
 
 class parsekvi(parsekv):
@@ -382,7 +397,11 @@ class parsekvi(parsekv):
         pattern (str): a regular expression string (case insensitive).
         key_name (str): The key name to optain the value that will be the key of the groupdict
             ('key' by default)
-        key_update (callable): function to convert/normalize the calculated key
+        key_update (callable): function to convert/normalize the calculated key.
+            If ``None``, the keys is normalized.
+            If not ``None`` but not callable ,the key is unchanged.
+        val_name (str): instead of storing the groupdict, on can choose to select
+            the value at the key ``val_name`. (by default, None : means the whole groupdict)
 
     Returns:
         dict: A dict of MatchObject groupdicts
@@ -393,6 +412,60 @@ class parsekvi(parsekv):
         ... country: France'''
         >>> s | parsekvi(r'(?P<key>NAME):\s*(?P<val>.*)')
         {'name': {'val': 'Lapouyade', 'key': 'name'}}
+    """
+    ignore_case = True
+
+class keyval(parsekv):
+    r"""Return a dictionnay where keys and values are taken from the pattern specify
+
+    It is a shortcut for :class:`textops.parsekv` with val_name='val'
+
+    Args:
+        pattern (str): a regular expression string.
+        key_name (str): The key name to optain the value that will be the key of the groupdict
+            ('key' by default)
+        key_update (callable): function to convert/normalize the calculated key.
+            If ``None``, the keys is normalized.
+            If not ``None`` but not callable ,the key is unchanged.
+        val_name (str): instead of storing the groupdict, on can choose to select
+            the value at the key ``val_name`. (by default, None means 'val')
+
+    Returns:
+        dict: A dict of key:val from the matched pattern groupdict
+
+    Examples:
+        >>> s = '''name: Lapouyade
+        ... first name: Eric
+        ... country: France'''
+        >>> s | keyval(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
+    """
+    val_name = 'val'
+
+class keyvali(keyval):
+    r"""Return a dictionnay where keys and values are taken from the pattern specify
+
+    It works a little like :class:`textops.keyval` except that the pattern is case insensitive.
+
+    Args:
+        pattern (str): a regular expression string (case insensitive).
+        key_name (str): The key name to optain the value that will be the key of the groupdict
+            ('key' by default)
+        key_update (callable): function to convert/normalize the calculated key.
+            If ``None``, the keys is normalized.
+            If not ``None`` but not callable ,the key is unchanged.
+        val_name (str): instead of storing the groupdict, on can choose to select
+            the value at the key ``val_name`. (by default, None means 'val')
+
+    Returns:
+        dict: A dict of key:val from the matched pattern groupdict
+
+    Examples:
+        >>> s = '''name IS Lapouyade
+        ... first name IS Eric
+        ... country IS France'''
+        >>> s | keyvali(r'(?P<key>.*) is (?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
     """
     ignore_case = True
 

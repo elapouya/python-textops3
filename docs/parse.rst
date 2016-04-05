@@ -37,6 +37,14 @@ index_normalize
 ---------------
    .. autofunction:: index_normalize(index_val)
 
+keyval
+------
+   .. autoclass:: keyval(pattern, key_name = 'key', key_update = None, val_name='val')
+
+keyvali
+-------
+   .. autoclass:: keyvali(pattern, key_name = 'key', key_update = None, val_name='val')
+
 mgrep
 -----
    .. autoclass:: mgrep(patterns_dict, key=None)
@@ -79,11 +87,11 @@ parseki
 
 parsekv
 -------
-   .. autoclass:: parsekv(pattern, key_name = 'key', key_update = None)
+   .. autoclass:: parsekv(pattern, key_name = 'key', key_update = None, val_name=None)
 
 parsekvi
 --------
-   .. autoclass:: parsekvi(pattern, key_name = 'key', key_update = None)
+   .. autoclass:: parsekvi(pattern, key_name = 'key', key_update = None, val_name=None)
 
 state_pattern
 -------------
