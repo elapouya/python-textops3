@@ -149,7 +149,7 @@ class TextOp(object):
     def __repr__(self):
         rops = []
         for op,args,kwargs in self.ops:
-            opargs = list(args)
+            opargs = [ '%r' % v if isinstance(v,(basestring,int,float)) else v for v in args ]
             opargs += [ '%s=%r' % (k,v) for k,v in kwargs.items() ]
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)

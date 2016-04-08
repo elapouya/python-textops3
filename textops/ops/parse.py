@@ -212,6 +212,65 @@ class mgrepvi(mgrepv):
     """
     flags = re.IGNORECASE
 
+class sgrep(TextOp):
+    r"""Dispatched grep
+
+    This works like :class:`textops.mgrep` except that it returns a list of lists.
+    ``sgrep`` dispatches lines matching a pattern to the list corresponding to the pattern order.
+    If a line matches the third pattern, it will be dispatched to the third returned list.
+    If N patterns are given to search, it will return N+1 lists, where the last list will be filled
+    of lines that does not match any pattern. The patterns list order is important : only the first
+    matching pattern will taken in account.One can consider that ``sgrep`` works like a **switch** :
+    it will do for each line a kind of
+    ``if pattern1 -> list1 elif pattern2 -> list2 elif patternN -> listN else -> listN+1``
+
+    Args:
+        patterns (list): a list of patterns to search.
+        key (int or str): test only one column or one key (optional)
+
+    Returns:
+        list: a list of lists (nb patterns + 1)
+
+    Examples:
+        >>> logs = '''
+        ... error 1
+        ... warning 1
+        ... warning 2
+        ... info 1
+        ... error 2
+        ... info 2
+        ... '''
+        >>> t = logs | sgrep(('^err','^warn'))
+        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        [['error 1', 'error 2'], ['warning 1', 'warning 2'], ['', 'info 1', 'info 2']]
+    """
+    flags = 0
+    reverse = False
+    @classmethod
+    def op(cls,text,patterns,key = None, *args,**kwargs):
+        patterns = [ re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern for pattern in patterns ]
+        lst = [ [] for i in xrange(len(patterns)+1) ] # surtout pas faire [] * (len(patterns)+1)
+        for line in cls._tolist(text):
+            for i,regex in enumerate(patterns):
+                try:
+                    if isinstance(line,basestring):
+                        if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                            lst[i].append(line)
+                            break
+                    elif key is None:
+                        if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                            lst[i].append(line)
+                            break
+                    else:
+                        if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                            lst[i].append(line)
+                            break
+                except (ValueError, TypeError, IndexError, KeyError):
+                    pass
+            else:
+                lst[-1].append(line)
+        return lst
+
 class parseg(TextOp):
     r"""Find all occurrences of one pattern, return MatchObject groupdict
 
