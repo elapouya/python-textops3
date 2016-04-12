@@ -213,16 +213,26 @@ class mgrepvi(mgrepv):
     flags = re.IGNORECASE
 
 class sgrep(TextOp):
-    r"""Dispatched grep
+    r"""Switch grep
 
     This works like :class:`textops.mgrep` except that it returns a list of lists.
     ``sgrep`` dispatches lines matching a pattern to the list corresponding to the pattern order.
     If a line matches the third pattern, it will be dispatched to the third returned list.
     If N patterns are given to search, it will return N+1 lists, where the last list will be filled
-    of lines that does not match any pattern. The patterns list order is important : only the first
-    matching pattern will taken in account.One can consider that ``sgrep`` works like a **switch** :
-    it will do for each line a kind of
-    ``if pattern1 -> list1 elif pattern2 -> list2 elif patternN -> listN else -> listN+1``
+    of lines that does not match any pattern in the given patterns list.
+    The patterns list order is important : only the first
+    matching pattern will be taken in account.
+    One can consider that ``sgrep`` works like a **switch()** :
+    it will do for each line a kind of ::
+
+        if pattern1 matches:
+            put line in list1
+        elif pattern2 matches:
+            put line in list2
+        elif patternN matches:
+            put line in listN
+        else:
+            put line in listN+1
 
     Args:
         patterns (list): a list of patterns to search.
@@ -270,6 +280,27 @@ class sgrep(TextOp):
             else:
                 lst[-1].append(line)
         return lst
+
+class sgrepi(sgrep):
+    r"""Switch grep case insensitive
+
+    This works like :class:`textops.sgrep` but is case insensitive
+    """
+    flags = re.IGNORECASE
+
+class sgrepv(sgrep):
+    r"""Switch grep reversed
+
+    This works like :class:`textops.sgrep` except that it tests that patterns DOES NOT match the line.
+    """
+    reverse = True
+
+class sgrepvi(sgrepv):
+    r"""Switch grep reversed case insensitive
+
+    This works like :class:`textops.sgrepv` but is case insensitive
+    """
+    flags = re.IGNORECASE
 
 class parseg(TextOp):
     r"""Find all occurrences of one pattern, return MatchObject groupdict

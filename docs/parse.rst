@@ -93,6 +93,22 @@ parsekvi
 --------
    .. autoclass:: parsekvi(pattern, key_name = 'key', key_update = None, val_name=None)
 
+sgrep
+-----
+   .. autoclass:: sgrep(patterns, key=None)
+
+sgrepi
+------
+   .. autoclass:: sgrepi(patterns, key=None)
+
+sgrepv
+------
+   .. autoclass:: sgrepv(patterns, key=None)
+
+sgrepvi
+-------
+   .. autoclass:: sgrepvi(patterns, key=None)
+
 state_pattern
 -------------
    .. autoclass:: state_pattern(states_patterns_desc, reflags=0, autostrip=True)
