@@ -1062,14 +1062,31 @@ class state_pattern(TextOp):
             'key1.key2.keyN[]'
             or
             '{contextkey1}.{contextkey2}. ... .keyN[]'
+            or
+            '>context_dict_key'
+            or
+            '>>context_dict_key'
+            or
+            None
 
         The contextdict is used to format strings with ``{contextkeyN}`` syntax.
         instead of ``{contextkeyN}``, one can use a simple string to put data in a fixed path.
         Once the path fully formatted, let's say to ``key1.key2.keyN``, the parser will store the
         value into the result dictionnary at :
         ``{'key1':{'key2':{'keyN' : thevalue }}}``
+        
         One can use the string ``[]`` at the end of the path : the groupdict will be appended in a list
         ie : ``{'key1':{'key2':{'keyN' : [thevalue,...] }}}``
+        
+        if ``'>context_dict_key'`` is used, data is not store in parsed data but will be stored 
+        in context dict at ``context_dict_key`` key. by this way, you can differ the parsed date storage.
+        To finally store to the parsed data use ``'<context_dict_key'`` for ``<out filter>`` 
+        in some other rule.
+        ``'>>context_dict_key'`` works like ``'>context_dict_key'`` but it updates data instead of 
+        replacing them (in others words : use ``>`` to start with an empty set of data, then 
+        use ``>>`` to update the data set).
+        
+        if None is used : nothing is stored
 
     ``<out filter>``
         is used to build the value to store,
@@ -1077,8 +1094,13 @@ class state_pattern(TextOp):
         it could be :
 
             * None : no filter is applied, the re.MatchObject.groupdict() is stored
+            * a dict : mainly to initalize the differed data set when using 
+              ``'>context_dict_key'`` in ``<out data path>``
+            * ``'<context_dict_key'`` to store data from context dict at key ``context_dict_key``
             * a string : used as a format string with context dict, the formatted string is stored
-            * a callable : to calculate the value to be stored, the context dict is given as param.
+            * a callable : to calculate the value to be stored and modify context dict if needed. 
+              the re.MatchObject and the context dict are given as arguments, 
+              it must return a tuple : the value to store AND the new context dict or None if unchanged
 
     **How the parser works :**
 
@@ -1214,31 +1236,47 @@ class state_pattern(TextOp):
                         g = m.groupdict()
                         if autostrip:
                             g = dict([ (k,v.strip()) for k,v in m.groupdict().items() ])
-                        groups_context.update(g)
+                        groups_context.update(g,_ifstate=ifstate,_gotostate=gotostate,_state=state)
                         logger.debug('  -> OK')
                         logger.debug('    context = %s',groups_context)
                         if datapath is not None:
-                            data = root_data
-                            for p in datapath:
-                                p = dformat(p,groups_context,context_key_not_found)
-                                prev_data = data
-                                if p[-2:] == '[]':
-                                    p = p[:-2]
-                                    p = index_normalize(p)
-                                    if p not in data:
-                                        data[p] = []
-                                    data = data[p]
+                            if datapath[0].startswith('>'):
+                                k = datapath[0][1:].strip()
+                                if k.startswith('>'):
+                                    k = k[1:]
+                                    data = groups_context.setdefault(k,textops.DefaultDict(lambda k:'_%s_not_found' % k,{}))
                                 else:
-                                    p = index_normalize(p)
-                                    if p not in data:
-                                        data[p] = {}
-                                    data = data[p]
+                                    groups_context[k] = textops.DefaultDict(lambda k:'_%s_not_found' % k,{})
+                                    data = groups_context[k]
+                            else:
+                                data = root_data
+                                for p in datapath:
+                                    p = dformat(p,groups_context,context_key_not_found)
+                                    prev_data = data
+                                    if p[-2:] == '[]':
+                                        p = p[:-2]
+                                        p = index_normalize(p)
+                                        if p not in data:
+                                            data[p] = []
+                                        data = data[p]
+                                    else:
+                                        p = index_normalize(p)
+                                        if p not in data:
+                                            data[p] = {}
+                                        data = data[p]
 
                             if callable(outfilter):
-                                g=outfilter(g)
+                                g,new_groups_context=outfilter(m,groups_context)
+                                if new_groups_context is not None:
+                                    groups_context = new_groups_context
                             elif isinstance(outfilter, basestring):
-                                g=dformat(outfilter,groups_context,context_key_not_found)
-
+                                if outfilter.startswith('<'):
+                                    g = groups_context.get(outfilter[1:].strip(),{})
+                                else:                               
+                                    g=dformat(outfilter,groups_context,context_key_not_found)
+                            elif isinstance(outfilter, dict):
+                                g = outfilter
+                                
                             if isinstance(data,list):
                                 data.append(g)
                             else:
