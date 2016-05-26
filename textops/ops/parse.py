@@ -1067,25 +1067,42 @@ class state_pattern(TextOp):
             or
             '>>context_dict_key'
             or
+            '>context_dict_key.{contextkey1}. ... .keyN'
+            or
+            '>>context_dict_key.{contextkey1}. ... .keyN'
+            or
             None
 
-        The contextdict is used to format strings with ``{contextkeyN}`` syntax.
-        instead of ``{contextkeyN}``, one can use a simple string to put data in a fixed path.
+        The contextdict (see after the definition) is used to format strings with ``{contextkeyN}`` syntax.
+        instead of ``{contextkeyN}``, one can use a simple string to put data in a static path.
+
         Once the path fully formatted, let's say to ``key1.key2.keyN``, the parser will store the
         value into the result dictionnary at :
         ``{'key1':{'key2':{'keyN' : thevalue }}}``
-        
+
+        Example, Let's take the following data path ::
+
+            data path : 'disks.{name}.{var}'
+
+            if contextdict = {'name':'disk1','var':'size'}
+
+            then the formatted data path is : 'disks.disk1.size',
+            This means that the parsed data will be stored at :
+            ``{'disks':{'disk1':{'size' : theparsedvalue depending on <out filter> }}}``
+
+
         One can use the string ``[]`` at the end of the path : the groupdict will be appended in a list
         ie : ``{'key1':{'key2':{'keyN' : [thevalue,...] }}}``
-        
-        if ``'>context_dict_key'`` is used, data is not store in parsed data but will be stored 
+
+        if ``'>context_dict_key'`` is used, data is not store in parsed data but will be stored
         in context dict at ``context_dict_key`` key. by this way, you can differ the parsed date storage.
-        To finally store to the parsed data use ``'<context_dict_key'`` for ``<out filter>`` 
+        To finally store to the parsed data use ``'<context_dict_key'`` for ``<out filter>``
         in some other rule.
-        ``'>>context_dict_key'`` works like ``'>context_dict_key'`` but it updates data instead of 
-        replacing them (in others words : use ``>`` to start with an empty set of data, then 
+        ``'>>context_dict_key'`` works like ``'>context_dict_key'`` but it updates data instead of
+        replacing them (in others words : use ``>`` to start with an empty set of data, then
         use ``>>`` to update the data set).
-        
+        One can add dotted notation to complete data path: ``>>context_dict_key.{contextkey1}. ... .keyN``
+
         if None is used : nothing is stored
 
     ``<out filter>``
@@ -1094,12 +1111,12 @@ class state_pattern(TextOp):
         it could be :
 
             * None : no filter is applied, the re.MatchObject.groupdict() is stored
-            * a dict : mainly to initalize the differed data set when using 
+            * a dict : mainly to initalize the differed data set when using
               ``'>context_dict_key'`` in ``<out data path>``
             * ``'<context_dict_key'`` to store data from context dict at key ``context_dict_key``
             * a string : used as a format string with context dict, the formatted string is stored
-            * a callable : to calculate the value to be stored and modify context dict if needed. 
-              the re.MatchObject and the context dict are given as arguments, 
+            * a callable : to calculate the value to be stored and modify context dict if needed.
+              the re.MatchObject and the context dict are given as arguments,
               it must return a tuple : the value to store AND the new context dict or None if unchanged
 
     **How the parser works :**
@@ -1190,6 +1207,24 @@ class state_pattern(TextOp):
         {'disks': {'c1t0d0s0': {'state': 'good', 'fs': '/'},
         'c1t0d0s4': {'state': 'failed', 'fs': '/home'}}}
 
+        >>> s = '''
+        ... {
+        ... name: c1t0d0s0
+        ... state: good
+        ... fs: /
+        ... },
+        ... {
+        ... fs: /home
+        ... name: c1t0d0s4
+        ... }
+        ... '''
+        >>> s | state_pattern( (                                     #doctest: +NORMALIZE_WHITESPACE
+        ... ('top','disk',r'{','>disk_info',{}),
+        ... ('disk', '', r'(?P<key>.*):(?P<val>.*)', '>>disk_info.{key}', '{val}'),
+        ... ('disk', 'top', r'}', 'disks.{disk_info[name]}', '<disk_info'),
+        ... ) )
+        {'disks': {'c1t0d0s0': {'state': 'good', 'fs': '/', 'name': 'c1t0d0s0'},
+        'c1t0d0s4': {'fs': '/home', 'name': 'c1t0d0s4'}}}
     """
 
     @classmethod
@@ -1248,22 +1283,24 @@ class state_pattern(TextOp):
                                 else:
                                     groups_context[k] = textops.DefaultDict(lambda k:'_%s_not_found' % k,{})
                                     data = groups_context[k]
+                                datapath = datapath[1:]
                             else:
                                 data = root_data
-                                for p in datapath:
-                                    p = dformat(p,groups_context,context_key_not_found)
-                                    prev_data = data
-                                    if p[-2:] == '[]':
-                                        p = p[:-2]
-                                        p = index_normalize(p)
-                                        if p not in data:
-                                            data[p] = []
-                                        data = data[p]
-                                    else:
-                                        p = index_normalize(p)
-                                        if p not in data:
-                                            data[p] = {}
-                                        data = data[p]
+
+                            for p in datapath:
+                                p = dformat(p,groups_context,context_key_not_found)
+                                prev_data = data
+                                if p[-2:] == '[]':
+                                    p = p[:-2]
+                                    p = index_normalize(p)
+                                    if p not in data:
+                                        data[p] = []
+                                    data = data[p]
+                                else:
+                                    p = index_normalize(p)
+                                    if p not in data:
+                                        data[p] = {}
+                                    data = data[p]
 
                             if callable(outfilter):
                                 g,new_groups_context=outfilter(m,groups_context)
@@ -1272,11 +1309,11 @@ class state_pattern(TextOp):
                             elif isinstance(outfilter, basestring):
                                 if outfilter.startswith('<'):
                                     g = groups_context.get(outfilter[1:].strip(),{})
-                                else:                               
+                                else:
                                     g=dformat(outfilter,groups_context,context_key_not_found)
                             elif isinstance(outfilter, dict):
                                 g = outfilter
-                                
+
                             if isinstance(data,list):
                                 data.append(g)
                             else:
