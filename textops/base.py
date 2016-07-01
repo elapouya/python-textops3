@@ -997,3 +997,10 @@ def eformat(format_str,lst,dct,defvalue='-'):
         'unknown_tag_2 => unknown_tag_software : 32591 dowloads'
     """
     return vformat(format_str,DefaultList(defvalue,lst),DefaultDict(defvalue,dct))
+
+# NoAttr.as_list must return an empty ListExt() not a simple list
+# This customize noattr module for textops.
+from noattr import NoAttrType
+def _as_list(self):
+    return ListExt()
+NoAttrType.as_list=property(_as_list)
