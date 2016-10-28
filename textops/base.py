@@ -639,6 +639,8 @@ def get_attribute_or_textop(obj,name):
         except AttributeError:
             if isinstance(obj,DictExt):
                 return NoAttr
+            elif isinstance(obj,(StrExt,UnicodeExt)):
+                raise
             def fn(*args,**kwargs):
                 return map(lambda s:getattr(str if isinstance(s,str) else unicode, name)(s,*args,**kwargs),obj)
 
