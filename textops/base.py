@@ -617,7 +617,7 @@ class DebugText(object):
         return out
 
 def get_attribute_or_textop(obj,name):
-    if name[:2]=='__':
+    if name[:1]=='_':
         return object.__getattribute__(obj,name)
     op_cls = getattr(textops.ops,name,None)
     if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
@@ -693,6 +693,8 @@ class UnicodeExt(unicode):
         return extend_type(super(UnicodeExt, self).__rmod__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
         return extend_type(super(UnicodeExt, self).__format__(*args, **kwargs))
+    def __str__(self):
+        return self.encode('utf-8')    
     def _ipython_display_(self):
         print self.__repr__()
 

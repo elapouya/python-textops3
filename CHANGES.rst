@@ -1,3 +1,9 @@
+0.2.8 (2016-11-02)
+------------------
+
+* fix MySQLdb does not support UnicodeExt
+* callable attribute starting with '_' will not be extended anymore
+
 0.2.6 (2016-04-12)
 ------------------
 
