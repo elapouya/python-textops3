@@ -1,3 +1,10 @@
+0.2.9 (2016-12-06)
+------------------
+
+* Fix autostrip in state_pattern() when no groupdict
+* add __continue__ for goto _state in state_pattern()
+* parsek* and keyval now can parse list of strings
+
 0.2.8 (2016-11-02)
 ------------------
 

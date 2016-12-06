@@ -8,6 +8,7 @@
 
 from textops import TextOp, NoAttr, dformat, pp, stru
 import textops
+import types
 import string
 import re
 import copy
@@ -462,21 +463,27 @@ class parsekv(TextOp):
             val_name = cls.val_name
         if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
-        out = {}
-        for line in cls._tolist(text):
-            m = pattern.match(line)
-            if m:
-                dct = m.groupdict()
-                key = dct.get(key_name)
-                if key:
-                    if key_update is None:
-                        key_norm = index_normalize(key)
-                    elif callable(key_update):
-                        key_norm = key_update(key)
-                    else:
-                        key_norm = key
-                    out.update({ key_norm : dct if val_name is None else dct[val_name]})
-        return out
+
+        def _op(text):
+            out = {}
+            for line in cls._tolist(text):
+                m = pattern.match(line)
+                if m:
+                    dct = m.groupdict()
+                    key = dct.get(key_name)
+                    if key:
+                        if key_update is None:
+                            key_norm = index_normalize(key)
+                        elif callable(key_update):
+                            key_norm = key_update(key)
+                        else:
+                            key_norm = key
+                        out.update({ key_norm : dct if val_name is None else dct[val_name]})
+            return out
+
+        if isinstance(text,(list,types.GeneratorType)):
+            return [ _op(item) for item in text ]
+        return _op(text)
 
 class parsekvi(parsekv):
     r"""Find all occurrences of one pattern (case insensitive), returns a dict of groupdicts
@@ -509,6 +516,7 @@ class keyval(parsekv):
     r"""Return a dictionnay where keys and values are taken from the pattern specify
 
     It is a shortcut for :class:`textops.parsekv` with val_name='val'
+    The input can be a string or a list of strings.
 
     Args:
         pattern (str): a regular expression string.
@@ -521,7 +529,7 @@ class keyval(parsekv):
             the value at the key ``val_name`. (by default, None means 'val')
 
     Returns:
-        dict: A dict of key:val from the matched pattern groupdict
+        dict: A dict of key:val from the matched pattern groupdict or a list of dicts if the input is a list of strings
 
     Examples:
         >>> s = '''name: Lapouyade
@@ -529,6 +537,14 @@ class keyval(parsekv):
         ... country: France'''
         >>> s | keyval(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
         {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
+
+        >>> s = [ '''name: Lapouyade
+        ... first name: Eric ''',
+        ... '''name: Python
+        ... first name: Guido''' ]
+        >>> s | keyval(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
+        [{'first_name': 'Eric ', 'name': 'Lapouyade'}, {'first_name': 'Guido', 'name': 'Python'}]
+
     """
     val_name = 'val'
 
@@ -1043,6 +1059,8 @@ class state_pattern(TextOp):
         use an empty string to not change the current state. One can use any string, usually,
         it corresponds to a specific section name of the document to parse where specific
         rules has to be used.
+        if the pattern matches, no more rules are used for the current line except when you specify
+        ``__continue__`` for the goto state. This is useful when you want to apply several rules on the same line.
 
     ``<pattern>``
         is a string or a re.regex to match a line of text.
@@ -1225,6 +1243,21 @@ class state_pattern(TextOp):
         ... ) )
         {'disks': {'c1t0d0s0': {'state': 'good', 'fs': '/', 'name': 'c1t0d0s0'},
         'c1t0d0s4': {'fs': '/home', 'name': 'c1t0d0s4'}}}
+
+        >>> s='firstname:Eric lastname=Lapouyade'
+        >>> s | state_pattern((
+        ... ('top','',r'firstname:(?P<val>\S+)','firstname','{val}'),
+        ... ('top','',r'.*lastname=(?P<val>\S+)','lastname','{val}'),
+        ... ))
+        {'firstname': 'Eric'}
+
+        >>> s='firstname:Eric lastname=Lapouyade'
+        >>> s | state_pattern((
+        ... ('top','__continue__',r'firstname:(?P<val>\S+)','firstname','{val}'),
+        ... ('top','',r'.*lastname=(?P<val>\S+)','lastname','{val}'),
+        ... ))
+        {'lastname': 'Lapouyade', 'firstname': 'Eric'}
+
     """
 
     @classmethod
@@ -1270,7 +1303,7 @@ class state_pattern(TextOp):
                     if m:
                         g = m.groupdict()
                         if autostrip:
-                            g = dict([ (k,v.strip()) for k,v in m.groupdict().items() ])
+                            g = dict([ (k,v.strip() if isinstance(v,basestring) else v) for k,v in m.groupdict().items() ])
                         groups_context.update(g,_ifstate=ifstate,_gotostate=gotostate,_state=state)
                         logger.debug('  -> OK')
                         logger.debug('    context = %s',groups_context)
@@ -1321,6 +1354,8 @@ class state_pattern(TextOp):
                                     data.update(g)
                                 else:
                                     prev_data[p] = g
+                        if gotostate == '__continue__':
+                            continue
                         if gotostate:
                             state = gotostate
                         break
