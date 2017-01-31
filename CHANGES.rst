@@ -1,3 +1,7 @@
+0.2.11 (2017-01-31)
+-------------------
+* Remove version limitation over sphinx package in setup.py
+
 0.2.10 (2017-01-26)
 -------------------
 * added textops.extend_type
