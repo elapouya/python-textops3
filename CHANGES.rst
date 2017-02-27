@@ -1,3 +1,7 @@
+0.2.12 (2017-02-27)
+-------------------
+* add tofile() and teefile()
+
 0.2.11 (2017-01-31)
 -------------------
 * Remove version limitation over sphinx package in setup.py

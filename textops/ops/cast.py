@@ -6,7 +6,7 @@
 #
 """ This modules provides casting features, that is to force the output type """
 
-from textops import TextOp, pp
+from textops import TextOp, pp, stru
 import dateutil.parser
 from slugify import slugify
 
@@ -224,6 +224,53 @@ class todict(TextOp):
     @classmethod
     def fn(cls, text,*args,**kwargs):
         return TextOp.make_dict(text)
+
+class tofile(TextOp):
+    r"""send input to file
+
+    tofile() must the last text operation, if you want to write to file AND continue some text operations,
+    use :class:`textops.teefile` instead.
+
+    Args:
+        filename (str): The file to send output to
+        mode (str): File open mode (Default : 'w')
+        newline (str): The newline string to add for each line (default: '\n')
+
+    Examples:
+        >>> '/var/log/dmesg' | cat() | grep('error') | tofile('/tmp/errors.log')
+
+    """
+    @classmethod
+    def op(cls,text,filename,mode='w', newline='\n',*args,**kwargs):
+        with open(filename,mode) as fh:
+            for i,line in enumerate(cls._tolist(text)):
+                if i>0:
+                    fh.write(newline)
+                fh.write(stru(line))
+
+class teefile(TextOp):
+    r"""send input to file AND yield the same input text
+
+    Args:
+        filename (str): The file to send output to
+        mode (str): File open mode (Default : 'w')
+        newline (str): The newline string to add for each line (default: '\n')
+
+    Yields:
+        str, list or dict: the same input text
+
+    Examples:
+        >>> '/var/log/dmesg' | cat() | teefile('/tmp/dmesg_before') | grep('error') | tofile('/tmp/dmesg_after')
+
+    """
+    @classmethod
+    def op(cls,text,filename,mode='w', newline='\n',*args,**kwargs):
+        with open(filename,mode) as fh:
+            for i,line in enumerate(cls._tolist(text)):
+                if i>0:
+                    fh.write(newline)
+                fh.write(stru(line))
+                yield line
 
 class pretty(TextOp):
     r"""Pretty format the input text
