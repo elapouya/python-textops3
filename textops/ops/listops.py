@@ -1258,10 +1258,13 @@ class sed(TextOp):
 
     Works like the shell command 'sed'. It uses :func:`re.sub` to replace the pattern, this means that
     you can include back-reference into the replacement string.
+    if you specify a list of search patterns, all matches will be replaced by the same replace string specified.
+    If you specify a list of string as replacement, pattern N from pattern list will be replaced by
+    string N from replace string list.
 
     Args:
-        pat(str): a string (case sensitive) or a regular expression for the pattern to search
-        repl(str): the replace string.
+        pats(str or list): a string (case sensitive) or a regular expression or a list of that for the pattern(s) to search
+        repls(str or list): the replace string or a list of strings for a list of search patterns.
 
     Yields:
         str: the replaced lines from the input text
@@ -1282,21 +1285,36 @@ class sed(TextOp):
         ['Hello Eric', 'Hello Guido']
         >>> [ ['Hello','Eric'],['Hello','Guido'] ] | sed('Hello','Good bye').tolist()
         [['Good bye', 'Eric'], ['Good bye', 'Guido']]
+        >>> [ 'Hello Eric','Hello Guido'] >> sed(['Eric','Guido'],'Mister')
+        ['Hello Mister', 'Hello Mister']
+        >>> [ 'Hello Eric','Hello Guido'] >> sed(['Eric','Guido'],['Padawan','Jedi'])
+        ['Hello Padawan', 'Hello Jedi']
     """
     flags = 0
     @classmethod
-    def op(cls,text,pat,repl,*args,**kwargs):
-        if isinstance(pat, basestring):
-            pat = re.compile(pat,cls.flags)
+    def op(cls,text,pats,repls,*args,**kwargs):
+        if not isinstance(pats,(list,tuple)):
+            pats = [pats]
+        nbpats=len(pats)
+        if not isinstance(repls,(list,tuple)):
+            repls = [repls] * nbpats
+        if nbpats != len(repls):
+            repls += [None] * nbpats
+            repls = repls[:nbpats]
         for line in cls._tolist(text):
-            if isinstance(line, basestring):
-                yield pat.sub(repl,line)
-            elif isinstance(line, list):
-                yield [ pat.sub(repl,stru(item)) for item in line ]
-            elif isinstance(line, dict):
-                yield dict([(k,pat.sub(repl,stru(v))) for k,v in line.items()])
-            else:
-                yield pat.sub(repl,stru(line))
+            for pat,repl in zip(pats,repls):
+                if repl is not None:
+                    if isinstance(pat, basestring):
+                        pat = re.compile(pat,cls.flags)
+                    if isinstance(line, basestring):
+                        line = pat.sub(repl,line)
+                    elif isinstance(line, list):
+                        line = [ pat.sub(repl,stru(item)) for item in line ]
+                    elif isinstance(line, dict):
+                        line = dict([(k,pat.sub(repl,stru(v))) for k,v in line.items()])
+                    else:
+                        line = pat.sub(repl,stru(line))
+            yield line
 
 class sedi(sed):
     r"""Replace pattern on-the-fly (case insensitive)

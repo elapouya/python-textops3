@@ -1,3 +1,7 @@
+0.2.14 (2017-02-28)
+-------------------
+* sed() and sedi() now accept list of patterns to search and list of replacement strings
+
 0.2.12 (2017-02-27)
 -------------------
 * add tofile() and teefile()
