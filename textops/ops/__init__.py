@@ -1,4 +1,5 @@
 from cast import *
+from fileops import *
 from strops import *
 from listops import *
 from parse import *

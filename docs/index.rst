@@ -22,6 +22,7 @@ python-textops is used into some other projects like `python-nagios-helpers <htt
    intro
    strops
    listops
+   fileops
    wrapops
    parse
    cast
