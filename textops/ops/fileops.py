@@ -10,6 +10,8 @@ from textops import TextOp, pp, stru
 from zipfile import ZipFile
 import os
 import re
+from glob import iglob
+import fnmatch
 
 class cat(TextOp):
     r""" Return the content of the file with the path given in the input text
@@ -80,6 +82,125 @@ class cat(TextOp):
                 with open(path) as fh:
                     for line in fh:
                         yield line.rstrip('\r\n')
+
+class flist(TextOp):
+    r""" Return a list of files/dirs
+
+    it uses the python :func:`glob.glob` so it will do a Unix style pathname pattern expansion
+
+    Args:
+        pattern (str): the file pattern to search
+        context (dict): The context to format the file path (Optionnal)
+        only_files (bool): get only files (Default : False)
+        only_dirs (bool): get only dirs (Default : False)
+
+    Yields:
+        str: file name matching the pattern
+
+    Examples:
+        To come ...
+    """
+    @classmethod
+    def op(cls,text, pattern='*', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
+        for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
+            path = os.path.expanduser(path)
+            for f in iglob(path):
+                if only_dirs and not os.path.isdir(f):
+                    continue
+                if only_files and not os.path.isfile(f):
+                    continue
+                yield f
+
+class fstats(TextOp):
+    r""" Return a dict or a list of dicts containing the filename and its statistics
+
+    it uses the python :func:`os.stat` to get file statistics, the filename is stored in 'filename' key
+
+    Yields:
+        dict: file name and file statistics in the same dict
+
+    Examples:
+        To come ...
+    """
+    @classmethod
+    def op(cls,text, pattern='*', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
+        for path in cls._tolist(text):
+            stats = os.stat(path)
+            d = { k:getattr(stats,k) for k in dir(stats) if not k.startswith('_') }
+            d.update(filename=path)
+            yield d
+
+class ffind(TextOp):
+    r""" Return a list of files/dirs matching a pattern
+
+    find recursively files/dirs matching a pattern. The pattern is a unix-like pattern,
+    it searches only against the last part of the path (basename)
+
+    Args:
+        pattern (str): the file pattern to search
+        context (dict): The context to format the file path (Optionnal)
+
+    Yields:
+        str: file name matching the pattern
+
+    Examples:
+        To come ...
+    """
+    @classmethod
+    def op(cls,text, pattern='*', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
+        for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
+            path = os.path.expanduser(path)
+            for root, dirs, files in os.walk(path):
+                if not only_files:
+                    for name in dirs:
+                        if fnmatch.fnmatch(name, pattern):
+                            yield os.path.join(root, name)
+                if not only_dirs:
+                    for name in files:
+                        if fnmatch.fnmatch(name, pattern):
+                            yield os.path.join(root, name)
+
+class ffindre(TextOp):
+    r""" Return a list of files/dirs matching a pattern
+
+    find recursively files/dirs matching a pattern. The pattern is a python regex,
+    it searches against the whole file path
+
+    Args:
+        pattern (str or regex): the file pattern to search
+        context (dict): The context to format the file path (Optionnal)
+        only_files (bool): get only files (Default : False)
+        only_dirs (bool): get only dirs (Default : False)
+
+    Yields:
+        str: file name matching the pattern
+
+    Examples:
+        To come ...
+    """
+    @classmethod
+    def op(cls,text, pattern='', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
+        if isinstance(pattern,basestring):
+            pattern = re.compile(pattern)
+        for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
+            path = os.path.expanduser(path)
+            for root, dirs, files in os.walk(path):
+                if not only_files:
+                    for name in dirs:
+                        f=os.path.join(root, name)
+                        if pattern.search(f):
+                            yield f
+                if not only_dirs:
+                    for name in files:
+                        f=os.path.join(root, name)
+                        if pattern.search(f):
+                            yield f
 
 
 class zipcat(TextOp):

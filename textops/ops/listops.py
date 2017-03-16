@@ -113,6 +113,35 @@ class mrun(TextOp):
                 for line in stdout.splitlines():
                     yield line
 
+class xrun(TextOp):
+    r""" Run the command formatted with the context taken from the input text
+
+    Args:
+        command (str): The command pattern to run (formatted against the context)
+        context(dict): additional context dictionary
+        defvalue(str or callable): default string to display when a key or an index is unreachable.
+
+    Yields:
+        str: the execution output
+
+    Examples:
+        to come...
+    """
+    @classmethod
+    def op(cls,text, cmd, context={}, defvalue='unknwon',*args,**kwargs):
+        for incontext in cls._tolist(text):
+            if isinstance(incontext,dict):
+                custom_cmd = eformat(cmd, (), dict(context, **incontext), defvalue)
+            elif isinstance(context,(list,tuple)):
+                custom_cmd = eformat(cmd, incontext, context, defvalue)
+            else:
+                custom_cmd = eformat(cmd, (incontext,), context, defvalue)
+            p=subprocess.Popen(['sh','-c',custom_cmd],stdout=subprocess.PIPE)
+            while p.returncode is None:
+                (stdout, stderr) = p.communicate()
+                for line in stdout.splitlines():
+                    yield line
+
 class grep(TextOp):
     r"""Select lines having a specified pattern
 
