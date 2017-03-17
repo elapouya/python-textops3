@@ -17,131 +17,6 @@ import itertools
 class ListOpError(Exception):
     pass
 
-class run(TextOp):
-    r""" Run the command from the input text and return execution output
-
-    | This text operation use subprocess.Popen to call the command.
-    | If the command is a string, it will be executed within a shell.
-    | If the command is a list (the command and its arguments), the command is executed without a shell.
-    | If a context dict is specified, the command is formatted with that context (str.format)
-
-    Args:
-        context (dict): The context to format the command to run
-
-    Yields:
-        str: the execution output
-
-    Examples:
-        >>> cmd = 'mkdir -p /tmp/textops_tests_run;\
-        ... cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
-        >>> print cmd | run().tostr()
-        f1
-        f2
-        f3
-        >>> print cmd >> run()
-        ['f1', 'f2', 'f3']
-        >>> print ['ls', '/tmp/textops_tests_run'] | run().tostr()
-        f1
-        f2
-        f3
-        >>> print ['ls', '{path}'] | run({'path':'/tmp/textops_tests_run'}).tostr()
-        f1
-        f2
-        f3
-    """
-    @classmethod
-    def op(cls,text, context = {},*args,**kwargs):
-        if isinstance(text, basestring):
-            if context:
-                text = text.format(**context)
-            p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)
-        else:
-            if context:
-                text = [ t.format(**context) for t in text ]
-            p=subprocess.Popen(text,stdout=subprocess.PIPE)
-        while p.returncode is None:
-            (stdout, stderr) = p.communicate()
-            for line in stdout.splitlines():
-                yield line
-
-class mrun(TextOp):
-    r""" Run multiple commands from the input text and return execution output
-
-    | This works like :class:`textops.run` except that each line of the input text will be used as a command.
-    | The input text must be a list of strings (list, generator, or newline separated), \
-      not a list of lists. Commands will be executed inside a shell.
-    | If a context dict is specified, commands are formatted with that context (str.format)
-
-    Args:
-        context (dict): The context to format the command to run
-
-    Yields:
-        str: the execution output
-
-    Examples:
-        >>> cmds = 'mkdir -p /tmp/textops_tests_run\n'
-        >>> cmds+= 'cd /tmp/textops_tests_run;touch f1 f2 f3\n'
-        >>> cmds+= 'ls /tmp/textops_tests_run'
-        >>> print cmds | mrun().tostr()
-        f1
-        f2
-        f3
-        >>> cmds=['mkdir -p /tmp/textops_tests_run',
-        ... 'cd /tmp/textops_tests_run; touch f1 f2 f3']
-        >>> cmds.append('ls /tmp/textops_tests_run')
-        >>> print cmds | mrun().tostr()
-        f1
-        f2
-        f3
-        >>> print cmds >> mrun()
-        ['f1', 'f2', 'f3']
-        >>> cmds = ['ls {path}', 'echo "Cool !"']
-        >>> print cmds | mrun({'path':'/tmp/textops_tests_run'}).tostr()
-        f1
-        f2
-        f3
-        Cool !
-    """
-    @classmethod
-    def op(cls,text, context = {}, *args,**kwargs):
-        for cmd in cls._tolist(text):
-            if context:
-                cmd = cmd.format(**context)
-            p=subprocess.Popen(['sh','-c',cmd],stdout=subprocess.PIPE)
-            while p.returncode is None:
-                (stdout, stderr) = p.communicate()
-                for line in stdout.splitlines():
-                    yield line
-
-class xrun(TextOp):
-    r""" Run the command formatted with the context taken from the input text
-
-    Args:
-        command (str): The command pattern to run (formatted against the context)
-        context(dict): additional context dictionary
-        defvalue(str or callable): default string to display when a key or an index is unreachable.
-
-    Yields:
-        str: the execution output
-
-    Examples:
-        to come...
-    """
-    @classmethod
-    def op(cls,text, cmd, context={}, defvalue='unknwon',*args,**kwargs):
-        for incontext in cls._tolist(text):
-            if isinstance(incontext,dict):
-                custom_cmd = eformat(cmd, (), dict(context, **incontext), defvalue)
-            elif isinstance(context,(list,tuple)):
-                custom_cmd = eformat(cmd, incontext, context, defvalue)
-            else:
-                custom_cmd = eformat(cmd, (incontext,), context, defvalue)
-            p=subprocess.Popen(['sh','-c',custom_cmd],stdout=subprocess.PIPE)
-            while p.returncode is None:
-                (stdout, stderr) = p.communicate()
-                for line in stdout.splitlines():
-                    yield line
-
 class grep(TextOp):
     r"""Select lines having a specified pattern
 
@@ -154,8 +29,11 @@ class grep(TextOp):
     will work for any kind of object.
 
     Args:
-        pattern (str): a regular expression string (case sensitive)
-        key (int or str): test only one column or one key (optional)
+        pattern (str): a regular expression string (case sensitive, Optionnal)
+        key (int or str): test the pattern only one column or one key (optional)
+        has_key (int or str): test only if the test_key is in the inner list or dict (optional)
+        attr (str): for list of objects, test the pattern on the object `attr` attribute (optional)
+        has_attr (int or str): For list of objects, test if the attribute `has_attr` exists (optional)
 
     Yields:
         str, list or dict: the filtered input text
@@ -194,10 +72,10 @@ class grep(TextOp):
     reverse = False
     pattern = ''
     @classmethod
-    def op(cls,text,pattern=None,key = None, has_key = None, *args,**kwargs):
+    def op(cls,text,pattern=None, key=None, has_key=None, attr=None, has_attr=None, *args,**kwargs):
         if pattern is None:
             pattern = cls.pattern
-        regex = re.compile(pattern,cls.flags)
+        regex = re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern
         for line in cls._tolist(text):
             try:
                 if isinstance(line,basestring):
@@ -206,11 +84,17 @@ class grep(TextOp):
                 elif has_key is not None:
                     if has_key in line != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
-                elif key is None:
-                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                elif key is not None:
+                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+                elif has_attr is not None:
+                    if hasattr(line,has_attr) != cls.reverse:  # kind of XOR with cls.reverse
+                        yield line
+                elif attr is not None:
+                    if bool(regex.search(stru(getattr(line,attr,'')))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 else:
-                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
             except (ValueError, TypeError, IndexError, KeyError):
                 pass
@@ -287,8 +171,11 @@ class grepc(TextOp):
     it counts lines matching the pattern.
 
     Args:
-        pattern (str): a regular expression string (case sensitive)
-        key (int or str): test only one column or one key (optional)
+        pattern (str): a regular expression string (case sensitive, Optionnal)
+        key (int or str): test the pattern only one column or one key (optional)
+        has_key (int or str): test only if the test_key is in the inner list or dict (optional)
+        attr (str): for list of objects, test the pattern on the object `attr` attribute (optional)
+        has_attr (int or str): For list of objects, test if the attribute `has_attr` exists (optional)
 
     Returns:
         int: the matched lines count
@@ -312,12 +199,12 @@ class grepc(TextOp):
     pattern = ''
     exit_on_found = False
     @classmethod
-    def op(cls,text,pattern=None,key = None, has_key = None,*args,**kwargs):
+    def op(cls,text,pattern=None,key = None, has_key = None, attr=None, has_attr=None,*args,**kwargs):
         if text is None:
             return 0
         if pattern is None:
             pattern = cls.pattern
-        regex = re.compile(pattern,cls.flags)
+        regex = re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern
         count = 0
         for line in cls._tolist(text):
             try:
@@ -331,13 +218,24 @@ class grepc(TextOp):
                         count += 1
                         if cls.exit_on_found:
                             break
-                elif key is None:
-                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
+                elif key is not None:
+                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+                        if cls.exit_on_found:
+                            break
+                elif has_attr is not None:
+                    if hasattr(line, has_attr) != cls.reverse:  # kind of XOR with cls.reverse
+                        count += 1
+                        if cls.exit_on_found:
+                            break
+                elif attr is not None:
+                    if bool(regex.search(
+                            stru(getattr(line, attr, '')))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
                 else:
-                    if bool(regex.search(stru(line[key]))) != cls.reverse:  # kind of XOR with cls.reverse
+                    if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
                             break
@@ -1532,15 +1430,21 @@ class linetester(TextOp):
     @classmethod
     def op(cls, text, *args,**kwargs):
         key = kwargs.get('key')
+        attr = kwargs.get('attr')
         castfn = cls.castfn(*args,**kwargs)
 
-        if key is None:
-            getkey = lambda l:l
-        else:
+        if key is not None:
             if callable(key):
                 getkey = lambda l:key(StrExt(l))
             else:
                 getkey = lambda l:l[key]
+        elif attr is not None:
+            if callable(attr):
+                getkey = lambda l: attr(StrExt(l))
+            else:
+                getkey = lambda l: getattr(l,attr)
+        else:
+            getkey = lambda l: l
 
         for line in cls._tolist(text):
             try:
@@ -1549,7 +1453,7 @@ class linetester(TextOp):
                 if cls.testline(to_test, *args,**kwargs):
                     yield line
             except (ValueError, TypeError, IndexError, KeyError):
-                pass
+                raise
 
 class inrange(linetester):
     r"""Extract lines between a range of strings

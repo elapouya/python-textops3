@@ -225,6 +225,19 @@ class todict(TextOp):
     def fn(cls, text,*args,**kwargs):
         return TextOp.make_dict(text)
 
+
+class tonull(TextOp):
+    r"""Consume generator if any and then return nothing (aka None)
+
+    Examples:
+
+    >>> [ 1,2,3 ] | echo().tonull()
+
+    """
+    @classmethod
+    def fn(cls, text, *args, **kwargs):
+        TextOp.consume(text)
+
 class pretty(TextOp):
     r"""Pretty format the input text
     

@@ -83,7 +83,7 @@ class cat(TextOp):
                     for line in fh:
                         yield line.rstrip('\r\n')
 
-class flist(TextOp):
+class ls(TextOp):
     r""" Return a list of files/dirs
 
     it uses the python :func:`glob.glob` so it will do a Unix style pathname pattern expansion
@@ -113,7 +113,7 @@ class flist(TextOp):
                     continue
                 yield f
 
-class fstats(TextOp):
+class stats(TextOp):
     r""" Return a dict or a list of dicts containing the filename and its statistics
 
     it uses the python :func:`os.stat` to get file statistics, the filename is stored in 'filename' key
@@ -125,14 +125,14 @@ class fstats(TextOp):
         To come ...
     """
     @classmethod
-    def op(cls,text, pattern='*', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
+    def op(cls, text, *args,**kwargs):
         for path in cls._tolist(text):
-            stats = os.stat(path)
-            d = { k:getattr(stats,k) for k in dir(stats) if not k.startswith('_') }
+            stat = os.stat(path)
+            d = { k:getattr(stat,k) for k in dir(stat) if not k.startswith('_') }
             d.update(filename=path)
             yield d
 
-class ffind(TextOp):
+class find(TextOp):
     r""" Return a list of files/dirs matching a pattern
 
     find recursively files/dirs matching a pattern. The pattern is a unix-like pattern,
@@ -141,6 +141,8 @@ class ffind(TextOp):
     Args:
         pattern (str): the file pattern to search
         context (dict): The context to format the file path (Optionnal)
+        only_files (bool): get only files (Default : False)
+        only_dirs (bool): get only dirs (Default : False)
 
     Yields:
         str: file name matching the pattern
@@ -164,7 +166,7 @@ class ffind(TextOp):
                         if fnmatch.fnmatch(name, pattern):
                             yield os.path.join(root, name)
 
-class ffindre(TextOp):
+class findre(TextOp):
     r""" Return a list of files/dirs matching a pattern
 
     find recursively files/dirs matching a pattern. The pattern is a python regex,
@@ -290,8 +292,8 @@ class ziplist(TextOp):
                     for zipinfo in zipfile.infolist():
                         yield zipinfo.filename
 
-class zipextract(TextOp):
-    r""" Extract a file from a zip archive
+class unzip(TextOp):
+    r""" Extract ONE file from a zip archive
 
     The zip file name is taken from text input.
 
@@ -303,7 +305,7 @@ class zipextract(TextOp):
         ignore (bool): If True do not raise exception when member does not exist (Default : False)
 
     Yields:
-        str: the zip archive name
+        str: the member file name
 
     Examples:
         To come ...
@@ -324,9 +326,9 @@ class zipextract(TextOp):
                     except KeyError:
                         if not ignore:
                             raise
-                yield path
+                yield member
 
-class zipextractre(TextOp):
+class unzipre(TextOp):
     r""" Extract files having a specified name pattern from a zip archive
 
     The zip file name is taken from text input.
@@ -338,7 +340,7 @@ class zipextractre(TextOp):
         context (dict): The context to format the file path and topath argument (Optionnal)
 
     Yields:
-        str: the zip archive name
+        str: the extracted files name
 
     Examples:
         To come ...
@@ -359,7 +361,7 @@ class zipextractre(TextOp):
                     for zipinfo in zipfile.infolist():
                         if member_regex.search(zipinfo.filename):
                             zipfile.extract(zipinfo,topath,password)
-                yield path
+                            yield zipinfo.filename
 
 class tofile(TextOp):
     r"""send input to file

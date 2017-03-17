@@ -97,17 +97,16 @@ class TextOp(object):
             return self._process(args and args[0] or None)
 
     def _process(self,text=None):
-        if text is None:
-            args = self.ops[0][1]
-            if args:
-                text = args[0]
-                self.ops[0][1] = args[1:]
+        input_text = text
         if self.debug:
             if isinstance(text, types.GeneratorType):
                 text = list(text)
             logger.debug('=== TextOps : %r' % self)
             logger.debug(DebugText(text))
-        for op,args,kwargs in self.ops:
+        for i,(op,args,kwargs) in enumerate(self.ops):
+            if not i and not input_text and args:
+                text = args[0]
+                args = args[1:]
             opcls = getattr(textops.ops,op,None)
             if isinstance(opcls,type) and issubclass(opcls, TextOp):
                 try:
@@ -134,6 +133,16 @@ class TextOp(object):
                     raise TextOpException('Unknown OP "%s"' % op)
 
         return extend_type(text)
+
+    def _process_freeze(self, text=None):
+        if hasattr(self,'_process_cache_data'):
+            return self._process_cache_data
+        text = self._process()
+        if isinstance(text, types.GeneratorType):
+            text=list(text)
+        self._process_cache_data = text
+        return self._process_cache_data
+
 
     def _apply_op_gen(self, text, op, *args, **kwargs):
         for line in text:
@@ -332,8 +341,9 @@ class TextOp(object):
                 return 0
         if isinstance(text, basestring):
             return _to_int(text)
-        else:
+        elif isinstance(text,(list,tuple)):
             return map(_to_int,text)
+        return text
 
     @property
     def i(self):
@@ -360,8 +370,9 @@ class TextOp(object):
                 return 0.0
         if isinstance(text, basestring):
             return _to_float(text)
-        else:
+        elif isinstance(text, (list,tuple)):
             return map(_to_float,text)
+        return text
 
     @property
     def f(self):
@@ -393,6 +404,26 @@ class TextOp(object):
             4
         """
         return self._process()
+
+    @classmethod
+    def consume(cls, text):
+        if isinstance(text, types.GeneratorType):
+            for i in text:
+                pass
+
+    @property
+    def n(self):
+        r"""Execute operations, do not convert, do not return anything
+
+        If _process() returns a generator, it is consumed
+
+        Examples:
+
+            >>> echo('1789').length().n
+
+        """
+        text = self._process()
+        self.consume(text)
 
     @property
     def pp(self):
@@ -457,6 +488,16 @@ class TextOp(object):
     @classmethod
     def make_dict(cls, text):
         return DictExt(text)
+
+    def __len__(self):
+        text = self._process()
+        if isinstance(text, types.GeneratorType):
+            return sum(1 for x in text)
+        return len(text)
+
+    def __getitem__(self, item):
+        lst = self.l
+        return lst.__getitem__(item)
 
 def extend_type(obj):
     if isinstance(obj,unicode):
@@ -760,9 +801,10 @@ class ListExt(list):
     def __getslice__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,key,*args, **kwargs):
-        if key < 0 or key >= len(self):
+        try:
+            return extend_type(super(ListExt, self).__getitem__(key,*args, **kwargs))
+        except IndexError:
             return NoAttr
-        return extend_type(super(ListExt, self).__getitem__(key,*args, **kwargs))
     def __add__(self,*args, **kwargs):
         return extend_type(super(ListExt, self).__add__(*args, **kwargs))
     def __mul__(self,*args, **kwargs):

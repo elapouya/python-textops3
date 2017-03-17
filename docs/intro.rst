@@ -185,7 +185,7 @@ until used in a for-loop, converted into a string/list or forced by special attr
    >>> logs
    cat('/tmp/errors.log')
    >>> print type(logs)
-   <class 'textops.ops.listops.cat'>
+   <class 'textops.ops.fileops.cat'>
 
    # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')

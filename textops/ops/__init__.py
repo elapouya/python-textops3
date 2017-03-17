@@ -2,6 +2,7 @@ from cast import *
 from fileops import *
 from strops import *
 from listops import *
+from runops import *
 from parse import *
 from wrapops import *
 from recode import *

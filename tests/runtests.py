@@ -4,12 +4,14 @@ import os
 import json
 
 modules = [ 'textops.base',
-            'textops.ops.strops',
-            'textops.ops.listops',
-            'textops.ops.wrapops',
             'textops.ops.cast',
+            'textops.ops.fileops',
+            'textops.ops.listops',
             'textops.ops.parse',
             'textops.ops.recode',
+            'textops.ops.runops',
+            'textops.ops.strops',
+            'textops.ops.wrapops',
             ]
 files = [ 'docs/intro.rst' ]
 
