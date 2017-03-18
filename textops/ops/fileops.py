@@ -305,7 +305,7 @@ class unzip(TextOp):
         ignore (bool): If True do not raise exception when member does not exist (Default : False)
 
     Yields:
-        str: the member file name
+        str: the member file path
 
     Examples:
         To come ...
@@ -326,7 +326,7 @@ class unzip(TextOp):
                     except KeyError:
                         if not ignore:
                             raise
-                yield member
+                yield os.path.join(topath or '',member)
 
 class unzipre(TextOp):
     r""" Extract files having a specified name pattern from a zip archive
@@ -340,7 +340,7 @@ class unzipre(TextOp):
         context (dict): The context to format the file path and topath argument (Optionnal)
 
     Yields:
-        str: the extracted files name
+        str: the extracted files path
 
     Examples:
         To come ...
@@ -361,7 +361,7 @@ class unzipre(TextOp):
                     for zipinfo in zipfile.infolist():
                         if member_regex.search(zipinfo.filename):
                             zipfile.extract(zipinfo,topath,password)
-                            yield zipinfo.filename
+                            yield os.path.join(topath or '',zipinfo.filename)
 
 class tofile(TextOp):
     r"""send input to file

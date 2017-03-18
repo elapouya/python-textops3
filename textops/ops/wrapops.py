@@ -49,6 +49,20 @@ class dosort(WrapOpIter):
     """
     fn=sorted
 
+class doreverse(WrapOpIter):
+    r"""reverse input text
+
+    Return a new reversed list from the input text. This is done on a by-line/list item basis.
+
+    Returns:
+        generator: The reversed input text
+
+    Examples:
+        >>> list(['a','b','c','d'] | doreverse())
+        ['d', 'c', 'b', 'a']
+    """
+    fn=reversed
+
 class getmax(WrapOpIter):
     r"""get the max value
 
