@@ -645,6 +645,50 @@ class formatdicts(TextOp):
     def op(cls,items,format_str='{key} : {val}\n',join_str = '', context={}, defvalue='-',*args,**kwargs):
         return join_str.join([eformat(format_str,(),dict(context,**d),defvalue) for d in items ])
 
+class sortlists(TextOp):
+    r"""Sort list of dicts
+
+    Args:
+        col (int or tuple/list): The column number or list of columns as sorting criteria
+        reverse (bool): Reverse the sort (Default : False)
+
+    Returns:
+        list of lists: sorted input
+
+    Examples:
+        to come...
+    """
+    @classmethod
+    def op(cls,lists, col, reverse=False,*args,**kwargs):
+        if isinstance(col,(tuple,list)):
+            fn = lambda x:[ x[c] for c in col ]
+        else:
+            fn = lambda x: x[col]
+
+        return sorted(lists,key = fn, reverse=reverse)
+
+class sortdicts(TextOp):
+    r"""Sort list of dicts
+
+    Args:
+        key (int or tuple/list): The dict key or list of keys as sorting criteria
+        reverse (bool): Reverse the sort (Default : False)
+
+    Returns:
+        list of dicts: sorted input
+
+    Examples:
+        to come...
+    """
+    @classmethod
+    def op(cls,dicts, key, reverse=False,*args,**kwargs):
+        if isinstance(key,(tuple,list)):
+            fn = lambda x:[ x[k] for k in key ]
+        else:
+            fn = lambda x: x[key]
+
+        return sorted(dicts,key = fn, reverse = reverse)
+
 class dorender(TextOp):
     r"""Formats list of strings
 
@@ -2110,13 +2154,14 @@ class subitems(TextOp):
             yield [ sublist[n] for n in ntab ]
 
 class uniq(TextOp):
-    r"""Remove all line repetitions
+    r"""Remove all line repetitions at any place
 
     If a line is many times in the same text (even if there are some different lines between),
-    only the first will be taken. Works also with list of lists or dicts.
+    only the first will be taken. Works also with list of lists or dicts. Input order is preserved.
+    Do not use this operation on huge data set as an internal list is maintained : if possible, use :class:`textops.norepeat`.
 
     Returns:
-        generator: Unified text line by line.
+        generator: Uniqified text line by line.
 
     Examples:
         >>> s='f\na\nb\na\nc\nc\ne\na\nc\nf'
@@ -2142,6 +2187,34 @@ class uniq(TextOp):
         for line in cls._tolist(text):
             if line not in s:
                 s.append(line)
+                yield line
+
+class norepeat(TextOp):
+    r"""Remove line repetitions that follows
+
+    If a line is the same as the previous one, it is not yield. Works also with list of lists or dicts.
+    Input order is preserved and it can be used on huge files.
+
+    Returns:
+        generator: Unrepeated text line by line.
+
+    Examples:
+        >>> s='f\na\nb\na\nc\nc\ne\na\nc\nf'
+        >>> s >> norepeat()
+        ['f', 'a', 'b', 'a', 'c', 'e', 'a', 'c', 'f']
+        >>> l = [ [1,2], [3,4], [1,2], [1,2] ]
+        >>> l >> norepeat()
+        [[1, 2], [3, 4], [1, 2]]
+        >>> d = [ {'a':1}, {'b':2}, {'a':1}, {'a':1} ]
+        >>> d >> norepeat()
+        [{'a': 1}, {'b': 2}, {'a': 1}]
+    """
+    @classmethod
+    def op(cls, text, *args,**kwargs):
+        prev = None
+        for line in cls._tolist(text):
+            if line != prev:
+                prev=line
                 yield line
 
 class splitblock(TextOp):

@@ -134,16 +134,6 @@ class TextOp(object):
 
         return extend_type(text)
 
-    def _process_freeze(self, text=None):
-        if hasattr(self,'_process_cache_data'):
-            return self._process_cache_data
-        text = self._process()
-        if isinstance(text, types.GeneratorType):
-            text=list(text)
-        self._process_cache_data = text
-        return self._process_cache_data
-
-
     def _apply_op_gen(self, text, op, *args, **kwargs):
         for line in text:
             if hasattr(line,op):

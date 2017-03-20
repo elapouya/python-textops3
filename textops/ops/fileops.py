@@ -8,15 +8,18 @@
 
 from textops import TextOp, pp, stru
 from zipfile import ZipFile
+import gzip
 import os
 import re
 from glob import iglob
 import fnmatch
+import bz2
 
 class cat(TextOp):
     r""" Return the content of the file with the path given in the input text
 
     If a context dict is specified, the path is formatted with that context (str.format)
+    The file must have a textual content.
 
     Args:
         context (dict): The context to format the file path (Optionnal)
@@ -366,7 +369,7 @@ class unzipre(TextOp):
 class tofile(TextOp):
     r"""send input to file
 
-    tofile() must the last text operation, if you want to write to file AND continue some text operations,
+    ``tofile()`` must be the last text operation, if you want to write to file AND continue some text operations,
     use :class:`textops.teefile` instead.
 
     Args:
@@ -413,11 +416,12 @@ class teefile(TextOp):
 class tozipfile(TextOp):
     r"""send input to zip file
 
-    tozipfile() must the last text operation
+    ``tozipfile()`` must be the last text operation.
 
     Args:
         filename (str): The zip file to send COMPRESSED output to
         member (str): The name of the file INSIDE the zip file to send UNCOMPRESSED output to
+        mode (str): File open mode (Default : 'w', use 'a' to append an existing zip or create it if not present)
         newline (str): The newline string to add for each line (default: '\n')
 
     Examples:
@@ -431,3 +435,103 @@ class tozipfile(TextOp):
     def op(cls,text,filename,member, mode='w', newline='\n',*args,**kwargs):
             with ZipFile(filename,mode) as zipfile:
                 zipfile.writestr(member,TextOp.make_string(text,newline))
+
+class togzfile(TextOp):
+    r"""send input to gz file
+
+    ``togzfile()`` must be the last text operation
+
+    Args:
+        filename (str): The gz file to send COMPRESSED output to
+        mode (str): File open mode (Default : 'wb')
+        newline (str): The newline string to add for each line (default: '\n')
+
+    Examples:
+        >>> '/var/log/dmesg' | cat() | grep('error') | togzfile('/tmp/errors.log.gz')
+
+    Note:
+        Password encrypted zip creation is not supported.
+
+    """
+    @classmethod
+    def op(cls,text,filename, mode='wb', newline='\n',*args,**kwargs):
+            with gzip.open(filename,mode) as fh:
+                fh.write(TextOp.make_string(text,newline))
+
+class gzcat(TextOp):
+    r"""Uncompress the gzfile(s) with the name(s) given in input text
+
+    If a context dict is specified, the path is formatted with that context (str.format)
+    The gzipped file must have a textual content.
+
+    Args:
+        context (dict): The context to format the file path (Optionnal)
+
+
+    Note:
+        A list of filename can be given as input text : all specified files will be uncompressed
+
+    Note:
+        Password encrypted zip creation is not supported.
+
+    """
+    @classmethod
+    def op(cls,text, context = {},*args,**kwargs):
+        for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
+            path = os.path.expanduser(path)
+            if os.path.isfile(path) or os.path.islink(path):
+                with gzip.open(path) as fh:
+                    for line in fh:
+                        yield line.rstrip('\r\n')
+
+
+class tobz2file(TextOp):
+    r"""send input to gz file
+
+    ``tobz2file()`` must be the last text operation
+
+    Args:
+        filename (str): The gz file to send COMPRESSED output to
+        mode (str): File open mode (Default : 'wb')
+        newline (str): The newline string to add for each line (default: '\n')
+
+    Examples:
+        >>> '/var/log/dmesg' | cat() | grep('error') | togzfile('/tmp/errors.log.gz')
+
+    Note:
+        Password encrypted zip creation is not supported.
+
+    """
+    @classmethod
+    def op(cls,text,filename, mode='w', newline='\n',*args,**kwargs):
+            with bz2.BZ2File(filename,mode) as fh:
+                fh.write(TextOp.make_string(text,newline))
+
+class bzcat(TextOp):
+    r"""Uncompress the bz2 file(s) with the name(s) given in input text
+
+    If a context dict is specified, the path is formatted with that context (str.format)
+    The gzipped file must have a textual content.
+
+    Args:
+        context (dict): The context to format the file path (Optionnal)
+
+    Examples:
+        >>> '/var/log/dmesg' | cat() | grep('error') | togzfile('/tmp/errors.log.gz')
+
+    Note:
+        A list of filename can be given as input text : all specified files will be uncompressed
+
+    """
+    @classmethod
+    def op(cls,text, context = {},*args,**kwargs):
+        for path in cls._tolist(text):
+            if context:
+                path = path.format(**context)
+            path = os.path.expanduser(path)
+            if os.path.isfile(path) or os.path.islink(path):
+                with bz2.BZ2File(path) as fh:
+                    for line in fh:
+                        yield line.rstrip('\r\n')
