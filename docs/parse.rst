@@ -1,11 +1,12 @@
 ..
-   Created : 2015-11-12
+   Generated: Thu Mar 23 15:03:55 2017
 
-   @author: Eric Lapouyade
+   @author : Eric Lapouyade
 
 =====
 parse
 =====
+
 .. automodule:: textops.ops.parse
 .. currentmodule:: textops
 
@@ -23,7 +24,7 @@ find_pattern
 
 find_patterni
 -------------
-   .. autoclass:: find_patterns(pattern)
+   .. autoclass:: find_patterni(pattern)
 
 find_patterns
 -------------
@@ -33,17 +34,13 @@ find_patternsi
 --------------
    .. autoclass:: find_patternsi(patterns)
 
-index_normalize
----------------
-   .. autofunction:: index_normalize(index_val)
-
 keyval
 ------
-   .. autoclass:: keyval(pattern, key_name = 'key', key_update = None, val_name='val')
+   .. autoclass:: keyval(pattern, key_name='key', key_update=None, val_name=None)
 
 keyvali
 -------
-   .. autoclass:: keyvali(pattern, key_name = 'key', key_update = None, val_name='val')
+   .. autoclass:: keyvali(pattern, key_name='key', key_update=None, val_name=None)
 
 mgrep
 -----
@@ -79,19 +76,19 @@ parsegi
 
 parsek
 ------
-   .. autoclass:: parsek(pattern, key_name = 'key', key_update = None)
+   .. autoclass:: parsek(pattern, key_name='key', key_update=None)
 
 parseki
 -------
-   .. autoclass:: parseki(pattern, key_name = 'key', key_update = None)
+   .. autoclass:: parseki(pattern, key_name='key', key_update=None)
 
 parsekv
 -------
-   .. autoclass:: parsekv(pattern, key_name = 'key', key_update = None, val_name=None)
+   .. autoclass:: parsekv(pattern, key_name='key', key_update=None, val_name=None)
 
 parsekvi
 --------
-   .. autoclass:: parsekvi(pattern, key_name = 'key', key_update = None, val_name=None)
+   .. autoclass:: parsekvi(pattern, key_name='key', key_update=None, val_name=None)
 
 sgrep
 -----
@@ -112,8 +109,3 @@ sgrepvi
 state_pattern
 -------------
    .. autoclass:: state_pattern(states_patterns_desc, reflags=0, autostrip=True)
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

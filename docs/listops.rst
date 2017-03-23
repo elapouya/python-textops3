@@ -1,21 +1,22 @@
 ..
-   Created : 2015-11-04
+   Generated: Thu Mar 23 15:03:55 2017
 
-   @author: Eric Lapouyade
+   @author : Eric Lapouyade
 
 =======
 listops
 =======
+
 .. automodule:: textops.ops.listops
 .. currentmodule:: textops
 
 after
 -----
-   .. autoclass:: after(pattern, get_begin=False, key=None)
+   .. autoclass:: after(pattern, get_begin=False)
 
 afteri
 ------
-   .. autoclass:: afteri(pattern, get_begin=False, key=None)
+   .. autoclass:: afteri(pattern, get_begin=False)
 
 aggregate
 ---------
@@ -31,27 +32,23 @@ beforei
 
 between
 -------
-   .. autoclass:: between(begin, end, get_begin=False, get_end=False, key=None)
-
-betweeni
---------
-   .. autoclass:: betweeni(begin, end, get_begin=False, get_end=False, key=None)
+   .. autoclass:: between(begin, end, get_begin=None, get_end=None, key=None)
 
 betweenb
 --------
-   .. autoclass:: betweenb(begin, end, get_begin=False, get_end=False, key=None)
+   .. autoclass:: betweenb(begin, end, get_begin=None, get_end=None, key=None)
 
 betweenbi
 ---------
-   .. autoclass:: betweenbi(begin, end, get_begin=False, get_end=False, key=None)
+   .. autoclass:: betweenbi(begin, end, get_begin=None, get_end=None, key=None)
 
-cat
----
-   .. autoclass:: cat(context={})
+betweeni
+--------
+   .. autoclass:: betweeni(begin, end, get_begin=None, get_end=None, key=None)
 
 doformat
 --------
-   .. autoclass:: doformat(format_str='{0}\\n',join_str = '', context={}, defvalue='-')
+   .. autoclass:: doformat(format_str='{0}\n', join_str='', context={}, defvalue='-')
 
 doreduce
 --------
@@ -59,11 +56,11 @@ doreduce
 
 dorender
 --------
-   .. autoclass:: dorender(format_str='{0}\\n', context={}, defvalue='-')
+   .. autoclass:: dorender(format_str='{0}\n', context={}, defvalue='-')
 
 doslice
 -------
-   .. autoclass:: doslice(begin=0, end=sys.maxsize, step=1)
+   .. autoclass:: doslice(begin=0, end=sys.maxint, step=1)
 
 dostrip
 -------
@@ -71,71 +68,71 @@ dostrip
 
 findhighlight
 -------------
-   .. autoclass:: findhighlight(pattern,line_prefix='   ',line_suffix='', hline_prefix='-> ',hline_suffix='', found_prefix='>>>',found_suffix='<<<',nlines=0, blines=0, elines=0, ellipsis='...', findall=True, ignorecase=False, line_nbr=False)
+   .. autoclass:: findhighlight(pattern, line_prefix='   ', line_suffix='', hline_prefix='-> ', hline_suffix='', found_prefix='>>>', found_suffix='<<<', nlines=0, blines=0, elines=0, ellipsis='...', findall=True, ignorecase=False, line_nbr=False)
 
 first
 -----
-   .. autoclass:: first( )
+   .. autoclass:: first()
 
 formatdicts
 -----------
-   .. autoclass:: formatdicts(format_str='{key} : {val}\\n',join_str = '', context={}, defvalue='-')
+   .. autoclass:: formatdicts(format_str='{key} : {val}\n', join_str='', context={}, defvalue='-')
 
 formatitems
 -----------
-   .. autoclass:: formatitems(format_str='{0} : {1}\\n',join_str = '', context={}, defvalue='-')
+   .. autoclass:: formatitems(format_str='{0} : {1}\n', join_str='', context={}, defvalue='-')
 
 formatlists
 -----------
-   .. autoclass:: formatlists(format_str,join_str = '', context={}, defvalue='-')
+   .. autoclass:: formatlists(format_str, join_str='', context={}, defvalue='-')
 
 greaterequal
 ------------
-   .. autoclass:: greaterequal(value, key=None)
+   .. autoclass:: greaterequal(value, *args, **kwargs)
 
 greaterthan
 -----------
-   .. autoclass:: greaterthan(value, key=None)
+   .. autoclass:: greaterthan(value, *args, **kwargs)
 
 grep
 ----
-   .. autoclass:: grep(pattern, key=None)
-
-grepi
------
-   .. autoclass:: grepi(pattern, key=None)
-
-grepv
------
-   .. autoclass:: grepv(pattern, key=None)
-
-grepvi
-------
-   .. autoclass:: grepvi(pattern, key=None)
+   .. autoclass:: grep(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 grepc
 -----
-   .. autoclass:: grepc(pattern, key=None)
+   .. autoclass:: grepc(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 grepci
 ------
-   .. autoclass:: grepci(pattern, key=None)
+   .. autoclass:: grepci(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 grepcv
 ------
-   .. autoclass:: grepcv(pattern, key=None)
+   .. autoclass:: grepcv(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 grepcvi
 -------
-   .. autoclass:: grepcvi(pattern, key=None)
+   .. autoclass:: grepcvi(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
+
+grepi
+-----
+   .. autoclass:: grepi(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
+
+grepv
+-----
+   .. autoclass:: grepv(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
+
+grepvi
+------
+   .. autoclass:: grepvi(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 haspattern
 ----------
-   .. autoclass:: haspattern(pattern, key=None)
+   .. autoclass:: haspattern(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 haspatterni
 -----------
-   .. autoclass:: haspatterni(pattern, key=None)
+   .. autoclass:: haspatterni(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 head
 ----
@@ -147,11 +144,11 @@ iffn
 
 inrange
 -------
-   .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, key=None)
+   .. autoclass:: inrange(begin, end, get_begin=True, get_end=False, *args, **kwargs)
 
 last
 ----
-   .. autoclass:: last( )
+   .. autoclass:: last()
 
 lcount
 ------
@@ -163,15 +160,15 @@ less
 
 lessequal
 ---------
-   .. autoclass:: lessequal(value, key=None)
+   .. autoclass:: lessequal(value, *args, **kwargs)
 
 lessthan
 --------
-   .. autoclass:: lessthan(value, key=None)
+   .. autoclass:: lessthan(value, *args, **kwargs)
 
-merge_dicts
------------
-   .. autoclass:: merge_dicts()
+linetester
+----------
+   .. autoclass:: linetester(, *args, **kwargs)
 
 mapfn
 -----
@@ -181,13 +178,17 @@ mapif
 -----
    .. autoclass:: mapif(map_fn, filter_fn=None)
 
-mrun
-----
-   .. autoclass:: mrun(context={})
+merge_dicts
+-----------
+   .. autoclass:: merge_dicts()
+
+norepeat
+--------
+   .. autoclass:: norepeat()
 
 outrange
 --------
-   .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, key=None)
+   .. autoclass:: outrange(begin, end, get_begin=False, get_end=False, *args, **kwargs)
 
 renderdicts
 -----------
@@ -207,27 +208,31 @@ resplitblock
 
 rmblank
 -------
-   .. autoclass:: rmblank()
-
-run
----
-   .. autoclass:: run(context={})
+   .. autoclass:: rmblank(pattern=None, key=None, has_key=None, attr=None, has_attr=None)
 
 sed
 ---
-   .. autoclass:: sed(pat,repl)
+   .. autoclass:: sed(pats, repls)
 
 sedi
 ----
-   .. autoclass:: sedi(pat,repl)
+   .. autoclass:: sedi(pats, repls)
 
 skess
 -----
-   .. autoclass:: skess(begin,end)
+   .. autoclass:: skess(begin, end)
 
 skip
 ----
    .. autoclass:: skip(lines)
+
+sortdicts
+---------
+   .. autoclass:: sortdicts(key, reverse=False)
+
+sortlists
+---------
+   .. autoclass:: sortlists(col, reverse=False)
 
 span
 ----
@@ -237,10 +242,6 @@ splitblock
 ----------
    .. autoclass:: splitblock(pattern, include_separator=0, skip_first=False)
 
-subslice
---------
-   .. autoclass:: subslice(begin=0, end=sys.maxsize, step=1)
-
 subitem
 -------
    .. autoclass:: subitem(n)
@@ -248,6 +249,10 @@ subitem
 subitems
 --------
    .. autoclass:: subitems(ntab)
+
+subslice
+--------
+   .. autoclass:: subslice(begin=0, end=sys.maxint, step=1)
 
 tail
 ----
@@ -259,22 +264,16 @@ uniq
 
 wcount
 ------
-   .. autoclass:: wcount(pattern, key=None)
+   .. autoclass:: wcount(pattern=None, key=None)
 
 wcounti
 -------
-   .. autoclass:: wcounti(pattern, key=None)
+   .. autoclass:: wcounti(pattern=None, key=None)
 
 wcountv
 -------
-   .. autoclass:: wcountv(pattern, key=None)
+   .. autoclass:: wcountv(pattern=None, key=None)
 
 wcountvi
 --------
-   .. autoclass:: wcountvi(pattern, key=None)
-
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   .. autoclass:: wcountvi(pattern=None, key=None)

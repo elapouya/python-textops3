@@ -1,3 +1,7 @@
+0.3.0 (2017-03-23)
+------------------
+* add fileops and runops
+
 0.2.14 (2017-02-28)
 -------------------
 * sed() and sedi() now accept list of patterns to search and list of replacement strings

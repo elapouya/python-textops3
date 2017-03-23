@@ -1,33 +1,34 @@
 ..
-   Created : 2015-11-04
+   Generated: Thu Mar 23 15:03:55 2017
 
-   @author: Eric Lapouyade
+   @author : Eric Lapouyade
 
 ====
 cast
 ====
+
 .. automodule:: textops.ops.cast
 .. currentmodule:: textops
 
 pretty
 ------
-   .. autoclass:: pretty( )
+   .. autoclass:: pretty()
 
 todatetime
 ----------
-   .. autoclass:: todatetime( )
+   .. autoclass:: todatetime()
 
 todict
 ------
-   .. autoclass:: todict( )
+   .. autoclass:: todict()
 
 tofloat
 -------
-   .. autoclass:: tofloat( )
+   .. autoclass:: tofloat()
 
 toint
 -----
-   .. autoclass:: toint( )
+   .. autoclass:: toint()
 
 tolist
 ------
@@ -35,21 +36,20 @@ tolist
 
 toliste
 -------
-   .. autoclass:: toliste(return_if_none='')
+   .. autoclass:: toliste(return_if_none=[])
+
+tonull
+------
+   .. autoclass:: tonull()
 
 toslug
 ------
-   .. autoclass:: toslug( )
+   .. autoclass:: toslug()
 
 tostr
 -----
-   .. autoclass:: tostr(join_str='\\n', return_if_none=None)
+   .. autoclass:: tostr(join_str='\n', return_if_none=None)
 
 tostre
 ------
-   .. autoclass:: tostre(join_str='\\n', return_if_none='')
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   .. autoclass:: tostre(join_str='\n', return_if_none='')

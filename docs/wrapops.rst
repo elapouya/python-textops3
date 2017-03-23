@@ -1,43 +1,27 @@
 ..
-   Created : 2015-11-12
+   Generated: Thu Mar 23 15:03:55 2017
 
-   @author: Eric Lapouyade
+   @author : Eric Lapouyade
 
 =======
-warpops
+wrapops
 =======
+
 .. automodule:: textops.ops.wrapops
 .. currentmodule:: textops
 
-alltrue
--------
-   .. autoclass:: alltrue()
-
-anytrue
--------
-   .. autoclass:: anytrue()
-
-dosort
+WrapOp
 ------
-   .. autoclass:: dosort([cmp[, key[, reverse]]])
+   .. autoclass:: WrapOp()
 
-getmax
-------
-   .. autoclass:: getmax([key])
+WrapOpIter
+----------
+   .. autoclass:: WrapOpIter()
 
-getmin
-------
-   .. autoclass:: getmin([key])
-
-linenbr
--------
-   .. autoclass:: linenbr(start=0)
+WrapOpStr
+---------
+   .. autoclass:: WrapOpStr()
 
 resub
 -----
-   .. autoclass:: resub(pattern, repl, string, count=0, flags=0)
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   .. autoclass:: resub(string, count=0, flags=0)
