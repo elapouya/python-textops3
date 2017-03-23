@@ -370,7 +370,8 @@ class tofile(TextOp):
     r"""send input to file
 
     ``tofile()`` must be the last text operation, if you want to write to file AND continue some text operations,
-    use :class:`textops.teefile` instead.
+    use :class:`textops.teefile` instead. if you want to write the same file than the one opened,
+    please use :class:`textops.replacefile` instead.
 
     Args:
         filename (str): The file to send output to
@@ -388,6 +389,37 @@ class tofile(TextOp):
                 if i>0:
                     fh.write(newline)
                 fh.write(stru(line))
+
+class replacefile(TextOp):
+    r"""send input to file
+
+    Works like :class:`textops.tofile` except it takes care to consume input text generators before writing the file.
+    This is mandatory when doing some in-file textops.
+    The drawback is that the data to write to file is stored temporarily in memory.
+
+    This does not work::
+
+        cat('myfile').sed('from_patter','to_pattern').tofile('myfile').n
+
+    This works::
+
+        cat('myfile').sed('from_patter','to_pattern').replacefile('myfile').n
+
+    Args:
+        filename (str): The file to send output to
+        mode (str): File open mode (Default : 'w')
+        newline (str): The newline string to add for each line (default: '\n')
+
+    Examples:
+        >>> cat('myfile').sed('from_patter','to_pattern').replacefile('myfile').n
+
+    """
+    @classmethod
+    def op(cls,text,filename,mode='w', newline='\n',*args,**kwargs):
+        # get output BEFORE opening the file
+        out = TextOp.make_string(text, newline)
+        with open(filename, mode) as fh:
+            fh.write(out)
 
 class teefile(TextOp):
     r"""send input to file AND yield the same input text
