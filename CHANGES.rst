@@ -1,3 +1,7 @@
+0.3.1 (2017-04-05)
+------------------
+* Fixed bug when have empty string as piped input string
+
 0.3.0 (2017-03-23)
 ------------------
 * add fileops and runops

@@ -61,10 +61,10 @@ class TextOp(object):
         return self
 
     def __ror__(self,text):
-        return self._process(text)
+        return self._process(text, piped=True)
 
     def __rrshift__(self,text):
-        result = self._process(text)
+        result = self._process(text, piped=True)
         if isinstance(result, (types.GeneratorType,enumerate)):
             return ListExt(result)
         return result
@@ -96,7 +96,7 @@ class TextOp(object):
         else:
             return self._process(args and args[0] or None)
 
-    def _process(self,text=None):
+    def _process(self,text=None, piped=False):
         input_text = text
         if self.debug:
             if isinstance(text, types.GeneratorType):
@@ -104,7 +104,7 @@ class TextOp(object):
             logger.debug('=== TextOps : %r' % self)
             logger.debug(DebugText(text))
         for i,(op,args,kwargs) in enumerate(self.ops):
-            if not i and not input_text and args:
+            if not piped and not i and not input_text and args:
                 text = args[0]
                 args = args[1:]
             opcls = getattr(textops.ops,op,None)
