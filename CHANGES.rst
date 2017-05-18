@@ -1,3 +1,7 @@
+0.3.2 (2017-06-18)
+------------------
+* DebugText class fixed
+
 0.3.1 (2017-04-05)
 ------------------
 * Fixed bug when have empty string as piped input string

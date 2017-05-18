@@ -632,19 +632,31 @@ class DebugText(object):
         self.nblines = nblines
         self.more_msg = more_msg
     def __repr__(self):
-        if isinstance(self.text,basestring):
-            nbchars = self.nblines * 80
-            if len(self.text) > nbchars:
-                return self.text[:nbchars] + self.more_msg
-            else:
-                return self.text
-        out = '['
-        for i,line in enumerate(self.text):
+        if isinstance(self.text, str):
+            lines = str.splitlines(self.text)
+            begin,sep,end = '','',''
+        elif isinstance(self.text, unicode):
+            lines = unicode.splitlines(self.text)
+            begin,sep,end = '','',''
+        elif isinstance(self.text, dict):
+            lines = [ '%s : %s' % item for item in self.text.iteritems() ]
+            begin,sep,end = '{',',','}'
+        elif isinstance(self.text,(types.GeneratorType,list)):
+            lines = self.text
+            begin,sep,end = '[',',',']'
+        else:
+            lines = [repr(self.text)]
+            begin,sep,end = '','',''
+
+        out = begin
+        for i,line in enumerate(lines):
+            if i:
+                out += '\n'
             if i == self.nblines:
-                logger.debug(self.more_msg)
+                out += '%s\n' % self.more_msg
                 break
-            out += '%s,\n' % line
-        out += ']'
+            out += '%s%s' % (line[:120],sep)
+        out += end
         return out
 
 def get_attribute_or_textop(obj,name):
