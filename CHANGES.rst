@@ -1,3 +1,7 @@
+0.3.3 (2018-02-23)
+------------------
+* Fix get_attribute_or_textop()
+
 0.3.2 (2017-06-18)
 ------------------
 * DebugText class fixed

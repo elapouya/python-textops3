@@ -660,7 +660,7 @@ class DebugText(object):
         return out
 
 def get_attribute_or_textop(obj,name):
-    if name[:1]=='_':
+    if name.startswith('__'):
         return object.__getattribute__(obj,name)
     op_cls = getattr(textops.ops,name,None)
     if op_cls and isinstance(op_cls,type) and issubclass(op_cls,TextOp):
