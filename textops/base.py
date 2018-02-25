@@ -898,6 +898,17 @@ class DictExt(NoAttrDict):
         'myval'
         >>> type(d['mykey'])
         <class 'textops.base.StrExt'>
+
+        >>> d=DictExt()
+        >>> d[0]=[]
+        >>> d
+        {0: []}
+        >>> d[0].append(3)
+        >>> d
+        {0: [3]}
+        >>> type(d[0])
+        <class 'textops.base.ListExt'>
+
     """
     def __getattribute__(self, name):
         if dict.has_key(self,name):
