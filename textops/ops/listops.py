@@ -1802,6 +1802,26 @@ class before(between):
     def op(cls, text, pattern, get_end=False, key=None,*args,**kwargs):
         return super(before,cls).op(text,None,pattern,get_end=get_end,key=key)
 
+class until(between):
+    r"""Extract lines before a patterns (case insensitive)
+
+    Works like :class:`textops.before` except that get_end=True (includes first found pattern)
+
+    Args:
+        pattern(str or regex or list): no more lines are yield after reaching this pattern(s)
+        key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines before the specified pattern
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | until('c').tolist()
+        ['a', 'b', 'c']
+    """
+    @classmethod
+    def op(cls, text, pattern, key=None,*args,**kwargs):
+        return super(until,cls).op(text,None,pattern,get_end=True,key=key)
+
 class beforei(before):
     r"""Extract lines before a patterns (case insensitive)
 
@@ -1853,8 +1873,28 @@ class after(between):
         [{'k': 4}, {'k': 5}, {'k': 6}]
     """
     @classmethod
-    def op(cls, text, pattern, get_begin=False,*args,**kwargs):
-        return super(after,cls).op(text,pattern,None,get_begin=get_begin)
+    def op(cls, text, pattern, get_begin=False, key=None, *args,**kwargs):
+        return super(after,cls).op(text,pattern,None,get_begin=get_begin, key=key)
+
+class since(between):
+    r"""Extract lines beginning with and after a patterns
+
+    Works like :class:`textops.after` except that it includes the first parttern found.
+
+    Args:
+        pattern(str or regex or list): start yielding lines after reaching this pattern(s)
+        key (int or str): test only one column or one key (optional)
+
+    Yields:
+        str or list or dict: lines after the specified pattern
+
+    Examples:
+        >>> ['a','b','c','d','e','f'] | since('c').tolist()
+        ['c', 'd', 'e', 'f']
+    """
+    @classmethod
+    def op(cls, text, pattern, key=None, *args,**kwargs):
+        return super(since,cls).op(text,pattern,None,get_begin=True,key=key)
 
 class afteri(after):
     r"""Extract lines after a patterns (case insensitive)

@@ -218,6 +218,10 @@ sedi
 ----
    .. autoclass:: sedi(pats, repls)
 
+since
+-----
+   .. autoclass:: since(pattern, key=None)
+
 skess
 -----
    .. autoclass:: skess(begin, end)
@@ -261,6 +265,10 @@ tail
 uniq
 ----
    .. autoclass:: uniq()
+
+until
+-----
+   .. autoclass:: until(pattern, key=None)
 
 wcount
 ------

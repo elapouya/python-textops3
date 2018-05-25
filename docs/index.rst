@@ -14,6 +14,11 @@
 | These operations can be chained with a 'dotted' or 'piped' notation.
 | Chained operations are stored into a single lazy object, they will be executed only when an input text will be provided.
 
+Here is a simple example to count number of mails received from spammer@hacker.com since May 25th::
+
+   >>> '/var/log/mail.log' | cat().grep('spammer@hacker.com').since('May 25').lcount()
+   37
+
 python-textops is used into some other projects like `python-nagios-helpers <http://python-nagios-helpers.readthedocs.org>`_
 
 .. toctree::

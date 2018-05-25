@@ -102,8 +102,7 @@ You can use unix shell 'pipe' symbol into python code to chain operations::
    >>> from textops import *
    >>> myops = grepi('error') | first() | strop.upper()
 
-The main interest for the piped notation is the possibility to avoid importing all operations,
-that is to import only textops module::
+If you do not want to import all textops operations, you can only import textops as ``op``::
 
    >>> import textops as op
    >>> myops = op.grepi('error') | op.first() | op.strop.upper()
@@ -126,7 +125,7 @@ use chained operations like a function, or use the pipe symbol to "stream" input
    python generators are used as far as possible to be able to manage huge data set like big files.
    Prefer to use the dotted notation, it is more optimized.
 
-To execute operations at once, specify the input text on the same line::
+To execute operations at once, specify the input text in parenthesis after chained operation as they were a function::
 
    >>> print grepi('error').first().upper()('this is an error\nthis is a warning')
    THIS IS AN ERROR
@@ -166,6 +165,7 @@ A shortcut is possible : the input text can be put as the first parameter of the
 nevertheless, in this case, despite the input text is provided, chained operations won't be executed
 until used in a for-loop, converted into a string/list or forced by special attributes::
 
+   # Just creating a test file here :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
 
    # Here, operations are excuted because 'print' converts into string :
@@ -182,27 +182,27 @@ until used in a for-loop, converted into a string/list or forced by special attr
    # operations are considered as a lazy object, that is the reason why
    # only the object representation is returned (chained operations in dotted notation)
    >>> logs = cat('/tmp/errors.log')
-   >>> logs
+   >>> logs                            # the cat() is not executed, you see only its python representation :
    cat('/tmp/errors.log')
    >>> print type(logs)
    <class 'textops.ops.fileops.cat'>
 
    # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')
-   >>> logs = cat('/tmp/errors.log').s
-   >>> print type(logs)
+   >>> logs = cat('/tmp/errors.log').s  # '.s' to execute operations and get a string (StrExt)
+   >>> print type(logs)                 # you get a textops extended string
    <class 'textops.base.StrExt'>
    >>> print logs
    error 1
    warning 1
 
-   >>> logs = cat('/tmp/errors.log').l
+   >>> logs = cat('/tmp/errors.log').l  # '.l' to execute operations and get a list (ListExt)
    >>> print type(logs)
    <class 'textops.base.ListExt'>
    >>> print logs
    ['error 1', 'warning 1']
 
-   >>> logs = cat('/tmp/errors.log').g
+   >>> logs = cat('/tmp/errors.log').g  # '.g' to execute operations and get a generator
    >>> print type(logs)
    <type 'generator'>
    >>> print list(logs)
