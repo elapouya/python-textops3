@@ -15,7 +15,6 @@ from addicted import NoAttrDict, NoAttr
 import string
 import logging
 import pprint
-import collections
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -149,8 +148,8 @@ class TextOp(object):
     def __repr__(self):
         rops = []
         for op,args,kwargs in self.ops:
-            opargs = [ '%r' % v if isinstance(v,(str,int,float)) else v for v in args ]
-            opargs += [ '%s=%r' % (k,v) for k,v in list(kwargs.items()) ]
+            opargs = [ '%r' % v if isinstance(v,(basestring,int,float)) else v for v in args ]
+            opargs += [ '%s=%r' % (k,v) for k,v in kwargs.items() ]
             rops.append('%s(%s)' % (op,','.join(map(str,opargs))))
         return '.'.join(rops)
 
@@ -205,7 +204,7 @@ class TextOp(object):
     def make_list(cls, text, return_if_none=None):
         if text in [None,NoAttr]:
             return return_if_none
-        elif isinstance(text, str):
+        elif isinstance(text, basestring):
             return text.splitlines()
         elif isinstance(text, (types.GeneratorType, enumerate)):
             return ListExt(text)
@@ -330,10 +329,10 @@ class TextOp(object):
                 return int(float(text))
             except (ValueError, TypeError):
                 return 0
-        if isinstance(text, str):
+        if isinstance(text, basestring):
             return _to_int(text)
         elif isinstance(text,(list,tuple)):
-            return list(map(_to_int,text))
+            return map(_to_int,text)
         return text
 
     @property
@@ -359,10 +358,10 @@ class TextOp(object):
                 return float(text)
             except (ValueError, TypeError):
                 return 0.0
-        if isinstance(text, str):
+        if isinstance(text, basestring):
             return _to_float(text)
         elif isinstance(text, (list,tuple)):
-            return list(map(_to_float,text))
+            return map(_to_float,text)
         return text
 
     @property
@@ -450,10 +449,10 @@ class TextOp(object):
     def _tolist(cls,text):
         if isinstance(text, str):
             return str.splitlines(text)
-        elif isinstance(text, str):
-            return str.splitlines(text)
+        elif isinstance(text, unicode):
+            return unicode.splitlines(text)
         elif isinstance(text, dict):
-            return iter(text.items())
+            return text.iteritems()
         elif isinstance(text, (int,float)):
             return [text]
         return text
@@ -462,8 +461,8 @@ class TextOp(object):
     def _tosublist(cls,text):
         if isinstance(text, str):
             return [ [line] for line in str.splitlines(text) ]
-        elif isinstance(text, str):
-            return [ [line] for line in str.splitlines(text) ]
+        elif isinstance(text, unicode):
+            return [ [line] for line in unicode.splitlines(text) ]
         elif isinstance(text, (int,float,dict)):
             return [[text]]
         elif isinstance(text, list) and (not text or not isinstance(text[0],list)):
@@ -472,7 +471,7 @@ class TextOp(object):
 
     @classmethod
     def _tostr(cls,text):
-        if not isinstance(text, str):
+        if not isinstance(text, basestring):
             return '\n'.join(text)
         return text
 
@@ -491,10 +490,10 @@ class TextOp(object):
         return lst.__getitem__(item)
 
 def extend_type(obj):
-    if isinstance(obj,str):
+    if isinstance(obj,unicode):
         if not isinstance(obj,UnicodeExt):
             return UnicodeExt(obj)
-    elif isinstance(obj,str):
+    elif isinstance(obj,basestring):
         if not isinstance(obj,StrExt):
             return StrExt(obj)
     elif isinstance(obj,(list,tuple)):
@@ -512,7 +511,7 @@ def extend_type_gen(obj):
         yield extend_type(i)
 
 def stru(text):
-    if isinstance(text, str):
+    if isinstance(text, unicode):
         text = text.encode('utf-8','replace')
     else:
         text = str(text)
@@ -540,7 +539,7 @@ class WrapOpStr(TextOp):
     @classmethod
     def op(cls, text, *args,**kwargs):
         args = list(args)
-        if isinstance(text, str):
+        if isinstance(text, basestring):
             args.insert(cls.input_argn,text)
             return cls.fn(*args,**kwargs)
         else:
@@ -636,11 +635,11 @@ class DebugText(object):
         if isinstance(self.text, str):
             lines = str.splitlines(self.text)
             begin,sep,end = '','',''
-        elif isinstance(self.text, str):
-            lines = str.splitlines(self.text)
+        elif isinstance(self.text, unicode):
+            lines = unicode.splitlines(self.text)
             begin,sep,end = '','',''
         elif isinstance(self.text, dict):
-            lines = [ '%s : %s' % item for item in self.text.items() ]
+            lines = [ '%s : %s' % item for item in self.text.iteritems() ]
             begin,sep,end = '{',',','}'
         elif isinstance(self.text,(types.GeneratorType,list)):
             lines = self.text
@@ -686,9 +685,9 @@ def get_attribute_or_textop(obj,name):
             elif isinstance(obj,(StrExt,UnicodeExt)):
                 raise
             def fn(*args,**kwargs):
-                return [getattr(str if isinstance(s,str) else str, name)(s,*args,**kwargs) for s in obj]
+                return map(lambda s:getattr(str if isinstance(s,str) else unicode, name)(s,*args,**kwargs),obj)
 
-    if not isinstance(fn, collections.Callable):
+    if not callable(fn):
         return fn
 
     def wrapper(*args, **kwargs):
@@ -702,7 +701,7 @@ def get_attribute_or_textop(obj,name):
         return extend_type(result)
     return wrapper
 
-class UnicodeExt(str):
+class UnicodeExt(unicode):
     """Extend Unicode class to gain access to textops as attributes
 
     Examples:
@@ -740,7 +739,7 @@ class UnicodeExt(str):
     def __str__(self):
         return self.encode('utf-8')    
     def _ipython_display_(self):
-        print(self.__repr__())
+        print self.__repr__()
 
 class StrExt(str):
     """Extend str class to gain access to textops as attributes
@@ -778,7 +777,7 @@ class StrExt(str):
     def __format__(self,*args, **kwargs):
         return extend_type(super(StrExt, self).__format__(*args, **kwargs))
     def _ipython_display_(self):
-        print(self.__repr__())
+        print self.__repr__()
 
 class ListExt(list):
     """Extend list class to gain access to textops as attributes
@@ -823,7 +822,7 @@ class ListExt(list):
     def __iter__(self):
         return ListExtIterator(self)
     def _ipython_display_(self):
-        print(self.__repr__())
+        print self.__repr__()
 
 class ListExtIterator(object):
     def __init__(self, obj):
@@ -832,7 +831,7 @@ class ListExtIterator(object):
         self.len = len(obj)
     def __iter__(self):
         return self
-    def __next__(self):
+    def next(self):
         self.index += 1
         if self.index < self.len:
             # Will call extend_type() because __getitem__ do it :
@@ -863,7 +862,7 @@ class DictExt(NoAttrDict):
         >>> {'a':1,'b':2}.items().grep('a')
         Traceback (most recent call last):
             ...
-        AttributeError: 'dict_items' object has no attribute 'grep'
+        AttributeError: 'list' object has no attribute 'grep'
 
         >>> DictExt({'a':1,'b':2}).items().grep('a')
         [['a', 1]]
@@ -967,7 +966,7 @@ class DefaultDict(dict):
         try:
             return super(DefaultDict,self).__getitem__(key)
         except KeyError:
-            if isinstance(self.defvalue, collections.Callable):
+            if callable(self.defvalue):
                 return self.defvalue(key)
             return self.defvalue
 
@@ -979,7 +978,7 @@ class DefaultList(list):
         try:
             return super(DefaultList,self).__getitem__(key)
         except IndexError:
-            if isinstance(self.defvalue, collections.Callable):
+            if callable(self.defvalue):
                 return self.defvalue(key)
             return self.defvalue
 

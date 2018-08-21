@@ -46,7 +46,7 @@ class run(TextOp):
     """
     @classmethod
     def op(cls,text, context = {},*args,**kwargs):
-        if isinstance(text, str):
+        if isinstance(text, basestring):
             if context:
                 text = text.format(**context)
             p=subprocess.Popen(['sh','-c',text],stdout=subprocess.PIPE)

@@ -58,12 +58,12 @@ class list_to_multilinestring(TextOp):
                 else:
                     cls._l2m_walk(val)
         elif isinstance(obj,dict):
-            for key,val in list(obj.items()):
+            for key,val in obj.items():
                 if val and isinstance(val,list) and val[0]==tag:
                     obj[key] = cls._l2m_recode(val,*args,**kwargs)
                 else:
                     cls._l2m_walk(val)
-        elif isinstance(obj,str):
+        elif isinstance(obj,basestring):
             return cls._l2m_recode(obj,*args,**kwargs)
 
     @classmethod
@@ -126,20 +126,20 @@ class multilinestring_to_list(TextOp):
     def _m2l_walk(cls,obj,*args,**kwargs):
         if isinstance(obj,list):
             for key,val in enumerate(obj):
-                if isinstance(val,str):
+                if isinstance(val,basestring):
                     obj[key] = cls._m2l_recode(val,*args,**kwargs)
                 else:
                     cls._m2l_walk(val)
         elif isinstance(obj,dict):
-            for key,val in list(obj.items()):
-                if isinstance(val,str):
+            for key,val in obj.items():
+                if isinstance(val,basestring):
                     obj[key] = cls._m2l_recode(val,*args,**kwargs)
                 else:
                     cls._m2l_walk(val)
 
     @classmethod
     def op(cls,text,in_place=False,*args,**kwargs):
-        if isinstance(text,str):
+        if isinstance(text,basestring):
             return cls._m2l_recode(text,*args,**kwargs)
         if not in_place:
             text = copy.deepcopy(text)

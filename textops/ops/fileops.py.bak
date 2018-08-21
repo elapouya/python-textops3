@@ -189,7 +189,7 @@ class findre(TextOp):
     """
     @classmethod
     def op(cls,text, pattern='', context = {}, only_files=False, only_dirs=False, *args,**kwargs):
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern)
         for path in cls._tolist(text):
             if context:
@@ -256,7 +256,7 @@ class zipcatre(TextOp):
     """
     @classmethod
     def op(cls,text, member_regex, context = {}, password=None, *args,**kwargs):
-        if isinstance(member_regex,str):
+        if isinstance(member_regex,basestring):
             member_regex = re.compile(member_regex)
         for path in cls._tolist(text):
             if context:
@@ -350,7 +350,7 @@ class unzipre(TextOp):
     """
     @classmethod
     def op(cls,text, member_regex, topath=None, password=None, context = {}, ignore=False, *args,**kwargs):
-        if isinstance(member_regex,str):
+        if isinstance(member_regex,basestring):
             member_regex = re.compile(member_regex)
         if topath and context:
             topath = topath.format(**context)

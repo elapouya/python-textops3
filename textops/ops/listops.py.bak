@@ -13,8 +13,6 @@ import subprocess
 import sys
 import os
 import itertools
-import collections
-from functools import reduce
 
 class ListOpError(Exception):
     pass
@@ -77,10 +75,10 @@ class grep(TextOp):
     def op(cls,text,pattern=None, key=None, has_key=None, attr=None, has_attr=None, *args,**kwargs):
         if pattern is None:
             pattern = cls.pattern
-        regex = re.compile(pattern,cls.flags) if isinstance(pattern,str) else pattern
+        regex = re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern
         for line in cls._tolist(text):
             try:
-                if isinstance(line,str):
+                if isinstance(line,basestring):
                     if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         yield line
                 elif has_key is not None:
@@ -206,11 +204,11 @@ class grepc(TextOp):
             return 0
         if pattern is None:
             pattern = cls.pattern
-        regex = re.compile(pattern,cls.flags) if isinstance(pattern,str) else pattern
+        regex = re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern
         count = 0
         for line in cls._tolist(text):
             try:
-                if isinstance(line,str):
+                if isinstance(line,basestring):
                     if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                         count += 1
                         if cls.exit_on_found:
@@ -417,7 +415,7 @@ class wcount(TextOp):
         count = 0
         for line in cls._tolist(text):
             try:
-                if isinstance(line,str):
+                if isinstance(line,basestring):
                     words = re.split('\s+',line.strip())
                 elif isinstance(line,list):
                     if key is None:
@@ -426,7 +424,7 @@ class wcount(TextOp):
                         words = re.split('\s+',stru(line[key]).strip())
                 elif isinstance(line,dict):
                     if key is None:
-                        words = list(line.values())
+                        words = line.values()
                     else:
                         words = re.split('\s+',stru(line[key]).strip())
                 else:
@@ -1112,7 +1110,7 @@ class findhighlight(TextOp):
         buffer = []
         blines = blines or nlines
         elines = elines or nlines
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern,re.I if ignorecase else 0)
         elines_cptr = 0
         last_found_line = 0
@@ -1207,14 +1205,14 @@ class sed(TextOp):
         for line in cls._tolist(text):
             for pat,repl in zip(pats,repls):
                 if repl is not None:
-                    if isinstance(pat, str):
+                    if isinstance(pat, basestring):
                         pat = re.compile(pat,cls.flags)
-                    if isinstance(line, str):
+                    if isinstance(line, basestring):
                         line = pat.sub(repl,line)
                     elif isinstance(line, list):
                         line = [ pat.sub(repl,stru(item)) for item in line ]
                     elif isinstance(line, dict):
-                        line = dict([(k,pat.sub(repl,stru(v))) for k,v in list(line.items())])
+                        line = dict([(k,pat.sub(repl,stru(v))) for k,v in line.items()])
                     else:
                         line = pat.sub(repl,stru(line))
             yield line
@@ -1255,12 +1253,12 @@ class dostrip(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
         for line in cls._tolist(text):
-            if isinstance(line, str):
+            if isinstance(line, basestring):
                 yield line.strip()
             elif isinstance(line, list):
                 yield [ stru(item).strip() for item in line ]
             elif isinstance(line, dict):
-                yield dict([(k,stru(v).strip()) for k,v in list(line.items())])
+                yield dict([(k,stru(v).strip()) for k,v in line.items()])
             else:
                 yield stru(line).strip()
 
@@ -1336,11 +1334,11 @@ class between(TextOp):
     def _build_regex_list(cls,string_or_list):
         if string_or_list is None:
             return []
-        elif isinstance(string_or_list, str):
+        elif isinstance(string_or_list, basestring):
             lst = [string_or_list]
         else:
             lst = list(string_or_list)
-        return [ re.compile(pat,cls.flags) if isinstance(pat, str) else pat for pat in lst ]
+        return [ re.compile(pat,cls.flags) if isinstance(pat, basestring) else pat for pat in lst ]
 
     @classmethod
     def op(cls, text, begin, end, get_begin=None, get_end=None, key=None, *args,**kwargs):
@@ -1462,7 +1460,7 @@ class linetester(TextOp):
     @classmethod
     def castfn(cls, *args, **kwargs):
         first_param = args[0]
-        if isinstance(first_param,str):
+        if isinstance(first_param,basestring):
             return lambda l:cls.make_string(l)
         elif isinstance(first_param,int):
             return lambda l:cls.make_int(l)
@@ -1480,12 +1478,12 @@ class linetester(TextOp):
         castfn = cls.castfn(*args,**kwargs)
 
         if key is not None:
-            if isinstance(key, collections.Callable):
+            if callable(key):
                 getkey = lambda l:key(StrExt(l))
             else:
                 getkey = lambda l:l[key]
         elif attr is not None:
-            if isinstance(attr, collections.Callable):
+            if callable(attr):
                 getkey = lambda l: attr(StrExt(l))
             else:
                 getkey = lambda l: getattr(l,attr)
@@ -2190,7 +2188,7 @@ class subitems(TextOp):
     """
     @classmethod
     def op(cls, text, ntab, *args,**kwargs):
-        if isinstance(ntab,str):
+        if isinstance(ntab,basestring):
             ntab = [ int(n) for n in ntab.split(',') ]
         for sublist in cls._tolist(text):
             yield [ sublist[n] for n in ntab ]
@@ -2332,7 +2330,7 @@ class splitblock(TextOp):
 
     @classmethod
     def op(cls, text, pattern, include_separator=0, skip_first=False, *args,**kwargs):
-        if isinstance(pattern, str):
+        if isinstance(pattern, basestring):
             pattern = re.compile(pattern,cls.flags)
         blk=[]
         for line in cls._tolist(text):
@@ -2447,7 +2445,7 @@ class resplitblock(TextOp):
 
     @classmethod
     def op(cls, text, pattern, include_separator=0, skip_first=False, *args,**kwargs):
-        if isinstance(pattern, str):
+        if isinstance(pattern, basestring):
             pattern = re.compile(pattern,kwargs.get('flags',cls.flags))
         text = cls._tostr(text)
         blks = []
@@ -2530,14 +2528,14 @@ class aggregate(TextOp):
 
     @classmethod
     def op(cls, text, having, same_key=False, join_str='|', *args,**kwargs):
-        if isinstance(having, str):
+        if isinstance(having, basestring):
             having = re.compile(having,kwargs.get('flags',cls.flags))
 
         buffer=[]
         prev_key=None
         for line in cls._tolist(text):
             key = None
-            if isinstance(having, collections.Callable):
+            if callable(having):
                 key,msg = having(buffer,line)
             else:
                 m = having.match(line)

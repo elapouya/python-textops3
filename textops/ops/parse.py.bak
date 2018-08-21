@@ -13,7 +13,6 @@ import string
 import re
 import copy
 from datetime import datetime
-import collections
 
 logger = textops.logger
 
@@ -110,14 +109,14 @@ class mgrep(TextOp):
     reverse = False
     @classmethod
     def op(cls,text,patterns_dict,key = None, *args,**kwargs):
-        for k,pattern in list(patterns_dict.items()):
-            if isinstance(pattern,str):
+        for k,pattern in patterns_dict.items():
+            if isinstance(pattern,basestring):
                 patterns_dict[k] = re.compile(pattern,cls.flags)
         dct = {}
         for line in cls._tolist(text):
-            for k,regex in list(patterns_dict.items()):
+            for k,regex in patterns_dict.items():
                 try:
-                    if isinstance(line,str):
+                    if isinstance(line,basestring):
                         if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                             dct.setdefault(k,[]).append(line)
                     elif key is None:
@@ -260,12 +259,12 @@ class sgrep(TextOp):
     reverse = False
     @classmethod
     def op(cls,text,patterns,key = None, *args,**kwargs):
-        patterns = [ re.compile(pattern,cls.flags) if isinstance(pattern,str) else pattern for pattern in patterns ]
-        lst = [ [] for i in range(len(patterns)+1) ] # surtout pas faire [] * (len(patterns)+1)
+        patterns = [ re.compile(pattern,cls.flags) if isinstance(pattern,basestring) else pattern for pattern in patterns ]
+        lst = [ [] for i in xrange(len(patterns)+1) ] # surtout pas faire [] * (len(patterns)+1)
         for line in cls._tolist(text):
             for i,regex in enumerate(patterns):
                 try:
-                    if isinstance(line,str):
+                    if isinstance(line,basestring):
                         if bool(regex.search(stru(line))) != cls.reverse:  # kind of XOR with cls.reverse
                             lst[i].append(line)
                             break
@@ -325,7 +324,7 @@ class parseg(TextOp):
     ignore_case = False
     @classmethod
     def op(cls,text, pattern, *args,**kwargs):
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
         out = []
         for line in cls._tolist(text):
@@ -378,7 +377,7 @@ class parsek(TextOp):
     ignore_case = False
     @classmethod
     def op(cls,text, pattern, key_name = 'key', key_update = None, *args,**kwargs):
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
         out = []
         for line in cls._tolist(text):
@@ -462,7 +461,7 @@ class parsekv(TextOp):
     def op(cls,text, pattern, key_name = 'key', key_update = None, val_name = None, *args,**kwargs):
         if val_name is None:
             val_name = cls.val_name
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.I if cls.ignore_case else 0)
 
         def _op(text):
@@ -475,7 +474,7 @@ class parsekv(TextOp):
                     if key:
                         if key_update is None:
                             key_norm = index_normalize(key)
-                        elif isinstance(key_update, collections.Callable):
+                        elif callable(key_update):
                             key_norm = key_update(key)
                         else:
                             key_norm = key
@@ -604,7 +603,7 @@ class find_pattern(TextOp):
 
     @classmethod
     def op(cls,text, pattern, *args,**kwargs):
-        if isinstance(pattern,str):
+        if isinstance(pattern,basestring):
             pattern = re.compile(pattern, re.M | (re.I if cls.ignore_case else 0))
         text = cls._tostr(text)
         m = pattern.search(text)
@@ -687,18 +686,18 @@ class find_patterns(TextOp):
         out = []
         text = cls._tostr(text)
         if isinstance(patterns, dict):
-            patterns_list = list(patterns.items())
+            patterns_list = patterns.items()
         else:
             patterns_list = enumerate(patterns)
         for attr,pattern in patterns_list:
-            if isinstance(pattern,str):
+            if isinstance(pattern,basestring):
                 pattern = re.compile(pattern, re.M | (re.I if cls.ignore_case else 0))
             if pattern:
                 m = pattern.search(text)
                 if m :
                     tmp_groupdict = m.groupdict() or dict([('group%s' % k,v) for k,v in enumerate(m.groups())])
                     groupdict = {}
-                    for grp, val in list(tmp_groupdict.items()):
+                    for grp, val in tmp_groupdict.items():
                         if grp[:3] == 'INT':
                             try:
                                 groupdict[grp[3:]] = int(val)
@@ -845,7 +844,7 @@ class parse_indented(TextOp):
                         indent -= 1
                         dct = indent_node.get(indent)
                     indent_level = indent
-                    for ik in list(indent_node.keys()):
+                    for ik in indent_node.keys():
                         if ik > indent:
                             del indent_node[ik]
                 elif indent > indent_level:
@@ -861,10 +860,10 @@ class parse_indented(TextOp):
                     if isinstance(prev_v,dict):
                         dct[k]=[prev_v,{}]
                         dct = dct[k][-1]
-                    elif isinstance(prev_v,str):
+                    elif isinstance(prev_v,basestring):
                         dct[k]=[prev_v,v]
                     else:
-                        if isinstance(prev_v[0],str):
+                        if isinstance(prev_v[0],basestring):
                             dct[k].append(v)
                         else:
                             dct[k].append({})
@@ -986,7 +985,7 @@ class parse_smart(TextOp):
                             indent -= 1
                             dct = indent_node.get(indent)
                         indent_level = indent
-                        for ik in list(indent_node.keys()):
+                        for ik in indent_node.keys():
                             if ik > indent:
                                 del indent_node[ik]
                         if not v:
@@ -1007,10 +1006,10 @@ class parse_smart(TextOp):
                         if isinstance(prev_v,dict):
                             dct[k]=[prev_v,{}]
                             dct = dct[k][-1]
-                        elif isinstance(prev_v,str):
+                        elif isinstance(prev_v,basestring):
                             dct[k]=[prev_v,v]
                         else:
-                            if isinstance(prev_v[0],str):
+                            if isinstance(prev_v[0],basestring):
                                 dct[k].append(v)
                             else:
                                 dct[k].append({})
@@ -1283,11 +1282,11 @@ class state_pattern(TextOp):
             if not ifstate:
                 ifstate = ()
             else:
-                if isinstance(ifstate, str):
+                if isinstance(ifstate, basestring):
                     ifstate = ifstate.split(',')
-            if isinstance(pattern, str):
+            if isinstance(pattern, basestring):
                 pattern = re.compile(pattern,reflags)
-            if isinstance(datapath, str):
+            if isinstance(datapath, basestring):
                 if not datapath:
                     datapath = []
                 else:
@@ -1304,7 +1303,7 @@ class state_pattern(TextOp):
                     if m:
                         g = m.groupdict()
                         if autostrip:
-                            g = dict([ (k,v.strip() if isinstance(v,str) else v) for k,v in list(m.groupdict().items()) ])
+                            g = dict([ (k,v.strip() if isinstance(v,basestring) else v) for k,v in m.groupdict().items() ])
                         groups_context.update(g,_ifstate=ifstate,_gotostate=gotostate,_state=state)
                         logger.debug('  -> OK')
                         logger.debug('    context = %s',groups_context)
@@ -1336,11 +1335,11 @@ class state_pattern(TextOp):
                                         data[p] = {}
                                     data = data[p]
 
-                            if isinstance(outfilter, collections.Callable):
+                            if callable(outfilter):
                                 g,new_groups_context=outfilter(m,groups_context)
                                 if new_groups_context is not None:
                                     groups_context = new_groups_context
-                            elif isinstance(outfilter, str):
+                            elif isinstance(outfilter, basestring):
                                 if outfilter.startswith('<'):
                                     g = groups_context.get(outfilter[1:].strip(),{})
                                 else:

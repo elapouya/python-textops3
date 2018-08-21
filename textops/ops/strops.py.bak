@@ -9,7 +9,6 @@
 from textops import TextOp
 import re
 import types
-from functools import reduce
 
 class PyStrWrapper(object):
     """ This is a help to be able to use python string method with piped notation """
@@ -168,9 +167,9 @@ class searches(TextOp):
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if isinstance(text, str) and '\n' in text:
+        if isinstance(text, basestring) and '\n' in text:
             text = cls._tolist(text)
-        if isinstance(text, str):
+        if isinstance(text, basestring):
             return cls.fn(text,*args,**kwargs)
         elif isinstance(text, list):
             return [ cls.fn(line,*args,**kwargs) for line in text ]
@@ -240,9 +239,9 @@ class cut(StrOp):
     @classmethod
     def fn(cls, text, sep=None, col=None, default='', *args,**kwargs):
         if cls.sep_is_regex:
-            if isinstance(sep, str):
+            if isinstance(sep, basestring):
                 sep = re.compile(sep,cls.flags)
-        if isinstance(col, str):
+        if isinstance(col, basestring):
             col = [int(i) for i in col.split(',')]
         if isinstance(col,(list,tuple)):
             nbcol = len(col)
