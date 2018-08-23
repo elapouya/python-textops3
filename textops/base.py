@@ -912,8 +912,8 @@ class DictExt(NoAttrDict):
 
     """
     def __getattribute__(self, name):
-        if dict.has_key(self,name):
-            return self[name]
+        if dict.__contains__(self,name):
+            return dict.__getitem__(self,name)
         return get_attribute_or_textop(self,name)
 
     @property
