@@ -63,7 +63,7 @@ class echo(TextOp):
 
         >>> s='this is a string'
         >>> type(s)
-        <type 'str'>
+        <class 'str'>
         >>> t=s | echo()
         >>> type(t)
         <class 'textops.base.StrExt'>

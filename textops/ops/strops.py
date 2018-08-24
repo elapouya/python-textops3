@@ -64,7 +64,7 @@ class echo(TextOp):
 
         >>> s='this is a string'
         >>> type(s)
-        <type 'str'>
+        <class 'str'>
         >>> t=s | echo()
         >>> type(t)
         <class 'textops.base.StrExt'>
@@ -117,15 +117,15 @@ class matches(TextOp):
     Examples:
 
         >>> state=StrExt('good')
-        >>> print 'OK' if state.matches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.matches(r'good|not_present|charging') else 'CRITICAL')
         OK
         >>> state=StrExt('looks like all is good')
-        >>> print 'OK' if state.matches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.matches(r'good|not_present|charging') else 'CRITICAL')
         CRITICAL
-        >>> print 'OK' if state.matches(r'.*(good|not_present|charging)') else 'CRITICAL'
+        >>> print('OK' if state.matches(r'.*(good|not_present|charging)') else 'CRITICAL')
         OK
         >>> state=StrExt('Error')
-        >>> print 'OK' if state.matches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.matches(r'good|not_present|charging') else 'CRITICAL')
         CRITICAL
 
     """
@@ -147,15 +147,15 @@ class searches(TextOp):
     Examples:
 
         >>> state=StrExt('good')
-        >>> print 'OK' if state.searches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.searches(r'good|not_present|charging') else 'CRITICAL')
         OK
         >>> state=StrExt('looks like all is good')
-        >>> print 'OK' if state.searches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.searches(r'good|not_present|charging') else 'CRITICAL')
         OK
-        >>> print 'OK' if state.searches(r'.*(good|not_present|charging)') else 'CRITICAL'
+        >>> print('OK' if state.searches(r'.*(good|not_present|charging)') else 'CRITICAL')
         OK
         >>> state=StrExt('Error')
-        >>> print 'OK' if state.searches(r'good|not_present|charging') else 'CRITICAL'
+        >>> print('OK' if state.searches(r'good|not_present|charging') else 'CRITICAL')
         CRITICAL
 
     """
@@ -168,9 +168,10 @@ class searches(TextOp):
 class StrOp(TextOp):
     @classmethod
     def op(cls,text,*args,**kwargs):
-        if isinstance(text, str) and '\n' in text:
+        if ( ( isinstance(text, str) and '\n' in text ) or
+             (isinstance(text, bytes) and b'\n' in text) ):
             text = cls._tolist(text)
-        if isinstance(text, str):
+        if isinstance(text, (str,bytes)):
             return cls.fn(text,*args,**kwargs)
         elif isinstance(text, list):
             return [ cls.fn(line,*args,**kwargs) for line in text ]
@@ -290,7 +291,7 @@ class cutre(cut):
     Examples:
 
         >>> s='col1.1 | col1.2 | col1.3\ncol2.1 | col2.2 | col2.3'
-        >>> print s
+        >>> print(s)
         col1.1 | col1.2 | col1.3
         col2.1 | col2.2 | col2.3
         >>> s | cutre(r'\s+')

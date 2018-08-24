@@ -29,17 +29,17 @@ class run(TextOp):
     Examples:
         >>> cmd = 'mkdir -p /tmp/textops_tests_run;\
         ... cd /tmp/textops_tests_run; touch f1 f2 f3; ls'
-        >>> print cmd | run().tostr()
+        >>> print(cmd | run().tostr())
         f1
         f2
         f3
-        >>> print cmd >> run()
+        >>> print(cmd >> run())
         ['f1', 'f2', 'f3']
-        >>> print ['ls', '/tmp/textops_tests_run'] | run().tostr()
+        >>> print(['ls', '/tmp/textops_tests_run'] | run().tostr())
         f1
         f2
         f3
-        >>> print ['ls', '{path}'] | run({'path':'/tmp/textops_tests_run'}).tostr()
+        >>> print(['ls', '{path}'] | run({'path':'/tmp/textops_tests_run'}).tostr())
         f1
         f2
         f3
@@ -77,21 +77,21 @@ class mrun(TextOp):
         >>> cmds = 'mkdir -p /tmp/textops_tests_run\n'
         >>> cmds+= 'cd /tmp/textops_tests_run;touch f1 f2 f3\n'
         >>> cmds+= 'ls /tmp/textops_tests_run'
-        >>> print cmds | mrun().tostr()
+        >>> print(cmds | mrun().tostr())
         f1
         f2
         f3
         >>> cmds=['mkdir -p /tmp/textops_tests_run',
         ... 'cd /tmp/textops_tests_run; touch f1 f2 f3']
         >>> cmds.append('ls /tmp/textops_tests_run')
-        >>> print cmds | mrun().tostr()
+        >>> print(cmds | mrun().tostr())
         f1
         f2
         f3
-        >>> print cmds >> mrun()
+        >>> print(cmds >> mrun())
         ['f1', 'f2', 'f3']
         >>> cmds = ['ls {path}', 'echo "Cool !"']
-        >>> print cmds | mrun({'path':'/tmp/textops_tests_run'}).tostr()
+        >>> print(cmds | mrun({'path':'/tmp/textops_tests_run'}).tostr())
         f1
         f2
         f3

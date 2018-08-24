@@ -51,11 +51,11 @@ class cat(TextOp):
         >>> cat('/tmp/testfile.txt').g                 #doctest: +ELLIPSIS
         <generator object extend_type_gen at ...>
         >>> for line in cat('/tmp/testfile.txt'):
-        ...     print line
+        ...     print(line)
         ...
         here is the file content
         >>> for bits in cat('/tmp/testfile.txt').grep('content').cut():
-        ...     print bits
+        ...     print(bits)
         ...
         ['here', 'is', 'the', 'file', 'content']
         >>> open('/tmp/testfile.txt','w').write('here is the file content\nanother line')
@@ -71,7 +71,7 @@ class cat(TextOp):
         >>> cat('/{path}/testfile.txt',context).l
         ['here is the file content', 'another line']
         >>> for bits in cat('/tmp/testfile.txt').grep('content').cut():
-        ...     print bits
+        ...     print(bits)
         ...
         ['here', 'is', 'the', 'file', 'content']
     """

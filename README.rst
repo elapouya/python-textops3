@@ -63,19 +63,19 @@ Examples
 
 Piped then dotted notation (recommended)::
 
-   >>> print 'this is an error\nthis is a warning' | grepi('error').first().upper()
+   >>> print('this is an error\nthis is a warning' | grepi('error').first().upper())
    THIS IS AN ERROR
 
 You could use the pipe everywhere (internally a little less optimized, but looks like shell)::
 
-   >>> print 'this is an error\nthis is a warning' | grepi('error') | first() | strop.upper()
+   >>> print('this is an error\nthis is a warning' | grepi('error') | first() | strop.upper())
    THIS IS AN ERROR
 
 To execute an operation directly from strings, lists or dicts *with the dotted notation*,
 you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
 
    >>> s = StrExt('this is an error\nthis is a warning')
-   >>> print s.grepi('error').first().upper()
+   >>> print(s.grepi('error').first().upper())
    THIS IS AN ERROR
 
 Documentation

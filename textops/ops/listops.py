@@ -513,16 +513,16 @@ class doformat(TextOp):
         str: formatted input
 
     Examples:
-        >>> print ['Eric','Guido'] | doformat('First name : {0}','\n')
+        >>> print(['Eric','Guido'] | doformat('First name : {0}','\n'))
         First name : Eric
         First name : Guido
         >>> ['Eric','Guido'] | doformat('{0} <{0}@github.com>',',')
         'Eric <Eric@github.com>,Guido <Guido@github.com>'
         >>> ctx = {'hostname' : 'pcubuntu'}
-        >>> print ['eth0','eth1'] | doformat('{hostname}/network/{0}','\n',context=ctx)
+        >>> print(['eth0','eth1'] | doformat('{hostname}/network/{0}','\n',context=ctx))
         pcubuntu/network/eth0
         pcubuntu/network/eth1
-        >>> print ['eth0','eth1'] | doformat('{nodename}/network/{4}','\n',ctx,'(unknown)')
+        >>> print(['eth0','eth1'] | doformat('{nodename}/network/{4}','\n',ctx,'(unknown)'))
         (unknown)/network/(unknown)
         (unknown)/network/(unknown)
     """
@@ -555,10 +555,10 @@ class formatitems(TextOp):
         'key1:val1, key2:val2'
         >>> ctx = {'hostname' : 'pcubuntu'}
         >>> d = [['Dimm1','1024'],['Dimm2','512']]
-        >>> print d | formatlists('{hostname}/{0} : {1} MB','\n',ctx)
+        >>> print(d | formatlists('{hostname}/{0} : {1} MB','\n',ctx))
         pcubuntu/Dimm1 : 1024 MB
         pcubuntu/Dimm2 : 512 MB
-        >>> print d | formatlists('{nodename}/{0} : {4} MB','\n',ctx,'??')
+        >>> print(d | formatlists('{nodename}/{0} : {4} MB','\n',ctx,'??'))
         ??/Dimm1 : ?? MB
         ??/Dimm2 : ?? MB
     """
@@ -591,10 +591,10 @@ class formatlists(TextOp):
         'key1:val1 (help1), key2:val2 (help2)'
         >>> ctx = {'hostname' : 'pcubuntu'}
         >>> d = [['Dimm1','1','GB'],['Dimm2','512','MB']]
-        >>> print d | formatlists('{hostname}/{0} : {1} {2}','\n',ctx)
+        >>> print(d | formatlists('{hostname}/{0} : {1} {2}','\n',ctx))
         pcubuntu/Dimm1 : 1 GB
         pcubuntu/Dimm2 : 512 MB
-        >>> print d | formatlists('{nodename}/{0} : {1} {4}','\n',ctx,'??')
+        >>> print(d | formatlists('{nodename}/{0} : {1} {4}','\n',ctx,'??'))
         ??/Dimm1 : 1 ??
         ??/Dimm2 : 512 ??
     """
@@ -629,17 +629,17 @@ class formatdicts(TextOp):
 
         >>> input = [{'name':'Eric','age':47,'level':'guru'},
         ... {'name':'Guido','age':59,'level':'god'}]
-        >>> print input | formatdicts('{name}({age}) : {level}\n')   #doctest: +NORMALIZE_WHITESPACE
+        >>> print(input | formatdicts('{name}({age}) : {level}\n')   )#doctest: +NORMALIZE_WHITESPACE
         Eric(47) : guru
         Guido(59) : god
-        >>> print input | formatdicts('{name}', ', ')
+        >>> print(input | formatdicts('{name}', ', '))
         Eric, Guido
         >>> ctx = {'today':'2015-12-15'}
-        >>> print input | formatdicts('[{today}] {name}({age}) : {level}','\n',context=ctx)
+        >>> print(input | formatdicts('[{today}] {name}({age}) : {level}','\n',context=ctx))
         [2015-12-15] Eric(47) : guru
         [2015-12-15] Guido(59) : god
         >>> del input[0]['name']
-        >>> print input | formatdicts('[{today}] {name}({age}) : {level}','\n',ctx,'Unknown')
+        >>> print(input | formatdicts('[{today}] {name}({age}) : {level}','\n',ctx,'Unknown'))
         [2015-12-15] Unknown(47) : guru
         [2015-12-15] Guido(59) : god
     """
@@ -879,7 +879,7 @@ class head(TextOp):
         >>> 'a\nb\nc' | head(2).tostr()
         'a\nb'
         >>> for l in 'a\nb\nc' | head(2):
-        ...   print l
+        ...   print(l)
         a
         b
         >>> ['a','b','c'] | head(2).tolist()
@@ -913,7 +913,7 @@ class skip(TextOp):
         >>> 'a\nb\nc' | skip(1).tostr()
         'b\nc'
         >>> for l in 'a\nb\nc' | skip(1):
-        ...   print l
+        ...   print(l)
         b
         c
         >>> ['a','b','c'] | skip(1).tolist()
@@ -944,7 +944,7 @@ class tail(TextOp):
         >>> 'a\nb\nc' | tail(2).tostr()
         'b\nc'
         >>> for l in 'a\nb\nc' | tail(2):
-        ...   print l
+        ...   print(l)
         b
         c
         >>> ['a','b','c'] | tail(2).tolist()
@@ -979,7 +979,7 @@ class less(TextOp):
         >>> 'a\nb\nc' | less(1).tostr()
         'a\nb'
         >>> for l in 'a\nb\nc' | less(1):
-        ...   print l
+        ...   print(l)
         a
         b
         >>> ['a','b','c'] | less(1).tolist()
@@ -1015,7 +1015,7 @@ class skess(TextOp):
         >>> 'a\nb\nc' | skess(1,1).tostr()
         'b'
         >>> for l in 'a\nb\nc' | skess(1,1):
-        ...   print l
+        ...   print(l)
         b
         >>> ['a','b','c'] | skess(1,1).tolist()
         ['b']
@@ -1083,7 +1083,7 @@ class findhighlight(TextOp):
         ... the
         ... whole
         ... text'''
-        >>> print s | findhighlight('error',line_nbr=True,ignorecase=True).tostr() # doctest: +NORMALIZE_WHITESPACE
+        >>> print(s | findhighlight('error',line_nbr=True,ignorecase=True).tostr() )# doctest: +NORMALIZE_WHITESPACE
            1
            2    this is
            3    a big
@@ -1096,7 +1096,7 @@ class findhighlight(TextOp):
           10    the
           11    whole
           12    text
-        >>> print s | findhighlight('error',line_nbr=True,ignorecase=True,nlines=1).tostr() # doctest: +NORMALIZE_WHITESPACE
+        >>> print(s | findhighlight('error',line_nbr=True,ignorecase=True,nlines=1).tostr() )# doctest: +NORMALIZE_WHITESPACE
            4    listing
            5 -> with some >>>ERROR<<<
            6    and I want to know
@@ -1325,9 +1325,9 @@ class between(TextOp):
         ... Chaper 3
         ... --------
         ... some other infos'''
-        >>> print s | between('---',r'^\s*$').tostr()
+        >>> print(s | between('---',r'^\s*$').tostr())
         some infos
-        >>> print s | between(['Chapter 2','---'],r'^\s*$').tostr()
+        >>> print(s | between(['Chapter 2','---'],r'^\s*$').tostr())
         infos I want
     """
     flags = 0
@@ -2069,7 +2069,7 @@ class span(TextOp):
         >>> s >> cut().span(3,'-')
         [['a', '-', '-'], ['b', 'c', '-'], ['d', 'e', 'f'], ['i', 'j', 'k'], ['-', '-', '-']]
         >>> for x,y,z in s | cut().span(3,'-'):
-        ...    print x,y,z
+        ...    print(x,y,z)
         a - -
         b c -
         d e f
@@ -2210,7 +2210,7 @@ class uniq(TextOp):
         >>> s >> uniq()
         ['f', 'a', 'b', 'c', 'e']
         >>> for line in s | uniq():
-        ...     print line
+        ...     print(line)
         f
         a
         b
@@ -2504,7 +2504,7 @@ class aggregate(TextOp):
         ... Message 3
         ... Message 4
         ... '''
-        >>> print s | aggregate(r'(?P<key>> )(?P<msg>.*)').tostr()
+        >>> print(s | aggregate(r'(?P<key>> )(?P<msg>.*)').tostr())
         Message 1
         Message 2 : This is a multiple line message :|In this example,|lines to be aggregated begin with '> '|use '(?P<msg>pattern)' in regex to select what should be aggregated|default join string is '|'
         Message 3
@@ -2518,9 +2518,9 @@ class aggregate(TextOp):
         ... 2016-02-16 11:41:33 info C
         ... 2016-02-16 11:44:26 Message 4
         ... '''
-        >>> print s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)').tostr()
+        >>> print(s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)').tostr())
         Message 1|Message 2 info 1|info 2|Message 3 info A|info B|info C|Message 4
-        >>> print s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)',same_key=True).tostr()
+        >>> print(s | aggregate(r'(?P<key>\d+-\d+-\d+ \d+:\d+:\d+) (?P<msg>.*)',same_key=True).tostr())
         2016-02-16 11:39:03 Message 1
         2016-02-16 11:40:10 Message 2 info 1|info 2
         2016-02-16 11:41:33 Message 3 info A|info B|info C

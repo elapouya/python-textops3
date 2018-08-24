@@ -76,7 +76,7 @@ generators results into lists::
    >>> 'a\nb' >> grep('a')
    ['a']
    >>> for line in 'a\nb' | grep('a'):
-   ...     print line
+   ...     print(line)
    a
    >>> 'abc' | length()
    3
@@ -115,9 +115,9 @@ Chained operations are not executed (lazy object) until an input text has been p
 use chained operations like a function, or use the pipe symbol to "stream" input text::
 
    >>> myops = grepi('error').first().upper()
-   >>> print myops('this is an error\nthis is a warning')
+   >>> print(myops('this is an error\nthis is a warning'))
    THIS IS AN ERROR
-   >>> print 'this is an error\nthis is a warning' | myops
+   >>> print('this is an error\nthis is a warning' | myops)
    THIS IS AN ERROR
 
 .. note::
@@ -127,26 +127,26 @@ use chained operations like a function, or use the pipe symbol to "stream" input
 
 To execute operations at once, specify the input text in parenthesis after chained operation as they were a function::
 
-   >>> print grepi('error').first().upper()('this is an error\nthis is a warning')
+   >>> print(grepi('error').first().upper()('this is an error\nthis is a warning'))
    THIS IS AN ERROR
 
 A more readable way is to use ONE pipe symbol, then use dotted notation for other operations :
 this is the **recommended way to use textops**. Because of the first pipe, there is no need to use
 special textops Extended types, you can use standard strings or lists as an input text::
 
-   >>> print 'this is an error\nthis is a warning' | grepi('error').first().upper()
+   >>> print('this is an error\nthis is a warning' | grepi('error').first().upper())
    THIS IS AN ERROR
 
 You could use the pipe everywhere (internally a little less optimized, but looks like shell)::
 
-   >>> print 'this is an error\nthis is a warning' | grepi('error') | first() | strop.upper()
+   >>> print('this is an error\nthis is a warning' | grepi('error') | first() | strop.upper())
    THIS IS AN ERROR
 
 To execute an operation directly from strings, lists or dicts *with the dotted notation*,
 you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
 
    >>> s = StrExt('this is an error\nthis is a warning')
-   >>> print s.grepi('error').first().upper()
+   >>> print(s.grepi('error').first().upper())
    THIS IS AN ERROR
 
 .. note::
@@ -158,7 +158,7 @@ You can use the operations result in a 'for' loop::
 
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
    >>> for line in '/tmp/errors.log' | cat().grepi('warning').head(1).upper():
-   ...   print line
+   ...   print(line)
    WARNING 1
 
 A shortcut is possible : the input text can be put as the first parameter of the first operation.
@@ -170,12 +170,12 @@ until used in a for-loop, converted into a string/list or forced by special attr
 
    # Here, operations are excuted because 'print' converts into string :
    # it triggers execution.
-   >>> print cat('/tmp/errors.log').grepi('warning').head(1).upper()
+   >>> print(cat('/tmp/errors.log').grepi('warning').head(1).upper())
    WARNING 1
 
    # Here, operations are excuted because for-loops or list casting triggers execution.
    >>> for line in cat('/tmp/errors.log').grepi('warning').head(1).upper():
-   ...   print line
+   ...   print(line)
    WARNING 1
 
    # Here, operations are NOT executed because there is no for-loops nor string/list cast :
@@ -184,28 +184,28 @@ until used in a for-loop, converted into a string/list or forced by special attr
    >>> logs = cat('/tmp/errors.log')
    >>> logs                            # the cat() is not executed, you see only its python representation :
    cat('/tmp/errors.log')
-   >>> print type(logs)
+   >>> print(type(logs))
    <class 'textops.ops.fileops.cat'>
 
    # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')
    >>> logs = cat('/tmp/errors.log').s  # '.s' to execute operations and get a string (StrExt)
-   >>> print type(logs)                 # you get a textops extended string
+   >>> print(type(logs)                 )# you get a textops extended string
    <class 'textops.base.StrExt'>
-   >>> print logs
+   >>> print(logs)
    error 1
    warning 1
 
    >>> logs = cat('/tmp/errors.log').l  # '.l' to execute operations and get a list (ListExt)
-   >>> print type(logs)
+   >>> print(type(logs))
    <class 'textops.base.ListExt'>
-   >>> print logs
+   >>> print(logs)
    ['error 1', 'warning 1']
 
    >>> logs = cat('/tmp/errors.log').g  # '.g' to execute operations and get a generator
-   >>> print type(logs)
-   <type 'generator'>
-   >>> print list(logs)
+   >>> print(type(logs))
+   <class 'generator'>
+   >>> print(list(logs))
    ['error 1', 'warning 1']
 
 .. note::
@@ -216,32 +216,32 @@ until used in a for-loop, converted into a string/list or forced by special attr
 
 your input text can be a list::
 
-   >>> print ['this is an error','this is a warning'] | grepi('error').first().upper()
+   >>> print(['this is an error','this is a warning'] | grepi('error').first().upper())
    THIS IS AN ERROR
 
 textops works also on list of lists (you can optionally grep on a specific column)::
 
    >>> l = ListExt([['this is an','error'],['this is a','warning']])
-   >>> print l.grepi('error',1).first().upper()
+   >>> print(l.grepi('error',1).first().upper())
    ['THIS IS AN', 'ERROR']
 
 ... or a list of dicts (you can optionally grep on a specific key)::
 
    >>> l = ListExt([{ 'msg':'this is an', 'level':'error'},
    ... {'msg':'this is a','level':'warning'}])
-   >>> print l.grepi('error','level').first()
+   >>> print(l.grepi('error','level').first())
    {'msg': 'this is an', 'level': 'error'}
 
 textops provides DictExt class that has got the attribute access functionnality::
 
    >>> d = DictExt({ 'a' : { 'b' : 'this is an error\nthis is a warning'}})
-   >>> print d.a.b.grepi('error').first().upper()
+   >>> print(d.a.b.grepi('error').first().upper())
    THIS IS AN ERROR
 
 If attributes are reserved or contains space, one can use normal form::
 
    >>> d = DictExt({ 'this' : { 'is' : { 'a' : {'very deep' : { 'dict' : 'yes it is'}}}}})
-   >>> print d.this['is'].a['very deep'].dict
+   >>> print(d.this['is'].a['very deep'].dict)
    yes it is
 
 You can use dotted notation for setting information in dict BUT only on one level at a time::
@@ -249,7 +249,7 @@ You can use dotted notation for setting information in dict BUT only on one leve
    >>> d = DictExt()
    >>> d.a = DictExt()
    >>> d.a.b = 'this is my logging data'
-   >>> print d
+   >>> print(d)
    {'a': {'b': 'this is my logging data'}}
 
 You saw ``cat``, ``grep``, ``first``, ``head`` and ``upper``, but there are many more operations available.

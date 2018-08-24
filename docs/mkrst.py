@@ -12,7 +12,7 @@ import os
 modules = [ f[:-3] for f in os.listdir('../textops/ops') if not f.endswith('.pyc') and not f.startswith('_') ]
 
 for mod_name in modules:
-    print mod_name,'...'
+    print(mod_name,'...')
 
     m = __import__('textops.ops.%s' % mod_name, fromlist=[''])
 

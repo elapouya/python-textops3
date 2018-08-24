@@ -90,7 +90,7 @@ class multilinestring_to_list(TextOp):
     Examples:
 
         >>> data=['line1\nline2\nline3',{'key1':'one line','key2':'lineA\nlineB\nlineC\nlineD'}]
-        >>> print json.dumps(data,indent=4)                        #doctest: +NORMALIZE_WHITESPACE
+        >>> print(json.dumps(data,indent=4))  #doctest: +NORMALIZE_WHITESPACE
         [
             "line1\nline2\nline3",
             {
@@ -98,7 +98,7 @@ class multilinestring_to_list(TextOp):
                 "key1": "one line"
             }
         ]
-        >>> print json.dumps(data | multilinestring_to_list(),indent=4) #doctest: +NORMALIZE_WHITESPACE
+        >>> print(json.dumps(data | multilinestring_to_list(),indent=4) )  #doctest: +NORMALIZE_WHITESPACE
         [
             [
                 "-------------------------< Multiline string as list >-------------------------",

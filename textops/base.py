@@ -15,7 +15,7 @@ from addicted import NoAttrDict, NoAttr
 import string
 import logging
 import pprint
-import collections
+from collections import Callable, abc
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -180,7 +180,7 @@ class TextOp(object):
             <generator object extend_type_gen at ...>
             >>> def mygen(): yield None
             >>> type(echo(None).g)                              # doctest: +ELLIPSIS
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_gen(text)
@@ -227,7 +227,7 @@ class TextOp(object):
             >>> echo('hello').l
             ['hello']
             >>> type(echo(None).g)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_list(text)
@@ -272,7 +272,7 @@ class TextOp(object):
             >>> echo(['hello','world']).s
             'hello\nworld'
             >>> type(echo(None).s)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_string(text)
@@ -303,7 +303,7 @@ class TextOp(object):
             >>> echo(['hello','world']).j
             'helloworld'
             >>> type(echo(None).j)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_string(text,join_str='')
@@ -431,9 +431,9 @@ class TextOp(object):
         ...         f ... :val6
         ...     g:val7
         ... f: val8'''
-        >>> print parse_indented(s).r
+        >>> print(parse_indented(s).r)
         {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
-        >>> print parse_indented(s).pp
+        >>> print(parse_indented(s).pp)
         {   'a': 'val1',
             'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
             'f': 'val8'}
@@ -450,8 +450,8 @@ class TextOp(object):
     def _tolist(cls,text):
         if isinstance(text, str):
             return str.splitlines(text)
-        elif isinstance(text, str):
-            return str.splitlines(text)
+        elif isinstance(text, bytes):
+            return bytes.splitlines(text)
         elif isinstance(text, dict):
             return iter(text.items())
         elif isinstance(text, (int,float)):
@@ -462,8 +462,8 @@ class TextOp(object):
     def _tosublist(cls,text):
         if isinstance(text, str):
             return [ [line] for line in str.splitlines(text) ]
-        elif isinstance(text, str):
-            return [ [line] for line in str.splitlines(text) ]
+        elif isinstance(text, bytes):
+            return [ [line] for line in bytes.splitlines(text) ]
         elif isinstance(text, (int,float,dict)):
             return [[text]]
         elif isinstance(text, list) and (not text or not isinstance(text[0],list)):
@@ -491,13 +491,13 @@ class TextOp(object):
         return lst.__getitem__(item)
 
 def extend_type(obj):
-    if isinstance(obj,str):
-        if not isinstance(obj,UnicodeExt):
-            return UnicodeExt(obj)
+    if isinstance(obj,bytes):
+        if not isinstance(obj,BytesExt):
+            return BytesExt(obj)
     elif isinstance(obj,str):
         if not isinstance(obj,StrExt):
             return StrExt(obj)
-    elif isinstance(obj,(list,tuple)):
+    elif isinstance(obj,(list,tuple,abc.ItemsView,abc.KeysView,abc.ValuesView)):
         if not isinstance(obj,ListExt):
             return ListExt(obj)
     elif isinstance(obj,dict):
@@ -512,8 +512,8 @@ def extend_type_gen(obj):
         yield extend_type(i)
 
 def stru(text):
-    if isinstance(text, str):
-        text = text.encode('utf-8','replace')
+    if isinstance(text, bytes):
+        text = text.decode('utf-8','replace')
     else:
         text = str(text)
     return text
@@ -683,12 +683,12 @@ def get_attribute_or_textop(obj,name):
         except AttributeError:
             if isinstance(obj,DictExt):
                 return NoAttr
-            elif isinstance(obj,(StrExt,UnicodeExt)):
+            elif isinstance(obj,(StrExt,BytesExt)):
                 raise
             def fn(*args,**kwargs):
                 return [getattr(str if isinstance(s,str) else str, name)(s,*args,**kwargs) for s in obj]
 
-    if not isinstance(fn, collections.Callable):
+    if not isinstance(fn, Callable):
         return fn
 
     def wrapper(*args, **kwargs):
@@ -702,18 +702,18 @@ def get_attribute_or_textop(obj,name):
         return extend_type(result)
     return wrapper
 
-class UnicodeExt(str):
-    """Extend Unicode class to gain access to textops as attributes
+class BytesExt(bytes):
+    """Extend bytes class to gain access to textops as attributes
 
     Examples:
 
-        >>> u'normal unicode'.cut()
+        >>> b'normal bytes'.cut()
         Traceback (most recent call last):
             ...
-        AttributeError: 'unicode' object has no attribute 'cut'
+        AttributeError: 'bytes' object has no attribute 'cut'
 
-        >>> UnicodeExt('extended unicode').cut()
-        [u'extended', u'unicode']
+        >>> BytesExt(b'extended bytes').cut()
+        [b'extended', b'bytes']
     """
     def __getattribute__(self, name):
         return get_attribute_or_textop(self,name)
@@ -722,23 +722,21 @@ class UnicodeExt(str):
         """ Convert to ListExt object """
         return ListExt([self])
     def __getslice__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__getslice__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__getslice__(*args, **kwargs))
     def __getitem__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__getitem__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__getitem__(*args, **kwargs))
     def __add__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__add__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__add__(*args, **kwargs))
     def __mul__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__mul__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__mul__(*args, **kwargs))
     def __rmul__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__rmul__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__rmul__(*args, **kwargs))
     def __mod__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__mod__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__mod__(*args, **kwargs))
     def __rmod__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__rmod__(*args, **kwargs))
+        return extend_type(super(BytesExt, self).__rmod__(*args, **kwargs))
     def __format__(self,*args, **kwargs):
-        return extend_type(super(UnicodeExt, self).__format__(*args, **kwargs))
-    def __str__(self):
-        return self.encode('utf-8')    
+        return extend_type(super(BytesExt, self).__format__(*args, **kwargs))
     def _ipython_display_(self):
         print(self.__repr__())
 
@@ -869,7 +867,7 @@ class DictExt(NoAttrDict):
         [['a', 1]]
 
         >>> d = DictExt({ 'this' : { 'is' : { 'a' : {'very deep' : { 'dict' : 'yes it is'}}}}})
-        >>> print d.this['is'].a['very deep'].dict
+        >>> print(d.this['is'].a['very deep'].dict)
         yes it is
         >>> d.not_a_valid_key
         NoAttr
@@ -880,20 +878,20 @@ class DictExt(NoAttrDict):
         >>> for obj in d.not_a_valid_key.objects:
         ...     do_things(obj)
         ... else:
-        ...     print 'no object'
+        ...     print('no object')
         no object
 
         >>> d = DictExt()
         >>> d.a = DictExt()
         >>> d.a.b = 'this is my logging data'
-        >>> print d
+        >>> print(d)
         {'a': {'b': 'this is my logging data'}}
 
         >>> d = { 'mykey' : 'myval' }
         >>> d['mykey']
         'myval'
         >>> type(d['mykey'])
-        <type 'str'>
+        <class 'str'>
         >>> d = DictExt(d)
         >>> d['mykey']
         'myval'
@@ -967,7 +965,7 @@ class DefaultDict(dict):
         try:
             return super(DefaultDict,self).__getitem__(key)
         except KeyError:
-            if isinstance(self.defvalue, collections.Callable):
+            if isinstance(self.defvalue, Callable):
                 return self.defvalue(key)
             return self.defvalue
 
@@ -979,7 +977,7 @@ class DefaultList(list):
         try:
             return super(DefaultList,self).__getitem__(key)
         except IndexError:
-            if isinstance(self.defvalue, collections.Callable):
+            if isinstance(self.defvalue, Callable):
                 return self.defvalue(key)
             return self.defvalue
 

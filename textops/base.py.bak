@@ -179,7 +179,7 @@ class TextOp(object):
             <generator object extend_type_gen at ...>
             >>> def mygen(): yield None
             >>> type(echo(None).g)                              # doctest: +ELLIPSIS
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_gen(text)
@@ -226,7 +226,7 @@ class TextOp(object):
             >>> echo('hello').l
             ['hello']
             >>> type(echo(None).g)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_list(text)
@@ -271,7 +271,7 @@ class TextOp(object):
             >>> echo(['hello','world']).s
             'hello\nworld'
             >>> type(echo(None).s)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_string(text)
@@ -302,7 +302,7 @@ class TextOp(object):
             >>> echo(['hello','world']).j
             'helloworld'
             >>> type(echo(None).j)
-            <type 'NoneType'>
+            <class 'NoneType'>
         """
         text = self._process()
         return self.make_string(text,join_str='')
@@ -892,7 +892,7 @@ class DictExt(NoAttrDict):
         >>> d['mykey']
         'myval'
         >>> type(d['mykey'])
-        <type 'str'>
+        <class 'str'>
         >>> d = DictExt(d)
         >>> d['mykey']
         'myval'

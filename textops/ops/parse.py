@@ -78,7 +78,7 @@ class mgrep(TextOp):
         ... 'warnings' : r'^warn',
         ... 'infos' : r'^info',
         ... })
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         {'infos': ['info 1', 'info 2'],
         'errors': ['error 1', 'error 2'],
         'warnings': ['warning 1', 'warning 2']}
@@ -99,7 +99,7 @@ class mgrep(TextOp):
         ... 'states' : r'^state:',
         ... 'fss' : r'^fs:',
         ... })
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         {'states': ['state: good', 'state: failed'],
         'disks': ['name: c1t0d0s0', 'name: c1t0d0s4'],
         'fss': ['fs: /', 'fs: /home']}
@@ -174,7 +174,7 @@ class mgrepv(mgrep):
         ... 'not_errors' : r'^err',
         ... 'not_warnings' : r'^warn',
         ... })
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         {'not_warnings': ['error 1', 'error 2'], 'not_errors': ['warning 1', 'warning 2']}
     """
     reverse = True
@@ -202,14 +202,14 @@ class mgrepvi(mgrepv):
         ... 'not_errors' : r'^err',
         ... 'not_warnings' : r'^warn',
         ... })
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         {'not_warnings': ['error 1', 'WARNING 1', 'ERROR 2'],
         'not_errors': ['WARNING 1', 'warning 2', 'ERROR 2']}
         >>> t = logs | mgrepvi({
         ... 'not_errors' : r'^err',
         ... 'not_warnings' : r'^warn',
         ... })
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         {'not_warnings': ['error 1', 'ERROR 2'], 'not_errors': ['WARNING 1', 'warning 2']}
     """
     flags = re.IGNORECASE
@@ -253,7 +253,7 @@ class sgrep(TextOp):
         ... info 2
         ... '''
         >>> t = logs | sgrep(('^err','^warn'))
-        >>> print t                                         #doctest: +NORMALIZE_WHITESPACE
+        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
         [['error 1', 'error 2'], ['warning 1', 'warning 2'], ['', 'info 1', 'info 2']]
     """
     flags = 0
@@ -914,7 +914,7 @@ class parse_smart(TextOp):
         ... DASD DEVICE
         ... '''
         >>> parsed = s >> parse_smart()
-        >>> print parsed.pretty()
+        >>> print(parsed.pretty())
         {   'class': 'H',
             'date_time': 'Wed Dec  2 09:51:17 NFT 2015',
             'description': ['DISK OPERATION ERROR'],
@@ -933,7 +933,7 @@ class parse_smart(TextOp):
                        'manufacturer': 'IBM',
                        'ros_level_and_id': '30393134',
                        'serial_number': ''}}
-        >>> print parsed.vpd.device_specific_z0
+        >>> print(parsed.vpd.device_specific_z0)
         0000053245004032
     """
     @classmethod

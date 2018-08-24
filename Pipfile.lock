@@ -19,9 +19,9 @@
     "develop": {
         "addicted3": {
             "hashes": [
-                "sha256:44214444b8daf1c75f42d83d472aa91ce25d09ffcb1701d416dd2e432081efd9"
+                "sha256:c2bb18e5a266fe9fb0f19b739a6588c9552d9c56534cb4a7d747563b18035276"
             ],
-            "version": "==0.1.0"
+            "version": "==0.1.1"
         },
         "e1839a8": {
             "editable": true,
