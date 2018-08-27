@@ -157,6 +157,7 @@ you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
 You can use the operations result in a 'for' loop::
 
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
+   35
    >>> for line in '/tmp/errors.log' | cat().grepi('warning').head(1).upper():
    ...   print(line)
    WARNING 1
@@ -167,6 +168,7 @@ until used in a for-loop, converted into a string/list or forced by special attr
 
    # Just creating a test file here :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1\nwarning 2\nerror 2')
+   35
 
    # Here, operations are excuted because 'print' converts into string :
    # it triggers execution.
@@ -189,6 +191,7 @@ until used in a for-loop, converted into a string/list or forced by special attr
 
    # To force execution, use special attribute .s .l or .g :
    >>> open('/tmp/errors.log','w').write('error 1\nwarning 1')
+   17
    >>> logs = cat('/tmp/errors.log').s  # '.s' to execute operations and get a string (StrExt)
    >>> print(type(logs)                 )# you get a textops extended string
    <class 'textops.base.StrExt'>

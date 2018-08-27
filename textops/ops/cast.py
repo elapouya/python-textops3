@@ -219,7 +219,7 @@ class todict(TextOp):
     Examples:
         
     >>> [ ('a',1), ('b',2), ('c',3) ] | echo().todict()
-    {'a': 1, 'c': 3, 'b': 2}
+    {'a': 1, 'b': 2, 'c': 3}
     """         
     @classmethod
     def fn(cls, text,*args,**kwargs):
@@ -259,7 +259,7 @@ class pretty(TextOp):
     {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
     >>> print(s | parse_indented().pretty())
     {   'a': 'val1',
-        'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
+        'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
         'f': 'val8'}
     """         
     @classmethod

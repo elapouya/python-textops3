@@ -29,6 +29,7 @@ class cat(TextOp):
 
     Examples:
         >>> open('/tmp/testfile.txt','w').write('here is the file content')
+        24
         >>> '/tmp/testfile.txt' | cat()                 #doctest: +ELLIPSIS
         <generator object extend_type_gen at ...>
         >>> '/tmp/testfile.txt' | cat().tostr()
@@ -59,6 +60,7 @@ class cat(TextOp):
         ...
         ['here', 'is', 'the', 'file', 'content']
         >>> open('/tmp/testfile.txt','w').write('here is the file content\nanother line')
+        37
         >>> '/tmp/testfile.txt' | cat().tostr()
         'here is the file content\nanother line'
         >>> '/tmp/testfile.txt' | cat().tolist()
@@ -466,7 +468,7 @@ class tozipfile(TextOp):
     @classmethod
     def op(cls,text,filename,member, mode='w', newline='\n',*args,**kwargs):
             with ZipFile(filename,mode) as zipfile:
-                zipfile.writestr(member,TextOp.make_string(text,newline))
+                zipfile.writestr(member,TextOp.make_string(text,newline).encode())
 
 class togzfile(TextOp):
     r"""send input to gz file
@@ -488,7 +490,7 @@ class togzfile(TextOp):
     @classmethod
     def op(cls,text,filename, mode='wb', newline='\n',*args,**kwargs):
             with gzip.open(filename,mode) as fh:
-                fh.write(TextOp.make_string(text,newline))
+                fh.write(TextOp.make_string(text,newline).encode())
 
 class gzcat(TextOp):
     r"""Uncompress the gzfile(s) with the name(s) given in input text
@@ -539,7 +541,7 @@ class tobz2file(TextOp):
     @classmethod
     def op(cls,text,filename, mode='w', newline='\n',*args,**kwargs):
             with bz2.BZ2File(filename,mode) as fh:
-                fh.write(TextOp.make_string(text,newline))
+                fh.write(TextOp.make_string(text,newline).encode())
 
 class bzcat(TextOp):
     r"""Uncompress the bz2 file(s) with the name(s) given in input text

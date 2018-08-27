@@ -251,7 +251,7 @@ class TextOp(object):
     def make_string(cls, text, join_str='\n', return_if_none=None):
         if text in [None,NoAttr]:
             return return_if_none
-        elif isinstance(text, (list,types.GeneratorType)):
+        elif isinstance(text, (list,types.GeneratorType,abc.ItemsView,abc.KeysView,abc.ValuesView)):
             return StrExt(join_str.join([ stru(item) for item in text ]))
         return StrExt(text)
 
@@ -435,7 +435,7 @@ class TextOp(object):
         {'a': 'val1', 'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'}, 'f': 'val8'}
         >>> print(parse_indented(s).pp)
         {   'a': 'val1',
-            'b': {   'c': 'val3', 'd': {   'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
+            'b': {'c': 'val3', 'd': {'e': 'val5', 'f': 'val6'}, 'g': 'val7'},
             'f': 'val8'}
         """
         text = self._process()
@@ -929,9 +929,9 @@ class DictExt(NoAttrDict):
             >>> s = '''soft:textops
             ... count:32591'''
             >>> s | parse_indented()
-            {'count': '32591', 'soft': 'textops'}
+            {'soft': 'textops', 'count': '32591'}
             >>> s | parse_indented().amend(date='2015-11-19')
-            {'count': '32591', 'date': '2015-11-19', 'soft': 'textops'}
+            {'soft': 'textops', 'count': '32591', 'date': '2015-11-19'}
         """
         return DictExt(self,*args, **kwargs)
     def render(self,format_string,defvalue='-'):
@@ -996,7 +996,7 @@ def dictmerge(*dict_args):
     Examples:
 
         >>> dictmerge({'a':1,'b':2},{'b':3,'c':4})
-        {'a': 1, 'c': 4, 'b': 3}
+        {'a': 1, 'b': 3, 'c': 4}
 
     """
     result = {}

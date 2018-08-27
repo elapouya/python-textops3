@@ -57,13 +57,13 @@ class grep(TextOp):
         ('info', '1'), ('warning', '2'), ('info', '2')]
         >>> input | cutca(r'(\D+)(\d+)').grep('1',1).tolist()
         [('error', '1'), ('warning', '1'), ('info', '1')]
-        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)') #doctest: +NORMALIZE_WHITESPACE
-        [{'nb': '1', 'level': 'error'}, {'nb': '2', 'level': 'error'},
-        {'nb': '1', 'level': 'warning'}, {'nb': '1', 'level': 'info'},
-        {'nb': '2', 'level': 'warning'}, {'nb': '2', 'level': 'info'}]
-        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)').grep('1','nb').tolist() #doctest: +NORMALIZE_WHITESPACE
-        [{'nb': '1', 'level': 'error'}, {'nb': '1', 'level': 'warning'},
-        {'nb': '1', 'level': 'info'}]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)')  #doctest: +NORMALIZE_WHITESPACE
+        [{'level': 'error', 'nb': '1'}, {'level': 'error', 'nb': '2'},
+        {'level': 'warning', 'nb': '1'}, {'level': 'info', 'nb': '1'},
+        {'level': 'warning', 'nb': '2'}, {'level': 'info', 'nb': '2'}]
+        >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)').grep('1','nb').tolist()  #doctest: +NORMALIZE_WHITESPACE
+        [{'level': 'error', 'nb': '1'}, {'level': 'warning', 'nb': '1'},
+        {'level': 'info', 'nb': '1'}]
         >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('way').tolist()
         [{'way to grep': 2}]
         >>> [{'more simple':1},{'way to grep':2},{'list of dicts':3}] | grep('3').tolist()
@@ -889,7 +889,7 @@ class head(TextOp):
         >>> [('a',1),('b',2),('c',3)] | head(2).tolist()
         [('a', 1), ('b', 2)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | head(2).tolist()
-        [{'val': 1, 'key': 'a'}, {'val': 2, 'key': 'b'}]
+        [{'key': 'a', 'val': 1}, {'key': 'b', 'val': 2}]
     """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
@@ -923,7 +923,7 @@ class skip(TextOp):
         >>> [('a',1),('b',2),('c',3)] | skip(1).tolist()
         [('b', 2), ('c', 3)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | skip(1).tolist()
-        [{'val': 2, 'key': 'b'}, {'val': 3, 'key': 'c'}]
+        [{'key': 'b', 'val': 2}, {'key': 'c', 'val': 3}]
     """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
@@ -954,7 +954,7 @@ class tail(TextOp):
         >>> [('a',1),('b',2),('c',3)] | tail(2).tolist()
         [('b', 2), ('c', 3)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | tail(2).tolist()
-        [{'val': 2, 'key': 'b'}, {'val': 3, 'key': 'c'}]
+        [{'key': 'b', 'val': 2}, {'key': 'c', 'val': 3}]
     """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
@@ -989,7 +989,7 @@ class less(TextOp):
         >>> [('a',1),('b',2),('c',3)] | less(1).tolist()
         [('a', 1), ('b', 2)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | less(1).tolist()
-        [{'val': 1, 'key': 'a'}, {'val': 2, 'key': 'b'}]
+        [{'key': 'a', 'val': 1}, {'key': 'b', 'val': 2}]
     """
     @classmethod
     def op(cls,text,lines,*args,**kwargs):
@@ -1024,7 +1024,7 @@ class skess(TextOp):
         >>> [('a',1),('b',2),('c',3)] | skess(1,1).tolist()
         [('b', 2)]
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | skess(1,1).tolist()
-        [{'val': 2, 'key': 'b'}]
+        [{'key': 'b', 'val': 2}]
     """
     @classmethod
     def op(cls,text,begin, end, *args,**kwargs):
@@ -1563,7 +1563,7 @@ class inrange(linetester):
         ... {'data':'ccc','date':'2015-09-14'},
         ... {'data':'ddd','date':'2015-11-05'} ]
         >>> logs | inrange('2015-08-12','2015-11-05',key='date').tolist()
-        [{'date': '2015-08-23', 'data': 'bbbb'}, {'date': '2015-09-14', 'data': 'ccc'}]
+        [{'data': 'bbbb', 'date': '2015-08-23'}, {'data': 'ccc', 'date': '2015-09-14'}]
 
         >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
         >>> ints | inrange(1,3).tolist()
@@ -1663,7 +1663,7 @@ class lessthan(linetester):
         ... {'data':'ccc','date':'2015-09-14'},
         ... {'data':'ddd','date':'2015-11-05'} ]
         >>> logs | lessthan('2015-09-14',key='date').tolist()
-        [{'date': '2015-08-11', 'data': 'aaaa'}, {'date': '2015-08-23', 'data': 'bbbb'}]
+        [{'data': 'aaaa', 'date': '2015-08-11'}, {'data': 'bbbb', 'date': '2015-08-23'}]
         >>> ints = '1\n2\n01\n02\n11\n12\n22\n20'
         >>> ints | lessthan(3).tolist()
         ['1', '2', '01', '02']
@@ -2033,11 +2033,11 @@ class merge_dicts(TextOp):
         >>> pattern=r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"'
         >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
         >>> s | cutkv(pattern,key_name='item')                                                      # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [{'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}},...
-        {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}}]
+        [{'col1': {'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'}},
+        {'col11': {'item': 'col11', 'i_count': 'col22', 'i_price': 'col33'}}]
         >>> s | cutkv(pattern,key_name='item').merge_dicts()                                        # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'},...
-        'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}}
+        {'col1': {'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'},
+        'col11': {'item': 'col11', 'i_count': 'col22', 'i_price': 'col33'}}
     """
     @classmethod
     def op(cls,text,*args,**kwargs):

@@ -16,10 +16,6 @@ class dosort(WrapOpIter):
     Return a new sorted list from the input text. The sorting is done on a by-line/list item basis.
 
     Args:
-        cmp(callable): specifies a custom comparison function of two arguments (iterable elements)
-            which should return a negative, zero or positive number depending on whether the first
-            argument is considered smaller than, equal to, or larger than the second argument, ex:
-            ``cmp=lambda x,y: cmp(x.lower(), y.lower())``. The default value is None.
         key(callable): specifies a function of one argument that is used to extract a comparison key
             from each list element, ex: ``key=str.lower``.
             The default value is None (compare the elements directly).
@@ -38,8 +34,6 @@ class dosort(WrapOpIter):
         ['d', 'c', 'b', 'a']
         >>> 'a\nB\nc' >> dosort()
         ['B', 'a', 'c']
-        >>> 'a\nB\nc' >> dosort(cmp=lambda x,y:cmp(x.lower(),y.lower()))
-        ['a', 'B', 'c']
         >>> [('a',3),('c',1),('b',2)] >> dosort()
         [('a', 3), ('b', 2), ('c', 1)]
         >>> [('a',3),('c',1),('b',2)] >> dosort(key=lambda x:x[1])

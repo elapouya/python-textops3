@@ -78,10 +78,10 @@ class mgrep(TextOp):
         ... 'warnings' : r'^warn',
         ... 'infos' : r'^info',
         ... })
-        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
-        {'infos': ['info 1', 'info 2'],
-        'errors': ['error 1', 'error 2'],
-        'warnings': ['warning 1', 'warning 2']}
+        >>> print(t)  #doctest: +NORMALIZE_WHITESPACE
+        {'errors': ['error 1', 'error 2'],
+        'warnings': ['warning 1', 'warning 2'],
+        'infos': ['info 1', 'info 2']}
 
         >>> s = '''
         ... Disk states
@@ -99,9 +99,9 @@ class mgrep(TextOp):
         ... 'states' : r'^state:',
         ... 'fss' : r'^fs:',
         ... })
-        >>> print(t                                         )#doctest: +NORMALIZE_WHITESPACE
-        {'states': ['state: good', 'state: failed'],
-        'disks': ['name: c1t0d0s0', 'name: c1t0d0s4'],
+        >>> print(t)  #doctest: +NORMALIZE_WHITESPACE
+        {'disks': ['name: c1t0d0s0', 'name: c1t0d0s4'],
+        'states': ['state: good', 'state: failed'],
         'fss': ['fs: /', 'fs: /home']}
         >>> dict(zip(t.disks.cutre(': *',1),zip(t.states.cutre(': *',1),t.fss.cutre(': *',1))))
         {'c1t0d0s0': ('good', '/'), 'c1t0d0s4': ('failed', '/home')}
@@ -348,8 +348,8 @@ class parsegi(parseg):
         ... Notice: textops rocks
         ... Warning: Python must be used without moderation'''
         >>> s | parsegi(r'(?P<level>error|warning):\s*(?P<msg>.*)')         #doctest: +NORMALIZE_WHITESPACE
-        [{'msg': 'System will reboot', 'level': 'Error'},
-        {'msg': 'Python must be used without moderation', 'level': 'Warning'}]
+        [{'level': 'Error', 'msg': 'System will reboot'},
+        {'level': 'Warning', 'msg': 'Python must be used without moderation'}]
     """
     ignore_case = True
 
@@ -442,19 +442,19 @@ class parsekv(TextOp):
         ... first name: Eric
         ... country: France'''
         >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
-        {'country': {'val': 'France', 'key': 'country'},
-        'first_name': {'val': 'Eric', 'key': 'first name'},
-        'name': {'val': 'Lapouyade', 'key': 'name'}}
+        {'name': {'key': 'name', 'val': 'Lapouyade'},
+        'first_name': {'key': 'first name', 'val': 'Eric'},
+        'country': {'key': 'country', 'val': 'France'}}
         >>> s | parsekv(r'(?P<item>.*):\s*(?P<val>.*)','item',str.upper)         #doctest: +NORMALIZE_WHITESPACE
-        {'FIRST NAME': {'item': 'first name', 'val': 'Eric'},
-        'NAME': {'item': 'name', 'val': 'Lapouyade'},
+        {'NAME': {'item': 'name', 'val': 'Lapouyade'},
+        'FIRST NAME': {'item': 'first name', 'val': 'Eric'},
         'COUNTRY': {'item': 'country', 'val': 'France'}}
         >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)',key_update=0)         #doctest: +NORMALIZE_WHITESPACE
-        {'first name': {'val': 'Eric', 'key': 'first name'},
-        'name': {'val': 'Lapouyade', 'key': 'name'},
-        'country': {'val': 'France', 'key': 'country'}}
+        {'name': {'key': 'name', 'val': 'Lapouyade'},
+        'first name': {'key': 'first name', 'val': 'Eric'},
+        'country': {'key': 'country', 'val': 'France'}}
         >>> s | parsekv(r'(?P<key>.*):\s*(?P<val>.*)',val_name='val')         #doctest: +NORMALIZE_WHITESPACE
-        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
+        {'name': 'Lapouyade', 'first_name': 'Eric', 'country': 'France'}
     """
     ignore_case = False
     val_name = None
@@ -509,7 +509,7 @@ class parsekvi(parsekv):
         ... first name: Eric
         ... country: France'''
         >>> s | parsekvi(r'(?P<key>NAME):\s*(?P<val>.*)')
-        {'name': {'val': 'Lapouyade', 'key': 'name'}}
+        {'name': {'key': 'name', 'val': 'Lapouyade'}}
     """
     ignore_case = True
 
@@ -537,14 +537,14 @@ class keyval(parsekv):
         ... first name: Eric
         ... country: France'''
         >>> s | keyval(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
-        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
+        {'name': 'Lapouyade', 'first_name': 'Eric', 'country': 'France'}
 
         >>> s = [ '''name: Lapouyade
         ... first name: Eric ''',
         ... '''name: Python
         ... first name: Guido''' ]
         >>> s | keyval(r'(?P<key>.*):\s*(?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
-        [{'first_name': 'Eric ', 'name': 'Lapouyade'}, {'first_name': 'Guido', 'name': 'Python'}]
+        [{'name': 'Lapouyade', 'first_name': 'Eric '}, {'name': 'Python', 'first_name': 'Guido'}]
 
     """
     val_name = 'val'
@@ -572,7 +572,7 @@ class keyvali(keyval):
         ... first name IS Eric
         ... country IS France'''
         >>> s | keyvali(r'(?P<key>.*) is (?P<val>.*)')         #doctest: +NORMALIZE_WHITESPACE
-        {'country': 'France', 'first_name': 'Eric', 'name': 'Lapouyade'}
+        {'name': 'Lapouyade', 'first_name': 'Eric', 'country': 'France'}
     """
     ignore_case = True
 
@@ -660,14 +660,14 @@ class find_patterns(TextOp):
         ... 'format':r'^Format:\s*(?P<format>.*)',
         ... })
         >>> r
-        {'version': {'major': '1', 'build': '3', 'minor': '2'}, 'format': 'json'}
+        {'version': {'major': '1', 'minor': '2', 'build': '3'}, 'format': 'json'}
         >>> r.version.major
         '1'
         >>> s | find_patterns({
         ... 'version':r'^Version:\s*(\d+)\.(\d+)\.(\d+)',
         ... 'format':r'^Format:\s*(.*)',
         ... })
-        {'version': {'group1': '2', 'group0': '1', 'group2': '3'}, 'format': 'json'}
+        {'version': {'group0': '1', 'group1': '2', 'group2': '3'}, 'format': 'json'}
         >>> s | find_patterns({'version':r'^version:\s*(.*)'}) # lowercase 'version' : no match
         {}
         >>> s = '''creation: 2015-10-14
@@ -677,7 +677,7 @@ class find_patterns(TextOp):
         ['2015-11-16', '2015-11-17', '2015-10-14']
         >>> s | find_patterns([r'^update:\s*(?P<year>.*)-(?P<month>.*)-(?P<day>.*)',
         ... r'^access:\s*(.*)', r'^creation:\s*(.*)'])
-        [{'month': '11', 'day': '16', 'year': '2015'}, '2015-11-17', '2015-10-14']
+        [{'year': '2015', 'month': '11', 'day': '16'}, '2015-11-17', '2015-10-14']
     """
     stop_when_found = False
     ignore_case = False
@@ -764,7 +764,7 @@ class find_first_pattern(find_patterns):
         >>> s | find_first_pattern([r'^UPDATE:\s*(.*)'])
         NoAttr
         >>> s | find_first_pattern([r'^update:\s*(?P<year>.*)-(?P<month>.*)-(?P<day>.*)'])
-        {'year': '2015', 'day': '16', 'month': '11'}
+        {'year': '2015', 'month': '11', 'day': '16'}
     """
     stop_when_found = True
 
@@ -919,7 +919,7 @@ class parse_smart(TextOp):
             'date_time': 'Wed Dec  2 09:51:17 NFT 2015',
             'description': ['DISK OPERATION ERROR'],
             'location': 'U78AA.001.WZSHM0M-P1-C6-T1-W201400A0B8292A18-L13000000000000',
-            'machine_id': {   'machine_id': '00F7B0114C00', 'node_id': 'xvio6'},
+            'machine_id': {'machine_id': '00F7B0114C00', 'node_id': 'xvio6'},
             'probable_causes': ['DASD DEVICE'],
             'resource_type': 'mpioapdisk',
             'sequence_number': '156637',
@@ -1180,8 +1180,8 @@ class state_pattern(TextOp):
         >>> s | state_pattern( (('',None,'(?P<key>.*):(?P<val>.*)','{key}','{val}'),) )
         {'first_name': 'Eric', 'last_name': 'Lapouyade'}
         >>> s | state_pattern( (('',None,'(?P<key>.*):(?P<val>.*)','{key}',None),) ) #doctest: +NORMALIZE_WHITESPACE
-        {'first_name': {'val': 'Eric', 'key': 'first name'},
-        'last_name': {'val': 'Lapouyade', 'key': 'last name'}}
+        {'first_name': {'key': 'first name', 'val': 'Eric'},
+        'last_name': {'key': 'last name', 'val': 'Lapouyade'}}
         >>> s | state_pattern((('',None,'(?P<key>.*):(?P<val>.*)','my.path.{key}','{val}'),))
         {'my': {'path': {'first_name': 'Eric', 'last_name': 'Lapouyade'}}}
 
@@ -1204,8 +1204,8 @@ class state_pattern(TextOp):
         ... ('','section2','^Section 2',None,None),
         ... ('section1', '', '(?P<key>.*)=(?P<val>.*)', 'section1.{key}', '{val}'),
         ... ('section2', '', '(?P<key>.*):(?P<val>.*)', 'section2.{key}', '{val}')) )
-        {'section2': {'first_name': 'Eric', 'last_name': 'Dupont'},
-        'section1': {'email': 'ericdupo@gmail.com'}}
+        {'section1': {'email': 'ericdupo@gmail.com'},
+        'section2': {'first_name': 'Eric', 'last_name': 'Dupont'}}
 
         >>> s = '''
         ... Disk states
@@ -1242,7 +1242,7 @@ class state_pattern(TextOp):
         ... ('disk', '', r'(?P<key>.*):(?P<val>.*)', '>>disk_info.{key}', '{val}'),
         ... ('disk', 'top', r'}', 'disks.{disk_info[name]}', '<disk_info'),
         ... ) )
-        {'disks': {'c1t0d0s0': {'state': 'good', 'fs': '/', 'name': 'c1t0d0s0'},
+        {'disks': {'c1t0d0s0': {'name': 'c1t0d0s0', 'state': 'good', 'fs': '/'},
         'c1t0d0s4': {'fs': '/home', 'name': 'c1t0d0s4'}}}
 
         >>> s='firstname:Eric lastname=Lapouyade'
@@ -1257,7 +1257,7 @@ class state_pattern(TextOp):
         ... ('top','__continue__',r'firstname:(?P<val>\S+)','firstname','{val}'),
         ... ('top','',r'.*lastname=(?P<val>\S+)','lastname','{val}'),
         ... ))
-        {'lastname': 'Lapouyade', 'firstname': 'Eric'}
+        {'firstname': 'Eric', 'lastname': 'Lapouyade'}
 
     """
 

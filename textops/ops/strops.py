@@ -633,11 +633,11 @@ class cutdct(cut):
 
         >>> s='item="col1" count="col2" price="col3"'
         >>> s | cutdct(r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"')
-        {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}
+        {'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'}
         >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
         >>> s | cutdct(r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"') # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [{'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'},...
-        {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}]
+        [{'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'},
+        {'item': 'col11', 'i_count': 'col22', 'i_price': 'col33'}]
     """
     sep_is_regex = True
 
@@ -670,11 +670,11 @@ class cutkv(cut):
         >>> s='item="col1" count="col2" price="col3"'
         >>> pattern=r'item="(?P<item>[^"]*)" count="(?P<i_count>[^"]*)" price="(?P<i_price>[^"]*)"'
         >>> s | cutkv(pattern,key_name='item')
-        {'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}}
+        {'col1': {'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'}}
         >>> s='item="col1" count="col2" price="col3"\nitem="col11" count="col22" price="col33"'
         >>> s | cutkv(pattern,key_name='item')                                                         # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-        [{'col1': {'item': 'col1', 'i_price': 'col3', 'i_count': 'col2'}},...
-        {'col11': {'item': 'col11', 'i_price': 'col33', 'i_count': 'col22'}}]
+        [{'col1': {'item': 'col1', 'i_count': 'col2', 'i_price': 'col3'}},
+        {'col11': {'item': 'col11', 'i_count': 'col22', 'i_price': 'col33'}}]
 
     """
     sep_is_regex = True

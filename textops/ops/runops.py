@@ -57,7 +57,7 @@ class run(TextOp):
         while p.returncode is None:
             (stdout, stderr) = p.communicate()
             for line in stdout.splitlines():
-                yield line
+                yield line.decode()
 
 class mrun(TextOp):
     r""" Run multiple commands from the input text and return execution output
@@ -106,7 +106,7 @@ class mrun(TextOp):
             while p.returncode is None:
                 (stdout, stderr) = p.communicate()
                 for line in stdout.splitlines():
-                    yield line
+                    yield line.decode()
 
 class xrun(TextOp):
     r""" Run the command formatted with the context taken from the input text
