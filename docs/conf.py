@@ -49,7 +49,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'python-textops'
+project = u'python-textops3'
 copyright = u'2015, Eric Lapouyade'
 
 intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}   
@@ -58,7 +58,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}
 #   rst2pdf - name of the generated pdf
 #   Sample rst2pdf doc - title of the pdf
 #   Your Name - author name in the pdf
-pdf_documents = [('index', u'textops_pdf', u'python-textops', u'Eric Lapouyade'),]
+pdf_documents = [('index', u'textops_pdf', u'python-textops3', u'Eric Lapouyade'),]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -219,7 +219,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'python-textops.tex', u'python-textops Documentation',
+  ('index', 'python-textops3.tex', u'python-textops3 Documentation',
    u'Eric Lapouyade', 'manual'),
 ]
 
@@ -249,7 +249,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'python-textops', u'python-textops Documentation',
+    ('index', 'python-textops3', u'python-textops3 Documentation',
      [u'Eric Lapouyade'], 1)
 ]
 
@@ -263,8 +263,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'python-textops', u'python-textops Documentation',
-   u'Eric Lapouyade', 'python-textops', 'Python text operations library.',
+  ('index', 'python-textops3', u'python-textops3 Documentation',
+   u'Eric Lapouyade', 'python-textops3', 'Python text operations library.',
    'Miscellaneous'),
 ]
 

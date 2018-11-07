@@ -14,7 +14,7 @@ Install
 
 To install::
 
-    pip install python-textops
+    pip install python-textops3
 
 Quickstart
 ----------
@@ -270,7 +270,7 @@ Many doctests as been developped, you can run them this way::
 Build documentation
 -------------------
 
-An already compiled and up-to-date documentation should be available `here <http://python-textops.readthedocs.org>`_.
+An already compiled and up-to-date documentation should be available `here <http://python-textops3.readthedocs.org>`_.
 Nevertheless, one can build the documentation :
 
 For HTML::
@@ -288,7 +288,7 @@ For PDF, you may have to install some linux packages::
    cd docs
    make latexpdf
    cd _build/latex
-   evince python-textops.pdf   (evince is a PDF reader)
+   evince python-textops3.pdf   (evince is a PDF reader)
 
 * :ref:`genindex`
 * :ref:`modindex`

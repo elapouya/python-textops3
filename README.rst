@@ -11,7 +11,7 @@ Install
 
 To install::
 
-    pip install python-textops
+    pip install python-textops3
 
 Overview
 --------
@@ -81,4 +81,4 @@ you must use textops Extended types : ``StrExt``, ``ListExt`` or ``DictExt``::
 Documentation
 -------------
 
-Please, `read documentation here : <http://python-textops.readthedocs.org>`_
+Please, `read documentation here : <http://python-textops3.readthedocs.org>`_

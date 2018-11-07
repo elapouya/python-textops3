@@ -4,7 +4,7 @@
 #
 # @author: Eric Lapouyade
 #
-"""This module defines base classes for python-textops"""
+"""This module defines base classes for python-textops3"""
 
 import os
 import sys
@@ -24,7 +24,7 @@ logger = textops.logger
 def activate_debug():
     """Activate debug logging on console
 
-    This function is useful when playing with python-textops through a python console.
+    This function is useful when playing with python-textops3 through a python console.
     It is not recommended to use this function in a real application : use standard logging
     functions instead.
     """
