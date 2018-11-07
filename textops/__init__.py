@@ -4,7 +4,7 @@
 #
 # @author: Eric Lapouyade
 
-__version__ = '0.3.4'
+__version__ = '3.0.0'
 __author__ = 'Eric Lapouyade'
 __copyright__ = 'Copyright 2015, python-textops project'
 __credits__ = ['Eric Lapouyade']
