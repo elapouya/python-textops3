@@ -4,7 +4,7 @@
 #
 # @author: Eric Lapouyade
 
-__version__ = '3.0.1'
+__version__ = '3.0.2'
 __author__ = 'Eric Lapouyade'
 __copyright__ = 'Copyright 2018, python-textops3 project'
 __credits__ = ['Eric Lapouyade']
@@ -24,9 +24,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
 
+# Do not use .base instead of textops.base otherwise readthedocs.org cannot see base.py module.
 from textops.base import TextOp, WrapOp, WrapOpIter, WrapOpStr, add_textop, add_textop_iter, \
-                 StrExt, BytesExt, ListExt, DictExt, NoAttrDict, NoAttr, DefaultList, \
-                 DefaultDict, string_formatter, dictmerge, vformat, dformat, eformat, \
-                 stru, activate_debug, pp, extend_type, extend_type_gen
+    StrExt, BytesExt, ListExt, DictExt, NoAttrDict, NoAttr, DefaultList, \
+    DefaultDict, string_formatter, dictmerge, vformat, dformat, eformat, \
+    stru, activate_debug, pp, extend_type, extend_type_gen
 from . import ops
 from .ops import *
