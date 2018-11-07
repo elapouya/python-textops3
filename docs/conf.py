@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# python-textops documentation build configuration file, created by
+# python-textops3 documentation build configuration file, created by
 # sphinx-quickstart on Thu Mar 12 17:32:17 2015.
 #
 # This file is execfile()d with the current directory set to its

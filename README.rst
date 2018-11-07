@@ -2,7 +2,7 @@
 Getting started
 ===============
 
-| python-textops provides many text operations at string level, list level or whole text level.
+| python-textops3 provides many text operations at string level, list level or whole text level.
 | These operations can be chained with a 'dotted' or 'piped' notation.
 | Chained operations are stored into a single lazy object, they will be executed only when an input text will be provided.
 
