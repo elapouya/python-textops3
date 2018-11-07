@@ -24,7 +24,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
 
-from textops.base import TextOp, WrapOp, WrapOpIter, WrapOpStr, add_textop, add_textop_iter, \
+from .base import TextOp, WrapOp, WrapOpIter, WrapOpStr, add_textop, add_textop_iter, \
                  StrExt, BytesExt, ListExt, DictExt, NoAttrDict, NoAttr, DefaultList, \
                  DefaultDict, string_formatter, dictmerge, vformat, dformat, eformat, \
                  stru, activate_debug, pp, extend_type, extend_type_gen
