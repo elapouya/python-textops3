@@ -32,7 +32,7 @@ def get_version(pkg):
         return m.group(1)
     raise RuntimeError("Unable to find __version__ string in %s." % path)
 
-setup(name='python-textops',
+setup(name='python-textops3',
       version=get_version('textops'),
       description='Python text operations module',
       long_description=long_description,
