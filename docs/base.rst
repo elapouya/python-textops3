@@ -58,9 +58,9 @@ TextOp
    .. autoclass:: TextOp
       :members:
 
-UnicodeExt
+BytesExt
 ----------
-   .. autoclass:: UnicodeExt
+   .. autoclass:: BytesExt
       :members:
 
 * :ref:`genindex`

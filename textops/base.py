@@ -781,7 +781,7 @@ class StrExt(str):
 class ListExt(list):
     """Extend list class to gain access to textops as attributes
 
-    In addition, all list items (dict, list, str, unicode) are extended on-the-fly when accessed
+    In addition, all list items (dict, list, str, bytes) are extended on-the-fly when accessed
 
     Examples:
 
@@ -844,7 +844,7 @@ class DictExt(NoAttrDict):
     New features are :
 
         * Access to textops operations with attribute notation
-        * All dict values (dict, list, str, unicode) are extended on-the-fly when accessed
+        * All dict values (dict, list, str, bytes) are extended on-the-fly when accessed
         * Access to dict values with attribute notation
         * Add a key:value in the dict with attribute notation (one level at a time)
         * Returns NoAttr object when a key is not in the Dict
