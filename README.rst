@@ -34,7 +34,7 @@ the python **bitwise OR** operator '|' in order to use it as a 'pipe' like in a 
    # and later in the code, use them :
    result = myops("an input text")
    or
-   result = "an input text" | myops
+   result = "an input text" | myops
 
 An "input text" can be :
 
