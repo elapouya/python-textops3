@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "22399d3351233fbb3bb89d80ad359f9a85d50bdad9aea095968fae1c3b308486"
+            "sha256": "987271f8542d55670307c3f0fc3f380bcf5ffe33d07c5745a09400a5cd4e75e8"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -24,9 +24,12 @@
             ],
             "version": "==3.0.0"
         },
-        "e1839a8": {
-            "editable": true,
-            "path": "."
+        "chardet": {
+            "hashes": [
+                "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae",
+                "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"
+            ],
+            "version": "==3.0.4"
         },
         "noattr": {
             "hashes": [
@@ -46,6 +49,10 @@
                 "sha256:575d03256a132fc1efb4c52966c6eb11c57a13b071618f0b26076057a23f6937"
             ],
             "version": "==3.0.4"
+        },
+        "python-textops3": {
+            "editable": true,
+            "path": "."
         },
         "six": {
             "hashes": [

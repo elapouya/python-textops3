@@ -4,7 +4,7 @@
 #
 # @author: Eric Lapouyade
 
-__version__ = '3.0.4'
+__version__ = '3.0.6'
 __author__ = 'Eric Lapouyade'
 __copyright__ = 'Copyright 2018, python-textops3 project'
 __credits__ = ['Eric Lapouyade']
@@ -28,6 +28,6 @@ logger.addHandler(NullHandler())
 from textops.base import TextOp, WrapOp, WrapOpIter, WrapOpStr, add_textop, add_textop_iter, \
     StrExt, BytesExt, ListExt, DictExt, NoAttrDict, NoAttr, DefaultList, \
     DefaultDict, string_formatter, dictmerge, vformat, dformat, eformat, \
-    stru, activate_debug, pp, extend_type, extend_type_gen
+    stru, activate_debug, pp, extend_type, extend_type_gen, decode_bytes
 from . import ops
 from .ops import *

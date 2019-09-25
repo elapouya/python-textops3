@@ -15,6 +15,7 @@ from addicted import NoAttrDict, NoAttr
 import string
 import logging
 import pprint
+import chardet
 from collections import Callable, abc
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -1055,6 +1056,61 @@ def eformat(format_str,lst,dct,defvalue='-'):
         'unknown_tag_2 => unknown_tag_software : 32591 dowloads'
     """
     return vformat(format_str,DefaultList(defvalue,lst),DefaultDict(defvalue,dct))
+
+
+def decode_bytes(byte_string, encoding=None):
+    """Returns a decoded string from a byte string.
+    It can test several encodings, will try to detect encoding if it does not
+    work and have a ascii/'replace' fallback.
+    One can give standard python3 string, in which case, no action is done
+
+    Args:
+
+        byte_string (bytes): string to decode to python3 standard string
+        encoding (str, list, tuple): ending(s) to use. if a list/tuple is given,
+            will use the first that does not raise exception
+            default : 'utf-8'
+
+    Examples:
+
+        >>> b = 'éric'.encode('utf-16')
+        >>> print(b.hex())
+        fffee900720069006300
+        >>> decode_bytes(b)
+        'éric'
+        >>> decode_bytes(b,'utf-16')
+        'éric'
+        >>> decode_bytes(b,('utf-16','utf-32'))
+        'éric'
+
+    Returns:
+
+        a python3 standard string
+    """
+    if not isinstance(byte_string, bytes):
+        return byte_string
+    if not encoding:
+        encoding = ('utf-8',)
+    if isinstance(encoding, str):
+        encoding = (encoding,)
+    for enc in encoding:
+        try:
+            s = byte_string.decode(enc)
+            return s
+        except UnicodeDecodeError:
+            pass
+    # If given encoding does not work try to detect it :
+    detected_encoding = chardet.detect(byte_string)
+    if detected_encoding['confidence'] >= 0.5:
+        try:
+            s = byte_string.decode(detected_encoding['encoding'])
+            return s
+        except UnicodeDecodeError:
+            pass
+    # Fallback : ascii + replace unkown chars
+    s = byte_string.decode('ascii','replace')
+    return s
+
 
 # NoAttr.as_list must return an empty ListExt() not a simple list
 # This customize noattr module for textops.
