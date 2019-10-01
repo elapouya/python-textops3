@@ -1,3 +1,7 @@
+3.0.7 (2019-10-01)
+------------------
+* add separators argument to parse_smart()
+
 3.0.6 (2019-09-25)
 ------------------
 * add key_filter argument to parse_smart()

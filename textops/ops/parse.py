@@ -949,8 +949,11 @@ class parse_smart(TextOp):
         0000053245004032
     """
     @classmethod
-    def op(cls, text, key_filter=None, *args,**kwargs):
-        sep = r'[^a-zA-Z0-9_()\.-]{2,}|[:=]|\.{2,}|[_-]{3,}'
+    def op(cls, text, key_filter=None, separators=None, *args,**kwargs):
+        if separators is None:
+            sep = r'[^a-zA-Z0-9_()\.-]{2,}|[:=]|\.{2,}|[_-]{3,}'
+        else:
+            sep = separators
         indent_level = 0
         out = {}
         indent_node = {indent_level:out}
@@ -1026,10 +1029,10 @@ class parse_smart(TextOp):
                         if isinstance(prev_v,dict):
                             dct[k]=[prev_v,{}]
                             dct = dct[k][-1]
-                        elif isinstance(prev_v,basestring):
+                        elif isinstance(prev_v,str):
                             dct[k]=[prev_v,v]
                         else:
-                            if isinstance(prev_v[0],basestring):
+                            if isinstance(prev_v[0],str):
                                 dct[k].append(v)
                             else:
                                 dct[k].append({})
