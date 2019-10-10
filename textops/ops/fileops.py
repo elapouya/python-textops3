@@ -23,6 +23,9 @@ class cat(TextOp):
 
     Args:
         context (dict): The context to format the file path (Optionnal)
+        encoding (str): file encoding (Default: utf-8)
+        encoding_errors (str): 'strict', 'ignore', 'replace', 'xmlcharrefreplace',
+                               'backslashreplace' (Default : 'replace')
 
     Yields:
         str: the file content lines
@@ -78,13 +81,13 @@ class cat(TextOp):
         ['here', 'is', 'the', 'file', 'content']
     """
     @classmethod
-    def op(cls,text, context = {},*args,**kwargs):
+    def op(cls,text, context = {}, encoding='utf-8', encoding_errors='replace', *args,**kwargs):
         for path in cls._tolist(text):
             if context:
                 path = path.format(**context)
             path = os.path.expanduser(path)
             if os.path.isfile(path) or os.path.islink(path):
-                with open(path) as fh:
+                with open(path, encoding=encoding, errors=encoding_errors) as fh:
                     for line in fh:
                         yield line.rstrip('\r\n')
 

@@ -1,3 +1,7 @@
+3.0.8 (2019-10-08)
+------------------
+* add encoding & encoding_errors arguments to cat()
+
 3.0.7 (2019-10-01)
 ------------------
 * add separators argument to parse_smart()
