@@ -1328,6 +1328,10 @@ class state_pattern(TextOp):
                         g = m.groupdict()
                         if autostrip:
                             g = dict([ (k,v.strip() if isinstance(v,str) else v) for k,v in list(m.groupdict().items()) ])
+                        # replace None values by NoAttr so dotted notation can be used when a named group does not match anything.
+                        for k,v in g.items():
+                            if v is None:
+                                g[k] = NoAttr
                         groups_context.update(g,_ifstate=ifstate,_gotostate=gotostate,_state=state)
                         logger.debug('  -> OK')
                         logger.debug('    context = %s',groups_context)
