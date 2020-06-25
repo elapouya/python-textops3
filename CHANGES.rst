@@ -1,3 +1,8 @@
+3.1.0 (2020-06-25)
+------------------
+* add TupleExt
+* DictExt now support pickle
+
 3.0.8 (2019-10-08)
 ------------------
 * add encoding & encoding_errors arguments to cat()

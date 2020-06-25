@@ -351,7 +351,7 @@ class cutca(cut):
     @classmethod
     def split(cls, text, sep, *args,**kwargs):
         m = sep.match(text)
-        return m.groups() if m else []
+        return list(m.groups()) if m else []
 
 class cutm(cut):
     r""" Extract exactly one column by using :func:`re.match`

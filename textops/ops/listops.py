@@ -53,10 +53,10 @@ class grep(TextOp):
         >>> input | grep('error|warning').tolist()
         ['error1', 'error2', 'warning1', 'warning2']
         >>> input | cutca(r'(\D+)(\d+)')                         #doctest: +NORMALIZE_WHITESPACE
-        [('error', '1'), ('error', '2'), ('warning', '1'),
-        ('info', '1'), ('warning', '2'), ('info', '2')]
+        [['error', '1'], ['error', '2'], ['warning', '1'],
+        ['info', '1'], ['warning', '2'], ['info', '2']]
         >>> input | cutca(r'(\D+)(\d+)').grep('1',1).tolist()
-        [('error', '1'), ('warning', '1'), ('info', '1')]
+        [['error', '1'], ['warning', '1'], ['info', '1']]
         >>> input | cutdct(r'(?P<level>\D+)(?P<nb>\d+)')  #doctest: +NORMALIZE_WHITESPACE
         [{'level': 'error', 'nb': '1'}, {'level': 'error', 'nb': '2'},
         {'level': 'warning', 'nb': '1'}, {'level': 'info', 'nb': '1'},
@@ -829,7 +829,7 @@ class first(TextOp):
         >>> ['a','b','c'] | first()
         'a'
         >>> [('a',1),('b',2),('c',3)] | first()
-        ['a', 1]
+        ('a', 1)
         >>> [['key1','val1','help1'],['key2','val2','help2']] | first()
         ['key1', 'val1', 'help1']
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | first()
@@ -853,7 +853,7 @@ class last(TextOp):
         >>> ['a','b','c'] | last()
         'c'
         >>> [('a',1),('b',2),('c',3)] | last()
-        ['c', 3]
+        ('c', 3)
         >>> [['key1','val1','help1'],['key2','val2','help2']] | last()
         ['key2', 'val2', 'help2']
         >>> [{'key':'a','val':1},{'key':'b','val':2},{'key':'c','val':3}] | last()

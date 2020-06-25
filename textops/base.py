@@ -498,7 +498,10 @@ def extend_type(obj):
     elif isinstance(obj,str):
         if not isinstance(obj,StrExt):
             return StrExt(obj)
-    elif isinstance(obj,(list,tuple,abc.ItemsView,abc.KeysView,abc.ValuesView)):
+    elif isinstance(obj, tuple):
+        if not isinstance(obj, TupleExt):
+            return TupleExt(obj)  # mandatory to have pickle working on DictExt
+    elif isinstance(obj,(list,abc.ItemsView,abc.KeysView,abc.ValuesView)):
         if not isinstance(obj,ListExt):
             return ListExt(obj)
     elif isinstance(obj,dict):
@@ -779,6 +782,72 @@ class StrExt(str):
     def _ipython_display_(self):
         print(self.__repr__())
 
+
+class TupleExt(tuple):
+    """Extend tuple class to gain access to textops as attributes
+
+    In addition, all tuple items are extended on-the-fly when accessed
+
+    Examples:
+
+        >>> ('normal','list').grep('t')
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'tuple' object has no attribute 'grep'
+
+        >>> TupleExt(('extended','list')).grep('t')
+        ['extended', 'list']
+
+        Note: grep() returns a list
+    """
+    def __getattribute__(self, name):
+        return get_attribute_or_textop(self,name)
+    @property
+    def as_tuple(self):
+        """ Convert to TupleExt object """
+        return self
+    def __getslice__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__getslice__(*args, **kwargs))
+    def __getitem__(self,key,*args, **kwargs):
+        try:
+            return extend_type(super().__getitem__(key,*args, **kwargs))
+        except IndexError:
+            return NoAttr
+    def __add__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__add__(*args, **kwargs))
+    def __mul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__mul__(*args, **kwargs))
+    def __iadd__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__iadd__(*args, **kwargs))
+    def __imul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__imul__(*args, **kwargs))
+    def __rmul__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__rmul__(*args, **kwargs))
+    def __format__(self,*args, **kwargs):
+        return extend_type(super(ListExt, self).__format__(*args, **kwargs))
+    def __iter__(self):
+        return TupleExtIterator(self)
+    def _ipython_display_(self):
+        print(self.__repr__())
+
+class TupleExtIterator(object):
+    def __init__(self, obj):
+        self.obj = obj
+        self.index = -1
+        self.len = len(obj)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.index += 1
+        if self.index < self.len:
+            # Will call extend_type() because __getitem__ do it :
+            return self.obj[self.index]
+        else:
+            raise StopIteration
+
+
 class ListExt(list):
     """Extend list class to gain access to textops as attributes
 
@@ -865,7 +934,7 @@ class DictExt(NoAttrDict):
         AttributeError: 'dict_items' object has no attribute 'grep'
 
         >>> DictExt({'a':1,'b':2}).items().grep('a')
-        [['a', 1]]
+        [('a', 1)]
 
         >>> d = DictExt({ 'this' : { 'is' : { 'a' : {'very deep' : { 'dict' : 'yes it is'}}}}})
         >>> print(d.this['is'].a['very deep'].dict)
