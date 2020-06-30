@@ -595,7 +595,7 @@ def add_textop(class_or_func):
     return op
 
 def add_textop_iter(func):
-    """Decorator to declare custom *ITER* function as a new textops op
+    r"""Decorator to declare custom *ITER* function as a new textops op
 
     An *ITER* function is a function that will receive the input text as a *LIST* of lines.
     One have to iterate over this list and generate a result (it can be a list, a generator,

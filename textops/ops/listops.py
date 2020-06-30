@@ -418,19 +418,19 @@ class wcount(TextOp):
         for line in cls._tolist(text):
             try:
                 if isinstance(line,str):
-                    words = re.split('\s+',line.strip())
+                    words = re.split(r'\s+',line.strip())
                 elif isinstance(line,list):
                     if key is None:
                         words = line
                     else:
-                        words = re.split('\s+',stru(line[key]).strip())
+                        words = re.split(r'\s+',stru(line[key]).strip())
                 elif isinstance(line,dict):
                     if key is None:
                         words = list(line.values())
                     else:
-                        words = re.split('\s+',stru(line[key]).strip())
+                        words = re.split(r'\s+',stru(line[key]).strip())
                 else:
-                    words = re.split('\s+',stru(line).strip())
+                    words = re.split(r'\s+',stru(line).strip())
 
                 for word in words:
                     if bool(regex.search(stru(word))) != cls.reverse:  # kind of XOR with cls.reverse
