@@ -121,7 +121,9 @@ class toliste(TextOp):
         []
     """
     @classmethod
-    def fn(cls, text, return_if_none=[],*args,**kwargs):
+    def fn(cls, text, return_if_none=None,*args,**kwargs):
+        if return_if_none is None:
+            return_if_none = []
         return TextOp.make_list(text,return_if_none)
 
 class toint(TextOp):
