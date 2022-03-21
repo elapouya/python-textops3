@@ -16,7 +16,7 @@ import string
 import logging
 import pprint
 import chardet
-from collections import Callable, abc
+from collections import abc
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -692,7 +692,7 @@ def get_attribute_or_textop(obj,name):
             def fn(*args,**kwargs):
                 return [getattr(str if isinstance(s,str) else str, name)(s,*args,**kwargs) for s in obj]
 
-    if not isinstance(fn, Callable):
+    if not isinstance(fn, abc.Callable):
         return fn
 
     def wrapper(*args, **kwargs):
@@ -1035,7 +1035,7 @@ class DefaultDict(dict):
         try:
             return super(DefaultDict,self).__getitem__(key)
         except KeyError:
-            if isinstance(self.defvalue, Callable):
+            if isinstance(self.defvalue, abc.Callable):
                 return self.defvalue(key)
             return self.defvalue
 
@@ -1047,7 +1047,7 @@ class DefaultList(list):
         try:
             return super(DefaultList,self).__getitem__(key)
         except IndexError:
-            if isinstance(self.defvalue, Callable):
+            if isinstance(self.defvalue, abc.Callable):
                 return self.defvalue(key)
             return self.defvalue
 

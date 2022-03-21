@@ -475,7 +475,7 @@ class parsekv(TextOp):
                     if key:
                         if key_update is None:
                             key_norm = index_normalize(key)
-                        elif isinstance(key_update, collections.Callable):
+                        elif isinstance(key_update, collections.abc.Callable):
                             key_norm = key_update(key)
                         else:
                             key_norm = key
@@ -1363,7 +1363,7 @@ class state_pattern(TextOp):
                                         data[p] = {}
                                     data = data[p]
 
-                            if isinstance(outfilter, collections.Callable):
+                            if isinstance(outfilter, collections.abc.Callable):
                                 g,new_groups_context=outfilter(m,groups_context)
                                 if new_groups_context is not None:
                                     groups_context = new_groups_context

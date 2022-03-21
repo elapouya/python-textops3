@@ -1480,12 +1480,12 @@ class linetester(TextOp):
         castfn = cls.castfn(*args,**kwargs)
 
         if key is not None:
-            if isinstance(key, collections.Callable):
+            if isinstance(key, collections.abc.Callable):
                 getkey = lambda l:key(StrExt(l))
             else:
                 getkey = lambda l:l[key]
         elif attr is not None:
-            if isinstance(attr, collections.Callable):
+            if isinstance(attr, collections.abc.Callable):
                 getkey = lambda l: attr(StrExt(l))
             else:
                 getkey = lambda l: getattr(l,attr)
@@ -2537,7 +2537,7 @@ class aggregate(TextOp):
         prev_key=None
         for line in cls._tolist(text):
             key = None
-            if isinstance(having, collections.Callable):
+            if isinstance(having, collections.abc.Callable):
                 key,msg = having(buffer,line)
             else:
                 m = having.match(line)
