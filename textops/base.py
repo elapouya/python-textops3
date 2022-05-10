@@ -15,7 +15,10 @@ from addicted import NoAttrDict, NoAttr
 import string
 import logging
 import pprint
-import chardet
+try:
+    import cchardet as chardet
+except ImportError:
+    import chardet
 from collections import abc
 pp = pprint.PrettyPrinter(indent=4)
 
